@@ -1,7 +1,7 @@
 Summary: A GNU collection of binary utilities.
 Name: binutils
 Version: 2.18.50.0.6
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -14,6 +14,8 @@ Patch5: binutils-2.18.50.0.6-build-fixes.patch
 Patch6: binutils-2.18.50.0.6-symbolic-envvar-revert.patch
 Patch7: binutils-2.18.50.0.6-version.patch
 Patch8: binutils-2.18.50.0.6-pclmul.patch
+Patch9: binutils-2.18.50.0.6-spu_ovl-fatal.patch
+Patch10: binutils-2.18.50.0.6-spu_ovl-dependency.patch
 
 Buildroot: %{_tmppath}/binutils-root
 BuildRequires: texinfo >= 4.0, dejagnu, gettext, flex, bison
@@ -67,6 +69,10 @@ to consider using libelf instead of BFD.
 %patch6 -p0 -b .symbolic-envvar-revert~
 %patch7 -p0 -b .version~
 %patch8 -p0 -b .pclmul~
+%patch9 -p0 -b .spu_ovl-fatal~
+%patch10 -p0 -b .spu_ovl-dependency~
+
+# We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
 # On ppc64 we might use 64K pages
 sed -i -e '/#define.*ELF_COMMONPAGESIZE/s/0x1000$/0x10000/' bfd/elf*ppc.c
@@ -82,15 +88,34 @@ fi
 touch */configure
 
 %build
+CARGS=
+
+%ifarch sparc ppc s390
+CARGS="$CARGS --enable-64-bit-bfd"
+%endif
+
+%ifarch ia64
+CARGS="$CARGS --enable-targets=i386-linux"
+%endif
+
+%ifarch ppc ppc64
+CARGS="$CARGS --enable-targets=spu"
+# This file is present in CVS but missing in H. J. Lu's snapshots.
+# To include it for --enable-targets=spu we need to build gas by --target=spu.
+! test -f ld/emultempl/spu_ovl.o
+mkdir build-spu
+cd build-spu
+CFLAGS="${CFLAGS:-%optflags} -O0 -s" ../configure \
+  --target=spu --disable-shared --enable-static --disable-werror \
+  --with-bugurl=http://bugzilla.redhat.com/bugzilla/
+make %{_smp_mflags} all
+cd ..
+test -f ld/emultempl/spu_ovl.o
+rm -rf build-spu
+%endif
+
 mkdir build-%{_target_platform}
 cd build-%{_target_platform}
-CARGS=
-%ifarch sparc ppc s390
-CARGS=--enable-64-bit-bfd
-%endif
-%ifarch ia64
-CARGS=--enable-targets=i386-linux
-%endif
 CC="gcc -L`pwd`/bfd/.libs/" CFLAGS="${CFLAGS:-%optflags}" ../configure \
   %{_target_platform} --prefix=%{_prefix} --exec-prefix=%{_exec_prefix} \
   --bindir=%{_bindir} --sbindir=%{_sbindir} --sysconfdir=%{_sysconfdir} \
@@ -225,6 +250,9 @@ fi
 %{_infodir}/bfd*info*
 
 %changelog
+* Thu Jul 31 2008 Jan Kratochvil <jan.kratochvil@redhat.com> 2.18.50.0.6-5
+- Enable the spu target on ppc/ppc64 (BZ 455242).
+
 * Wed Jul 16 2008 Jan Kratochvil <jan.kratochvil@redhat.com> 2.18.50.0.6-4
 - include the `dist' tag in the Release number
 - libbfd.a symbols visibility is now hidden (for #447426, suggested by Jakub)
