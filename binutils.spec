@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.18.50.0.9
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -33,6 +33,7 @@ Patch11: binutils-2.18.50.0.9-largefile.patch
 Patch12: binutils-2.18.50.0.9-set-long-long.patch
 Patch13: binutils-2.18.50.0.9-upstream.patch
 Patch14: binutils-2.18.50.0.9-linkonce-r-discard.patch
+Patch15: binutils-2.18.50.0.9-gcc_except_table.patch
 
 %if 0%{?_with_debug:1}
 # Define this if you want to skip the strip step and preserve debug info.
@@ -106,6 +107,7 @@ to consider using libelf instead of BFD.
 %patch12 -p0 -b .set-long-long~
 %patch13 -p0 -b .upstream~
 %patch14 -p0 -b .linkonce-r-discard~
+%patch15 -p0 -b .gcc_except_table~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -349,6 +351,9 @@ fi
 %endif # %{isnative}
 
 %changelog
+* Mon Feb  2 2009 Jan Kratochvil <jan.kratochvil@redhat.com> 2.18.50.0.9-8
+- Fix .eh_frame_hdr build also for .gcc_except_table LSDA refs (BZ 461675).
+
 * Thu Oct 30 2008 Jan Kratochvil <jan.kratochvil@redhat.com> 2.18.50.0.9-7
 - Fix %%{_prefix}/include/bfd.h on 32-bit hosts due the 64-bit BFD target
   support from 2.18.50.0.8-2 (BZ 468495).
