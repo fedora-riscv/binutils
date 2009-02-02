@@ -1,7 +1,7 @@
 Summary: A GNU collection of binary utilities.
 Name: binutils
 Version: 2.18.50.0.6
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -17,6 +17,7 @@ Patch8: binutils-2.18.50.0.6-pclmul.patch
 Patch9: binutils-2.18.50.0.6-spu_ovl-fatal.patch
 Patch10: binutils-2.18.50.0.6-spu_ovl-dependency.patch
 Patch14: binutils-2.18.50.0.9-eh_frame_hdr.patch
+Patch15: binutils-2.18.50.0.6-gcc_except_table.patch
 
 Buildroot: %{_tmppath}/binutils-root
 BuildRequires: texinfo >= 4.0, dejagnu, gettext, flex, bison
@@ -73,6 +74,7 @@ to consider using libelf instead of BFD.
 %patch9 -p0 -b .spu_ovl-fatal~
 %patch10 -p0 -b .spu_ovl-dependency~
 %patch14 -p0 -b .eh_frame_hdr~
+%patch15 -p0 -b .gcc_except_table~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -252,6 +254,9 @@ fi
 %{_infodir}/bfd*info*
 
 %changelog
+* Mon Feb  2 2009 Jan Kratochvil <jan.kratochvil@redhat.com> 2.18.50.0.6-7
+- Fix .eh_frame_hdr build also for .gcc_except_table LSDA refs (BZ 461675).
+
 * Sun Sep 21 2008 Jan Kratochvil <jan.kratochvil@redhat.com> 2.18.50.0.6-6
 - Fix .eh_frame_hdr build on C++ files with discarded common groups (BZ 458950).
 
