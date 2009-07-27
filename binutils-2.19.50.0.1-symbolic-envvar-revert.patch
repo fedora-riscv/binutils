@@ -1,24 +1,37 @@
-It reverts the H.J. Lu's binutils custom patch.
-
-Index: ld/NEWS
-===================================================================
---- ld/NEWS.orig	2009-02-04 19:21:50.000000000 +0100
-+++ ld/NEWS	2009-02-23 16:18:35.000000000 +0100
-@@ -26,9 +26,6 @@
-   For the switch --enable-runtime-pseudo-reloc it uses for 32-bit
-   runtime pseudo relocation version one, for 64-bit the version two.
+diff -rup ../binutils-2.19.51.0.10.orig/ld/ldmain.c ./ld/ldmain.c
+--- ../binutils-2.19.51.0.10.orig/ld/ldmain.c	2009-06-22 15:56:54.000000000 +0100
++++ ./ld/ldmain.c	2009-06-22 16:05:54.000000000 +0100
+@@ -256,14 +256,6 @@ main (int argc, char **argv)
+   command_line.warn_search_mismatch = TRUE;
+   command_line.check_section_addresses = -1;
  
--* ELF: Support environment variables, LD_SYMBOLIC for -Bsymbolic and
--  LD_SYMBOLIC_FUNCTIONS for -Bsymbolic-functions.
+-  if (getenv ("LD_SYMBOLIC") != NULL)
+-    command_line.symbolic = symbolic;
+-  else if (getenv ("LD_SYMBOLIC_FUNCTIONS") != NULL)
+-    command_line.symbolic = symbolic_functions;
 -
- Changes in 2.19:
+-  if (getenv ("LD_AS_NEEDED") != NULL)
+-    as_needed = TRUE;
+-
+   /* We initialize DEMANGLING based on the environment variable
+      COLLECT_NO_DEMANGLE.  The gcc collect2 program will demangle the
+      output of the linker, unless COLLECT_NO_DEMANGLE is set in the
+diff -rup ../binutils-2.19.51.0.10.orig/ld/ld.texinfo ./ld/ld.texinfo
+--- ../binutils-2.19.51.0.10.orig/ld/ld.texinfo	2009-06-22 15:56:53.000000000 +0100
++++ ./ld/ld.texinfo	2009-06-22 16:05:42.000000000 +0100
+@@ -1118,10 +1118,7 @@ for a library that satisfies a symbol re
+ which is undefined at the point that the library was linked, or, if
+ the library is not found in the DT_NEEDED lists of other libraries
+ linked up to that point, a reference from another dynamic library.
+-@option{--no-as-needed} restores the default behaviour.  If the
+-environment variable @code{LD_AS_NEEDED} is set, the linker will
+-behave as if the @option{--as-needed} option is passed to the linker as
+-the first command line option.
++@option{--no-as-needed} restores the default behaviour.
  
- * Linker scripts support a new INSERT command that makes it easier to
-Index: ld/ld.texinfo
-===================================================================
---- ld/ld.texinfo.orig	2009-02-04 19:21:50.000000000 +0100
-+++ ld/ld.texinfo	2009-02-23 16:18:06.000000000 +0100
-@@ -1163,21 +1163,14 @@ When creating a shared library, bind ref
+ @kindex --add-needed
+ @kindex --no-add-needed
+@@ -1185,21 +1182,14 @@ When creating a shared library, bind ref
  definition within the shared library, if any.  Normally, it is possible
  for a program linked against a shared library to override the definition
  within the shared library.  This option is only meaningful on ELF
@@ -42,19 +55,18 @@ Index: ld/ld.texinfo
  
  @kindex --dynamic-list=@var{dynamic-list-file}
  @item --dynamic-list=@var{dynamic-list-file}
-Index: ld/ldmain.c
-===================================================================
---- ld/ldmain.c.orig	2009-02-04 19:21:50.000000000 +0100
-+++ ld/ldmain.c	2009-02-23 16:19:01.000000000 +0100
-@@ -256,11 +256,6 @@ main (int argc, char **argv)
-   command_line.warn_search_mismatch = TRUE;
-   command_line.check_section_addresses = -1;
+diff -rup ../binutils-2.19.51.0.10.orig/ld/NEWS ./ld/NEWS
+--- ../binutils-2.19.51.0.10.orig/ld/NEWS	2009-06-22 15:56:54.000000000 +0100
++++ ./ld/NEWS	2009-06-22 16:04:15.000000000 +0100
+@@ -55,11 +55,6 @@
+   For the switch --enable-runtime-pseudo-reloc it uses for 32-bit
+   runtime pseudo relocation version one, for 64-bit the version two.
  
--  if (getenv ("LD_SYMBOLIC") != NULL)
--    command_line.symbolic = symbolic;
--  else if (getenv ("LD_SYMBOLIC_FUNCTIONS") != NULL)
--    command_line.symbolic = symbolic_functions;
+-* ELF: Support environment variable LD_AS_NEEDED for --as-needed.
 -
-   /* We initialize DEMANGLING based on the environment variable
-      COLLECT_NO_DEMANGLE.  The gcc collect2 program will demangle the
-      output of the linker, unless COLLECT_NO_DEMANGLE is set in the
+-* ELF: Support environment variables, LD_SYMBOLIC for -Bsymbolic and
+-  LD_SYMBOLIC_FUNCTIONS for -Bsymbolic-functions.
+-
+ Changes in 2.19:
+ 
+ * Linker scripts support a new INSERT command that makes it easier to
