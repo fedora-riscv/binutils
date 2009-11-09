@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.19.51.0.14
-Release: 34%{?dist}
+Release: 35%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -34,6 +34,7 @@ Patch09: binutils-2.19.51.0.11-moxie.patch
 Patch10: binutils-2.19.51.0.14-unique-is-global.patch
 Patch11: binutils-2.19.51.0.14-cxxfilt-java-doc.patch
 Patch12: binutils-2.19.51.0.14-cfi-sections.patch
+Patch13: binutils-2.19.51.0.14-ifunc-ld-s.patch
 
 %if 0%{?_with_debug:1}
 # Define this if you want to skip the strip step and preserve debug info.
@@ -109,6 +110,7 @@ to consider using libelf instead of BFD.
 %patch10 -p0 -b .unique-is-global~
 %patch11 -p0 -b .cxxfilt-java-doc~
 %patch12 -p0 -b .cfi-sections~
+%patch13 -p0 -b .ifunc-ld-s~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -376,6 +378,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Nov  9 2009 Jakub Jelinek <jakub@redhat.com> 2.19.51.0.14-35
+- Fix ld -s with IRELATIVE relocations.  (BZ 533321, PR ld/10911)
+
 * Tue Oct 27 2009 Jan Kratochvil <jan.kratochvil@redhat.com> 2.19.51.0.14-34
 - Fix rpm --excludedocs (BZ 515922).
 - Fix spurious scriplet errors by `exit 0'. (BZ 517979, Nick Clifton)
