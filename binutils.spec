@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.19.51.0.14
-Release: 35%{?dist}
+Release: 36%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -35,6 +35,7 @@ Patch10: binutils-2.19.51.0.14-unique-is-global.patch
 Patch11: binutils-2.19.51.0.14-cxxfilt-java-doc.patch
 Patch12: binutils-2.19.51.0.14-cfi-sections.patch
 Patch13: binutils-2.19.51.0.14-ifunc-ld-s.patch
+Patch14: binutils-2.19.51.0.14-ppc-hidden-plt-relocs.patch
 
 %if 0%{?_with_debug:1}
 # Define this if you want to skip the strip step and preserve debug info.
@@ -111,6 +112,7 @@ to consider using libelf instead of BFD.
 %patch11 -p0 -b .cxxfilt-java-doc~
 %patch12 -p0 -b .cfi-sections~
 %patch13 -p0 -b .ifunc-ld-s~
+%patch14 -p0 -b .ppc-plt-s~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -378,6 +380,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Feb  8 2010 Nick Clifton <nickc@redhat.com> 2.19.51.0.14-36
+- Fix PPC relaxation relocations.  (BZ 562249, PR ld/11088)
+
 * Mon Nov  9 2009 Jakub Jelinek <jakub@redhat.com> 2.19.51.0.14-35
 - Fix ld -s with IRELATIVE relocations.  (BZ 533321, PR ld/10911)
 
