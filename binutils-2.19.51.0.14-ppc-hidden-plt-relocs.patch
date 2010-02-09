@@ -282,20 +282,6 @@ diff -rup ../binutils-2.19.51.0.14.original/bfd/elf32-ppc.c bfd/elf32-ppc.c
  	  {
  	    unsigned long t0;
  	    unsigned long t1;
-diff -rup ../binutils-2.19.51.0.14.original/bfd/elf64-ppc.c bfd/elf64-ppc.c
---- ../binutils-2.19.51.0.14.original/bfd/elf64-ppc.c	2010-02-08 15:39:17.000000000 +0000
-+++ bfd/elf64-ppc.c	2010-02-08 16:02:47.000000000 +0000
-@@ -5640,9 +5640,7 @@ ppc64_elf_gc_sweep_hook (bfd *abfd, stru
- 	      for (ent = *ifunc; ent != NULL; ent = ent->next)
- 		if (ent->addend == rel->r_addend)
- 		  break;
--	      if (ent == NULL)
--		abort ();
--	      if (ent->plt.refcount > 0)
-+	      if (ent != NULL && ent->plt.refcount > 0)
- 		ent->plt.refcount -= 1;
- 	      continue;
- 	    }
 diff -rup ../binutils-2.19.51.0.14.original/include/elf/ppc.h include/elf/ppc.h
 --- ../binutils-2.19.51.0.14.original/include/elf/ppc.h	2010-02-08 15:39:06.000000000 +0000
 +++ include/elf/ppc.h	2010-02-08 16:47:05.000000000 +0000
@@ -313,3 +299,27 @@ diff -rup ../binutils-2.19.51.0.14.original/include/elf/ppc.h include/elf/ppc.h
  #endif
  
    /* Relocs added to support TLS.  */
+--- ../binutils-2.19.51.0.14.original/bfd/elf64-ppc.c	2010-02-08 15:39:17.000000000 +0000
++++ bfd/elf64-ppc.c	2010-02-09 15:36:43.000000000 +0000
+@@ -5640,9 +5640,7 @@ ppc64_elf_gc_sweep_hook (bfd *abfd, stru
+ 	      for (ent = *ifunc; ent != NULL; ent = ent->next)
+ 		if (ent->addend == rel->r_addend)
+ 		  break;
+-	      if (ent == NULL)
+-		abort ();
+-	      if (ent->plt.refcount > 0)
++	      if (ent != NULL && ent->plt.refcount > 0)
+ 		ent->plt.refcount -= 1;
+ 	      continue;
+ 	    }
+@@ -5721,9 +5719,7 @@ ppc64_elf_gc_sweep_hook (bfd *abfd, stru
+ 	      for (ent = h->plt.plist; ent != NULL; ent = ent->next)
+ 		if (ent->addend == rel->r_addend)
+ 		  break;
+-	      if (ent == NULL)
+-		abort ();
+-	      if (ent->plt.refcount > 0)
++	      if (ent != NULL && ent->plt.refcount > 0)
+ 		ent->plt.refcount -= 1;
+ 	    }
+ 	  break;

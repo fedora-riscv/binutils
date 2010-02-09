@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.19.51.0.14
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -345,6 +345,9 @@ fi
 %endif # %{isnative}
 
 %changelog
+* Tue Feb  9 2010 Nick Clifton <nickc@redhat.com> 2.19.51.0.14-3
+- Add missing frag to BZ 562249 patch.
+
 * Tue Feb  9 2010 Nick Clifton <nickc@redhat.com> 2.19.51.0.14-2
 - Fix PPC relaxation relocations.  (BZ 562249, PR ld/11088)
 
