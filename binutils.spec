@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.19.51.0.14
-Release: 36%{?dist}
+Release: 37%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -112,7 +112,7 @@ to consider using libelf instead of BFD.
 %patch11 -p0 -b .cxxfilt-java-doc~
 %patch12 -p0 -b .cfi-sections~
 %patch13 -p0 -b .ifunc-ld-s~
-%patch14 -p0 -b .ppc-plt-s~
+%patch14 -p0 -b .ppc-plt~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -380,6 +380,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Feb  9 2010 Nick Clifton <nickc@redhat.com> 2.19.51.0.14-37
+- Add missing frag to BZ 562249 patch.
+
 * Mon Feb  8 2010 Nick Clifton <nickc@redhat.com> 2.19.51.0.14-36
 - Fix PPC relaxation relocations.  (BZ 562249, PR ld/11088)
 
