@@ -1,0 +1,154 @@
+*** ../binutils-2.19.51.0.14-copy-patched/binutils/doc/binutils.texi	2010-03-01 14:31:11.000000000 +0000
+--- binutils/doc/binutils.texi	2010-03-01 16:23:00.000000000 +0000
+*************** distribution and the second a debugging 
+*** 1541,1546 ****
+--- 1541,1587 ----
+  needed if debugging abilities are required.  The suggested procedure
+  to create these files is as follows:
+  
++ @enumerate
++ @item
++ Link the executable as normal.  Assuming that it is called
++ @code{foo} then...
++ @item
++ Run @code{objcopy --only-keep-debug foo foo.dbg} to
++ create a file containing the debugging info.
++ @item
++ Run @code{objcopy --strip-debug foo} to create a
++ stripped executable.
++ @item
++ Run @code{objcopy --add-gnu-debuglink=foo.dbg foo}
++ to add a link to the debugging info into the stripped executable.
++ @end enumerate
++ 
++ Note---the choice of @code{.dbg} as an extension for the debug info
++ file is arbitrary.  Also the @code{--only-keep-debug} step is
++ optional.  You could instead do this:
++ 
++ @enumerate
++ @item
++ Link the executable as normal.
++ @item
++ Copy @code{foo} to  @code{foo.full}
++ @item
++ Run @code{objcopy --strip-debug foo}
++ @item
++ Run @code{objcopy --add-gnu-debuglink=foo.full foo}
++ @end enumerate
++ 
++ i.e., the file pointed to by the @option{--add-gnu-debuglink} can be the
++ full executable.  It does not have to be a file created by the
++ @option{--only-keep-debug} switch.
++ 
++ Note---this switch is only intended for use on fully linked files.  It
++ does not make sense to use it on object files where the debugging
++ information may be incomplete.  Besides the gnu_debuglink feature
++ currently only supports the presence of one filename containing
++ debugging information, not multiple filenames on a one-per-object-file
++ basis.
++ 
+  @item --file-alignment @var{num}
+  Specify the file alignment.  Sections in the file will always begin at
+  file offsets which are multiples of this number.  This defaults to
+*************** the subsystem version also.  Numeric val
+*** 1584,1622 ****
+  @var{which}.
+  [This option is specific to PE targets.]
+  
+- @enumerate
+- @item Link the executable as normal.  Assuming that is is called
+- @code{foo} then...
+- @item Run @code{objcopy --only-keep-debug foo foo.dbg} to
+- create a file containing the debugging info.
+- @item Run @code{objcopy --strip-debug foo} to create a
+- stripped executable.
+- @item Run @code{objcopy --add-gnu-debuglink=foo.dbg foo}
+- to add a link to the debugging info into the stripped executable.
+- @end enumerate
+- 
+- Note---the choice of @code{.dbg} as an extension for the debug info
+- file is arbitrary.  Also the @code{--only-keep-debug} step is
+- optional.  You could instead do this:
+- 
+- @enumerate
+- @item Link the executable as normal.
+- @item Copy @code{foo} to  @code{foo.full}
+- @item Run @code{objcopy --strip-debug foo}
+- @item Run @code{objcopy --add-gnu-debuglink=foo.full foo}
+- @end enumerate
+- 
+- i.e., the file pointed to by the @option{--add-gnu-debuglink} can be the
+- full executable.  It does not have to be a file created by the
+- @option{--only-keep-debug} switch.
+- 
+- Note---this switch is only intended for use on fully linked files.  It
+- does not make sense to use it on object files where the debugging
+- information may be incomplete.  Besides the gnu_debuglink feature
+- currently only supports the presence of one filename containing
+- debugging information, not multiple filenames on a one-per-object-file
+- basis.
+- 
+  @item --extract-symbol
+  Keep the file's section flags and symbols but remove all section data.
+  Specifically, the option:
+--- 1625,1630 ----
+*************** needed if debugging abilities are requir
+*** 2650,2662 ****
+  to create these files is as follows:
+  
+  @enumerate
+! @item Link the executable as normal.  Assuming that is is called
+  @code{foo} then...
+! @item Run @code{objcopy --only-keep-debug foo foo.dbg} to
+  create a file containing the debugging info.
+! @item Run @code{objcopy --strip-debug foo} to create a
+  stripped executable.
+! @item Run @code{objcopy --add-gnu-debuglink=foo.dbg foo}
+  to add a link to the debugging info into the stripped executable.
+  @end enumerate
+  
+--- 2658,2674 ----
+  to create these files is as follows:
+  
+  @enumerate
+! @item
+! Link the executable as normal.  Assuming that it is called
+  @code{foo} then...
+! @item
+! Run @code{objcopy --only-keep-debug foo foo.dbg} to
+  create a file containing the debugging info.
+! @item
+! Run @code{objcopy --strip-debug foo} to create a
+  stripped executable.
+! @item
+! Run @code{objcopy --add-gnu-debuglink=foo.dbg foo}
+  to add a link to the debugging info into the stripped executable.
+  @end enumerate
+  
+*************** file is arbitrary.  Also the @code{--onl
+*** 2665,2674 ****
+  optional.  You could instead do this:
+  
+  @enumerate
+! @item Link the executable as normal.
+! @item Copy @code{foo} to @code{foo.full}
+! @item Run @code{strip --strip-debug foo}
+! @item Run @code{objcopy --add-gnu-debuglink=foo.full foo}
+  @end enumerate
+  
+  i.e., the file pointed to by the @option{--add-gnu-debuglink} can be the
+--- 2677,2690 ----
+  optional.  You could instead do this:
+  
+  @enumerate
+! @item
+! Link the executable as normal.
+! @item
+! Copy @code{foo} to @code{foo.full}
+! @item
+! Run @code{strip --strip-debug foo}
+! @item
+! Run @code{objcopy --add-gnu-debuglink=foo.full foo}
+  @end enumerate
+  
+  i.e., the file pointed to by the @option{--add-gnu-debuglink} can be the
