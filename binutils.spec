@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.20.51.0.2
-Release: 15%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -37,6 +37,8 @@ Patch11: binutils-2.20.51.0.2-enable-gold.patch
 Patch12: binutils-2.20.51.0.2-gas-expr.patch
 Patch13: binutils-2.20.51.0.2-ppc-hidden-plt-relocs.patch
 Patch14: binutils-2.20.51.0.2-x86-hash-table.patch
+Patch15: binutils-2.20.51.0.2-copy-osabi.patch
+Patch16: binutils-2.20.51.0.2-do-not-set-ifunc.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -143,6 +145,8 @@ libelf instead of BFD.
 %patch12 -p0 -b .gas-expr~
 %patch13 -p0 -b .hidden-plt~
 %patch14 -p0 -b .hash-table~
+%patch15 -p0 -b .copy-osabi~
+%patch16 -p0 -b .no-ifunc~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -445,6 +449,12 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Mar   4 2010 Nick Clifton <nickc@redhat.com> - 2.20.51.0.2-17
+- Do not set ELFOSABI_LINUX on binaries which just link to IFUNC using DSOs.  (BZ 568941)
+
+* Tue Mar   2 2010 Nick Clifton <nickc@redhat.com> - 2.20.51.0.2-16
+- Copy the OSABI field in ELF headers, if set.  (BZ 568921)
+
 * Fri Feb  12 2010 Nick Clifton <nickc@redhat.com> - 2.20.51.0.2-15
 - Create separate static and devel sub-packages.  (BZ 556040)
 
