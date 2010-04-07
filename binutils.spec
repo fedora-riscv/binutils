@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.19.51.0.14
-Release: 39%{?dist}
+Release: 40%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -38,6 +38,7 @@ Patch13: binutils-2.19.51.0.14-ifunc-ld-s.patch
 Patch14: binutils-2.19.51.0.14-ppc-hidden-plt-relocs.patch
 Patch15: binutils-2.19.51.0.14-only-keep-debug-doc.patch
 Patch16: binutils-2.19.51.0.14-do-not-copy-ifunc.patch
+Patch17: binutils-2.19.51.0.14-do-not-bind-unique-symbols-locally.patch
 
 %if 0%{?_with_debug:1}
 # Define this if you want to skip the strip step and preserve debug info.
@@ -116,7 +117,8 @@ to consider using libelf instead of BFD.
 %patch13 -p0 -b .ifunc-ld-s~
 %patch14 -p0 -b .ppc-plt~
 %patch15 -p0 -b .keep-debug-doc~
-%patch16 -p0 -b .do-not-kepp-ifunc~
+%patch16 -p0 -b .do-not-keep-ifunc~
+%patch17 -p0 -b .do-not-bind-unique~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -384,6 +386,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Apr  7 2010 Nick Clifton <nickc@redhat.com> 2.19.51.0.14-40
+- Do not allow unique symbols to be bound locally.  (PR ld/11434)
+
 * Wed Apr  7 2010 Nick Clifton <nickc@redhat.com> 2.19.51.0.14-39
 - Do not set ELFOSABI_LINUX on binaries which just link to IFUNC using DSOs.  (BZ 568941)
 

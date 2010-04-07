@@ -1,0 +1,52 @@
+diff -rcp ../binutils-2.19.51.0.14.original/bfd/ChangeLog bfd/ChangeLog
+*** ../binutils-2.19.51.0.14.original/bfd/ChangeLog	2010-04-07 16:56:11.000000000 +0100
+--- bfd/ChangeLog	2010-04-07 16:59:38.000000000 +0100
+***************
+*** 1,7 ****
+  2010-04-07  Nick Clifton  <nickc@redhat.com>
+  
+  	BZ 568941
+! 	Import this patch from the mainline.
+  
+  	2010-02-18  H.J. Lu  <hongjiu.lu@intel.com>
+  
+--- 1,16 ----
+  2010-04-07  Nick Clifton  <nickc@redhat.com>
+  
++ 	Import this patch from the mainline:
++ 
++ 	2010-03-26  H.J. Lu  <hongjiu.lu@intel.com>
++ 
++ 	PR ld/11434
++ 	* elf-bfd.h (SYMBOLIC_BIND): Don't bind unique symbols locally.
++ 
++ 2010-04-07  Nick Clifton  <nickc@redhat.com>
++ 
+  	BZ 568941
+! 	Import this patch from the mainline:
+  
+  	2010-02-18  H.J. Lu  <hongjiu.lu@intel.com>
+  
+diff -rcp ../binutils-2.19.51.0.14.original/bfd/elf-bfd.h bfd/elf-bfd.h
+*** ../binutils-2.19.51.0.14.original/bfd/elf-bfd.h	2010-04-07 16:56:10.000000000 +0100
+--- bfd/elf-bfd.h	2010-04-07 16:57:50.000000000 +0100
+*************** extern asection _bfd_elf_large_com_secti
+*** 2290,2297 ****
+    while (0)
+  
+  /* Will a symbol be bound to the the definition within the shared
+!    library, if any.  */
+  #define SYMBOLIC_BIND(INFO, H) \
+!     ((INFO)->symbolic || ((INFO)->dynamic && !(H)->dynamic))
+  
+  #endif /* _LIBELF_H_ */
+--- 2290,2298 ----
+    while (0)
+  
+  /* Will a symbol be bound to the the definition within the shared
+!    library, if any.  A unique symbol can never be bound locally.  */
+  #define SYMBOLIC_BIND(INFO, H) \
+!   (! (H)->unique_global        \
+!    && ((INFO)->symbolic || ((INFO)->dynamic && !(H)->dynamic)))
+  
+  #endif /* _LIBELF_H_ */
