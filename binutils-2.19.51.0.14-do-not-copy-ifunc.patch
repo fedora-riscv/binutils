@@ -1,0 +1,114 @@
+diff -rcp ../binutils-2.19.51.0.14.original/bfd/ChangeLog bfd/ChangeLog
+*** ../binutils-2.19.51.0.14.original/bfd/ChangeLog	2010-04-07 15:20:57.000000000 +0100
+--- bfd/ChangeLog	2010-04-07 15:22:56.000000000 +0100
+***************
+*** 1,3 ****
+--- 1,16 ----
++ 2010-04-07  Nick Clifton  <nickc@redhat.com>
++ 
++ 	BZ 568941
++ 	Import this patch from the mainline.
++ 
++ 	2010-02-18  H.J. Lu  <hongjiu.lu@intel.com>
++ 
++ 	* elf32-i386.c (elf_i386_add_symbol_hook): Don't set
++ 	has_ifunc_symbols if the symbol comes from a shared library.
++ 	* elf32-ppc.c (ppc_elf_add_symbol_hook): Likewise.
++ 	* elf64-ppc.c (ppc64_elf_add_symbol_hook): Likewise.
++ 	* elf64-x86-64.c (elf64_x86_64_add_symbol_hook): Likewise.
++ 
+  2010-02-08  Nick Clifton  <nickc@redhat.com>
+  
+  	BZ 562249
+Only in bfd: ChangeLog.orig
+Only in bfd: ChangeLog.rej
+diff -rcp ../binutils-2.19.51.0.14.original/bfd/elf32-i386.c bfd/elf32-i386.c
+*** ../binutils-2.19.51.0.14.original/bfd/elf32-i386.c	2010-04-07 15:20:57.000000000 +0100
+--- bfd/elf32-i386.c	2010-04-07 15:21:44.000000000 +0100
+*************** elf_i386_add_symbol_hook (bfd * abfd ATT
+*** 4610,4616 ****
+  			  asection ** secp ATTRIBUTE_UNUSED,
+  			  bfd_vma * valp ATTRIBUTE_UNUSED)
+  {
+!   if (ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC)
+      elf_tdata (info->output_bfd)->has_ifunc_symbols = TRUE;
+  
+    return _bfd_elf_add_sharable_symbol (abfd, info, sym, namep, flagsp,
+--- 4610,4617 ----
+  			  asection ** secp ATTRIBUTE_UNUSED,
+  			  bfd_vma * valp ATTRIBUTE_UNUSED)
+  {
+!   if ((abfd->flags & DYNAMIC) == 0
+!       && ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC)
+      elf_tdata (info->output_bfd)->has_ifunc_symbols = TRUE;
+  
+    return _bfd_elf_add_sharable_symbol (abfd, info, sym, namep, flagsp,
+Only in bfd: elf32-i386.c.orig
+diff -rcp ../binutils-2.19.51.0.14.original/bfd/elf32-ppc.c bfd/elf32-ppc.c
+*** ../binutils-2.19.51.0.14.original/bfd/elf32-ppc.c	2010-04-07 15:20:57.000000000 +0100
+--- bfd/elf32-ppc.c	2010-04-07 15:21:44.000000000 +0100
+*************** ppc_elf_add_symbol_hook (bfd *abfd,
+*** 3121,3127 ****
+        *valp = sym->st_size;
+      }
+  
+!   if (ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC)
+      elf_tdata (info->output_bfd)->has_ifunc_symbols = TRUE;
+  
+    return TRUE;
+--- 3121,3128 ----
+        *valp = sym->st_size;
+      }
+  
+!   if ((abfd->flags & DYNAMIC) == 0
+!       && ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC)
+      elf_tdata (info->output_bfd)->has_ifunc_symbols = TRUE;
+  
+    return TRUE;
+Only in bfd: elf32-ppc.c.orig
+diff -rcp ../binutils-2.19.51.0.14.original/bfd/elf64-ppc.c bfd/elf64-ppc.c
+*** ../binutils-2.19.51.0.14.original/bfd/elf64-ppc.c	2010-04-07 15:20:57.000000000 +0100
+--- bfd/elf64-ppc.c	2010-04-07 15:21:44.000000000 +0100
+*************** ppc64_elf_add_symbol_hook (bfd *ibfd ATT
+*** 4420,4426 ****
+  			   bfd_vma *value ATTRIBUTE_UNUSED)
+  {
+    if (ELF_ST_TYPE (isym->st_info) == STT_GNU_IFUNC)
+!     elf_tdata (info->output_bfd)->has_ifunc_symbols = TRUE;
+    else if (ELF_ST_TYPE (isym->st_info) == STT_FUNC)
+      ;
+    else if (*sec != NULL
+--- 4420,4429 ----
+  			   bfd_vma *value ATTRIBUTE_UNUSED)
+  {
+    if (ELF_ST_TYPE (isym->st_info) == STT_GNU_IFUNC)
+!     {
+!       if ((ibfd->flags & DYNAMIC) == 0)
+! 	elf_tdata (info->output_bfd)->has_ifunc_symbols = TRUE;
+!     }
+    else if (ELF_ST_TYPE (isym->st_info) == STT_FUNC)
+      ;
+    else if (*sec != NULL
+Only in bfd: elf64-ppc.c.orig
+diff -rcp ../binutils-2.19.51.0.14.original/bfd/elf64-x86-64.c bfd/elf64-x86-64.c
+*** ../binutils-2.19.51.0.14.original/bfd/elf64-x86-64.c	2010-04-07 15:20:55.000000000 +0100
+--- bfd/elf64-x86-64.c	2010-04-07 15:21:44.000000000 +0100
+*************** elf64_x86_64_add_symbol_hook (bfd *abfd,
+*** 4259,4265 ****
+        return TRUE;
+      }
+  
+!   if (ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC)
+      elf_tdata (info->output_bfd)->has_ifunc_symbols = TRUE;
+  
+    return _bfd_elf_add_sharable_symbol (abfd, info, sym, namep, flagsp,
+--- 4259,4266 ----
+        return TRUE;
+      }
+  
+!   if ((abfd->flags & DYNAMIC) == 0
+!       && ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC)
+      elf_tdata (info->output_bfd)->has_ifunc_symbols = TRUE;
+  
+    return _bfd_elf_add_sharable_symbol (abfd, info, sym, namep, flagsp,
+Only in bfd: elf64-x86-64.c.orig
