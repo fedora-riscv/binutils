@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.20.51.0.2
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -42,6 +42,7 @@ Patch16: binutils-2.20.51.0.2-do-not-set-ifunc.patch
 Patch17: binutils-2.20.51.0.2-do-not-bind-unique-symbols-locally.patch
 Patch18: binutils-2.20.51.0.2-dwarf4.patch
 Patch19: binutils-2.20.51.0.2-unique-archive-symbols.patch
+Patch20: binutils-2.20.51.0.2-gold-add-needed.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -153,6 +154,7 @@ libelf instead of BFD.
 %patch17 -p0 -b .no-bind-unique~
 %patch18 -p0 -b .dwarf4~
 %patch19 -p0 -b .unique~
+%patch20 -p0 -b .gold-add-needed~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -455,6 +457,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue May   4 2010 Nick Clifton <nickc@redhat.com> - 2.20.51.0.2-20
+- Have gold linker ignore --add-needed command line options.
+
 * Tue May   4 2010 Nick Clifton <nickc@redhat.com> - 2.20.51.0.2-19
 - Allow unique symbols in archive maps.
 
