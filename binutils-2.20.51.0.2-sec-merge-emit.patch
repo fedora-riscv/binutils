@@ -1,0 +1,12 @@
+*** ../binutils-2.20.51.0.2.orig/bfd/merge.c	2010-08-20 13:23:10.000000000 +0100
+--- bfd/merge.c	2010-08-20 13:28:02.000000000 +0100
+*************** sec_merge_emit (bfd *abfd, struct sec_me
+*** 324,329 ****
+--- 324,330 ----
+    /* Trailing alignment needed?  */
+    off = sec->size - off;
+    if (off != 0
++       && alignment_power
+        && bfd_bwrite (pad, off, abfd) != off)
+      goto err;
+  

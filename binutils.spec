@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.20.51.0.2
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -44,6 +44,7 @@ Patch18: binutils-2.20.51.0.2-dwarf4.patch
 Patch19: binutils-2.20.51.0.2-unique-archive-symbols.patch
 Patch20: binutils-2.20.51.0.2-gold-add-needed.patch
 Patch21: binutils-2.20.51.0.2-gold-INPUT.patch
+Patch22: binutils-2.20.51.0.2-sec-merge-emit.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -157,6 +158,7 @@ libelf instead of BFD.
 %patch19 -p0 -b .unique~
 %patch20 -p0 -b .gold-add-needed~
 %patch21 -p0 -b .gold-input~
+%patch22 -p0 -b .sec-merge-emit~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -459,6 +461,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Aug  20 2010 Nick Clifton <nickc@redhat.com> - 2.20.51.0.2-23
+- Fix seg fault in sec_merge_emit().  (BZ 623687)
+
 * Wed Jun   9 2010 Nick Clifton <nickc@redhat.com> - 2.20.51.0.2-22
 - Allow GOLD linker to parse "-l<name>" directives inside INPUT statements in linker scripts. (BZ 600553)
 
