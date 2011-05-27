@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.21.51.0.6
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -202,6 +202,7 @@ CFLAGS="$CFLAGS -O0 -ggdb2"
 %endif
   $CARGS \
   --disable-werror \
+  --enable-plugins \
   --with-bugurl=http://bugzilla.redhat.com/bugzilla/
 make %{_smp_mflags} tooldir=%{_prefix} all
 make %{_smp_mflags} tooldir=%{_prefix} info
@@ -417,6 +418,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri May  27 2011 Peter Robinson <pbrobinson@gmail.com> - 2.21.51.0.6-3
+- Configure with --enable-plugins.  (BZ 682852)
+
 * Mon May   2 2011 Peter Robinson <pbrobinson@gmail.com> - 2.21.51.0.6-2
 - Add ARM to BFD checks
 
