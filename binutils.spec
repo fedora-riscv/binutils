@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.21.51.0.6
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -348,6 +348,7 @@ rm -rf %{buildroot}
   %{_bindir}/%{?cross}ld.bfd %{ld_bfd_priority}
 %{_sbindir}/alternatives --install %{_bindir}/%{?cross}ld %{?cross}ld \
   %{_bindir}/%{?cross}ld.gold %{ld_gold_priority}
+%{_sbindir}/alternatives --auto %{?cross}ld 
 %endif
 %if %{isnative}
 /sbin/ldconfig
@@ -422,8 +423,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Tue Jul  12 2011 Nick Clifton <nickc@redhat.com> - 2.21.51.0.6-5
+* Tue Jul  12 2011 Nick Clifton <nickc@redhat.com> - 2.21.51.0.6-6
 - import patch for PR ld/12726.  (BZ 719733)
+
+* Fri Jun  24 2011 Nick Clifton <nickc@redhat.com> - 2.21.51.0.6-5
+- Run "alternatives --auto" to restore ld symbolic link if it was manually configured.  (BZ 661247)
 
 * Fri Jun  10 2011 Nick Clifton <nickc@redhat.com> - 2.21.51.0.6-4
 - Add check for dynamic sections misrepresented as notes.  (BZ 712166)
