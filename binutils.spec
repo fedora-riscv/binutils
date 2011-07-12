@@ -424,7 +424,7 @@ exit 0
 
 %changelog
 * Tue Jul  12 2011 Nick Clifton <nickc@redhat.com> - 2.21.51.0.6-6
-- import patch for PR ld/12726.  (BZ 719733)
+- Import patch for PR ld/12726.  (BZ 719733)
 
 * Fri Jun  24 2011 Nick Clifton <nickc@redhat.com> - 2.21.51.0.6-5
 - Run "alternatives --auto" to restore ld symbolic link if it was manually configured.  (BZ 661247)
