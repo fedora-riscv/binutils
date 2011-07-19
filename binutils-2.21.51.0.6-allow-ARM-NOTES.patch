@@ -1,0 +1,47 @@
+diff -crp ../binutils-2.21.51.0.6.orig/bfd/ChangeLog bfd/ChangeLog
+*** ../binutils-2.21.51.0.6.orig/bfd/ChangeLog	2011-07-19 12:17:28.693558001 +0100
+--- bfd/ChangeLog	2011-07-19 12:21:53.542558219 +0100
+***************
+*** 1,3 ****
+--- 1,8 ----
++ 2011-07-12  Nick Clifton  <nickc@redhat.com>
++ 
++ 	* elf32-arm.c (elf32_arm_section_flags): Delete.
++ 	(elf_backend_section_flags): Remove.
++ 
+  2011-01-18  H.J. Lu  <hongjiu.lu@intel.com>
+  
+  	* elf64-x86-64.c (elf_backend_want_plt_sym): Redefine to 0 after
+diff -crp ../binutils-2.21.51.0.6.orig/bfd/elf32-arm.c bfd/elf32-arm.c
+*** ../binutils-2.21.51.0.6.orig/bfd/elf32-arm.c	2011-07-19 12:17:28.736558001 +0100
+--- bfd/elf32-arm.c	2011-07-19 12:21:45.094556965 +0100
+*************** elf32_arm_reloc_type_class (const Elf_In
+*** 13475,13491 ****
+      }
+  }
+  
+- /* Set the right machine number for an Arm ELF file.  */
+- 
+- static bfd_boolean
+- elf32_arm_section_flags (flagword *flags, const Elf_Internal_Shdr *hdr)
+- {
+-   if (hdr->sh_type == SHT_NOTE)
+-     *flags |= SEC_LINK_ONCE | SEC_LINK_DUPLICATES_SAME_CONTENTS;
+- 
+-   return TRUE;
+- }
+- 
+  static void
+  elf32_arm_final_write_processing (bfd *abfd, bfd_boolean linker ATTRIBUTE_UNUSED)
+  {
+--- 13475,13480 ----
+*************** const struct elf_size_info elf32_arm_siz
+*** 14647,14653 ****
+  #define elf_backend_post_process_headers	elf32_arm_post_process_headers
+  #define elf_backend_reloc_type_class		elf32_arm_reloc_type_class
+  #define elf_backend_object_p			elf32_arm_object_p
+- #define elf_backend_section_flags		elf32_arm_section_flags
+  #define elf_backend_fake_sections  		elf32_arm_fake_sections
+  #define elf_backend_section_from_shdr  		elf32_arm_section_from_shdr
+  #define elf_backend_final_write_processing      elf32_arm_final_write_processing
+--- 14636,14641 ----
