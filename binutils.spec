@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.21.53.0.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -33,6 +33,7 @@ Patch07: binutils-2.20.51.0.10-sec-merge-emit.patch
 Patch08: binutils-2.20.51.0.2-build-id.patch
 Patch09: binutils-2.21.53.0.1-debug_macro.patch
 Patch10: binutils-2.21.53.0.1-ppc64-stub-size.patch
+Patch11: binutils-2.21.53.0.1-demangle.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -133,6 +134,7 @@ using libelf instead of BFD.
 %patch08 -p0 -b .build-id~
 %patch09 -p0 -b .debug_macro~
 %patch10 -p0 -b .stub_size~
+%patch11 -p0 -b .demangle~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -422,6 +424,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Aug  12 2011 Nick Clifton <nickc@redhat.com> - 2.21.53.0.1-4
+- Import patch to fix demangling of template arguments.  (BZ 730225)
+
 * Fri Aug  05 2011 Nick Clifton <nickc@redhat.com> - 2.21.53.0.1-3
 - Import mainstream elf64-ppc.c in order to fix stub size computation.  (BZ 728201)
 

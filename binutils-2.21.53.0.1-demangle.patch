@@ -1,0 +1,28 @@
+*** ../binutils-2.21.53.0.1.orig/libiberty/cp-demangle.c	2011-08-12 16:46:01.034202001 +0100
+--- libiberty/cp-demangle.c	2011-08-12 16:47:53.722202003 +0100
+*************** d_print_init (struct d_print_info *dpi, 
+*** 3306,3311 ****
+--- 3306,3312 ----
+    dpi->last_char = '\0';
+    dpi->templates = NULL;
+    dpi->modifiers = NULL;
++   dpi->pack_index = 0;
+    dpi->flush_count = 0;
+  
+    dpi->callback = callback;
+*************** d_print_comp (struct d_print_info *dpi, 
+*** 3893,3898 ****
+--- 3894,3906 ----
+  	    struct demangle_component *a = d_lookup_template_argument (dpi, sub);
+  	    if (a && a->type == DEMANGLE_COMPONENT_TEMPLATE_ARGLIST)
+  	      a = d_index_template_argument (a, dpi->pack_index);
++ 
++ 	    if (a == NULL)
++ 	      {
++ 		d_print_error (dpi);
++ 		return;
++ 	      }
++ 
+  	    sub = a;
+  	  }
+  
