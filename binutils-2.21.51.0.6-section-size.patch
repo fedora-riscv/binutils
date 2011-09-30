@@ -1,0 +1,296 @@
+diff -cp ../binutils-2.21.51.0.6.orig/bfd/bfd-in2.h bfd/bfd-in2.h
+*** ../binutils-2.21.51.0.6.orig/bfd/bfd-in2.h	2011-09-30 15:19:58.073307136 +0100
+--- bfd/bfd-in2.h	2011-09-30 15:21:57.877321048 +0100
+*************** typedef struct bfd_section *sec_ptr;
+*** 298,305 ****
+  #define bfd_set_section_userdata(bfd, ptr, val) (((ptr)->userdata = (val)),TRUE)
+  /* Find the address one past the end of SEC.  */
+  #define bfd_get_section_limit(bfd, sec) \
+!   (((sec)->rawsize ? (sec)->rawsize : (sec)->size) \
+!    / bfd_octets_per_byte (bfd))
+  
+  /* Return TRUE if input section SEC has been discarded.  */
+  #define elf_discarded_section(sec)				\
+--- 298,305 ----
+  #define bfd_set_section_userdata(bfd, ptr, val) (((ptr)->userdata = (val)),TRUE)
+  /* Find the address one past the end of SEC.  */
+  #define bfd_get_section_limit(bfd, sec) \
+!   (((bfd)->direction != write_direction && (sec)->rawsize != 0 \
+!     ? (sec)->rawsize : (sec)->size) / bfd_octets_per_byte (bfd))
+  
+  /* Return TRUE if input section SEC has been discarded.  */
+  #define elf_discarded_section(sec)				\
+diff -cp ../binutils-2.21.51.0.6.orig/bfd/bfd-in.h bfd/bfd-in.h
+*** ../binutils-2.21.51.0.6.orig/bfd/bfd-in.h	2011-09-30 15:19:59.498307313 +0100
+--- bfd/bfd-in.h	2011-09-30 15:21:14.214315971 +0100
+*************** typedef struct bfd_section *sec_ptr;
+*** 291,298 ****
+  #define bfd_set_section_userdata(bfd, ptr, val) (((ptr)->userdata = (val)),TRUE)
+  /* Find the address one past the end of SEC.  */
+  #define bfd_get_section_limit(bfd, sec) \
+!   (((sec)->rawsize ? (sec)->rawsize : (sec)->size) \
+!    / bfd_octets_per_byte (bfd))
+  
+  /* Return TRUE if input section SEC has been discarded.  */
+  #define elf_discarded_section(sec)				\
+--- 291,298 ----
+  #define bfd_set_section_userdata(bfd, ptr, val) (((ptr)->userdata = (val)),TRUE)
+  /* Find the address one past the end of SEC.  */
+  #define bfd_get_section_limit(bfd, sec) \
+!   (((bfd)->direction != write_direction && (sec)->rawsize != 0 \
+!     ? (sec)->rawsize : (sec)->size) / bfd_octets_per_byte (bfd))
+  
+  /* Return TRUE if input section SEC has been discarded.  */
+  #define elf_discarded_section(sec)				\
+diff -cp ../binutils-2.21.51.0.6.orig/bfd/compress.c bfd/compress.c
+*** ../binutils-2.21.51.0.6.orig/bfd/compress.c	2011-09-30 15:19:58.058307141 +0100
+--- bfd/compress.c	2011-09-30 15:21:27.941317562 +0100
+*************** DESCRIPTION
+*** 155,161 ****
+  bfd_boolean
+  bfd_get_full_section_contents (bfd *abfd, sec_ptr sec, bfd_byte **ptr)
+  {
+!   bfd_size_type sz = sec->rawsize ? sec->rawsize : sec->size;
+    bfd_byte *p = *ptr;
+  #ifdef HAVE_ZLIB_H
+    bfd_boolean ret;
+--- 155,161 ----
+  bfd_boolean
+  bfd_get_full_section_contents (bfd *abfd, sec_ptr sec, bfd_byte **ptr)
+  {
+!   bfd_size_type sz;
+    bfd_byte *p = *ptr;
+  #ifdef HAVE_ZLIB_H
+    bfd_boolean ret;
+*************** bfd_get_full_section_contents (bfd *abfd
+*** 166,171 ****
+--- 166,175 ----
+    bfd_byte *uncompressed_buffer;
+  #endif
+  
++   if (abfd->direction != write_direction && sec->rawsize != 0)
++     sz = sec->rawsize;
++   else
++     sz = sec->size;
+    if (sz == 0)
+      return TRUE;
+  
+Common subdirectories: ../binutils-2.21.51.0.6.orig/bfd/doc and bfd/doc
+diff -cp ../binutils-2.21.51.0.6.orig/bfd/elf32-microblaze.c bfd/elf32-microblaze.c
+*** ../binutils-2.21.51.0.6.orig/bfd/elf32-microblaze.c	2011-09-30 15:19:58.295307207 +0100
+--- bfd/elf32-microblaze.c	2011-09-30 15:22:17.940323131 +0100
+*************** microblaze_elf_relocate_section (bfd *ou
+*** 825,831 ****
+  	    }
+  
+  	  /* Sanity check the address.  */
+! 	  if (offset > bfd_get_section_limit (output_bfd, input_section))
+  	    {
+  	      r = bfd_reloc_outofrange;
+  	      goto check_reloc;
+--- 825,831 ----
+  	    }
+  
+  	  /* Sanity check the address.  */
+! 	  if (offset > bfd_get_section_limit (input_bfd, input_section))
+  	    {
+  	      r = bfd_reloc_outofrange;
+  	      goto check_reloc;
+diff -cp ../binutils-2.21.51.0.6.orig/bfd/elf32-rx.c bfd/elf32-rx.c
+*** ../binutils-2.21.51.0.6.orig/bfd/elf32-rx.c	2011-09-30 15:19:58.958307253 +0100
+--- bfd/elf32-rx.c	2011-09-30 15:22:51.794327220 +0100
+*************** rx_final_link (bfd * abfd, struct bfd_li
+*** 3305,3317 ****
+  #endif
+        if (o->flags & SEC_CODE
+  	  && bfd_big_endian (abfd)
+! 	  && (o->size % 4 || o->rawsize % 4))
+  	{
+  #ifdef DJDEBUG
+  	  fprintf (stderr, "adjusting...\n");
+  #endif
+  	  o->size += 4 - (o->size % 4);
+- 	  o->rawsize += 4 - (o->rawsize % 4);
+  	}
+      }
+  
+--- 3305,3316 ----
+  #endif
+        if (o->flags & SEC_CODE
+  	  && bfd_big_endian (abfd)
+! 	  && o->size % 4)
+  	{
+  #ifdef DJDEBUG
+  	  fprintf (stderr, "adjusting...\n");
+  #endif
+  	  o->size += 4 - (o->size % 4);
+  	}
+      }
+  
+diff -cp ../binutils-2.21.51.0.6.orig/bfd/elfxx-ia64.c bfd/elfxx-ia64.c
+*** ../binutils-2.21.51.0.6.orig/bfd/elfxx-ia64.c	2011-09-30 15:19:58.543307208 +0100
+--- bfd/elfxx-ia64.c	2011-09-30 15:24:28.095336966 +0100
+*************** static bfd_boolean elfNN_ia64_dynamic_sy
+*** 214,220 ****
+  static bfd_reloc_status_type elfNN_ia64_install_value
+    (bfd_byte *hit_addr, bfd_vma val, unsigned int r_type);
+  static bfd_boolean elfNN_ia64_choose_gp
+!   (bfd *abfd, struct bfd_link_info *info);
+  static void elfNN_ia64_relax_ldxmov
+    (bfd_byte *contents, bfd_vma off);
+  static void elfNN_ia64_dyn_sym_traverse
+--- 214,220 ----
+  static bfd_reloc_status_type elfNN_ia64_install_value
+    (bfd_byte *hit_addr, bfd_vma val, unsigned int r_type);
+  static bfd_boolean elfNN_ia64_choose_gp
+!   (bfd *abfd, struct bfd_link_info *info, bfd_boolean final);
+  static void elfNN_ia64_relax_ldxmov
+    (bfd_byte *contents, bfd_vma off);
+  static void elfNN_ia64_dyn_sym_traverse
+*************** elfNN_ia64_relax_section (bfd *abfd, ase
+*** 1220,1226 ****
+  	      gp = _bfd_get_gp_value (obfd);
+  	      if (gp == 0)
+  		{
+! 		  if (!elfNN_ia64_choose_gp (obfd, link_info))
+  		    goto error_return;
+  		  gp = _bfd_get_gp_value (obfd);
+  		}
+--- 1220,1226 ----
+  	      gp = _bfd_get_gp_value (obfd);
+  	      if (gp == 0)
+  		{
+! 		  if (!elfNN_ia64_choose_gp (obfd, link_info, FALSE))
+  		    goto error_return;
+  		  gp = _bfd_get_gp_value (obfd);
+  		}
+*************** elfNN_ia64_unwind_entry_compare (const P
+*** 4298,4304 ****
+  
+  /* Make sure we've got ourselves a nice fat __gp value.  */
+  static bfd_boolean
+! elfNN_ia64_choose_gp (bfd *abfd, struct bfd_link_info *info)
+  {
+    bfd_vma min_vma = (bfd_vma) -1, max_vma = 0;
+    bfd_vma min_short_vma = min_vma, max_short_vma = 0;
+--- 4298,4304 ----
+  
+  /* Make sure we've got ourselves a nice fat __gp value.  */
+  static bfd_boolean
+! elfNN_ia64_choose_gp (bfd *abfd, struct bfd_link_info *info, bfd_boolean final)
+  {
+    bfd_vma min_vma = (bfd_vma) -1, max_vma = 0;
+    bfd_vma min_short_vma = min_vma, max_short_vma = 0;
+*************** elfNN_ia64_choose_gp (bfd *abfd, struct 
+*** 4321,4327 ****
+  	continue;
+  
+        lo = os->vma;
+!       hi = os->vma + (os->rawsize ? os->rawsize : os->size);
+        if (hi < lo)
+  	hi = (bfd_vma) -1;
+  
+--- 4321,4332 ----
+  	continue;
+  
+        lo = os->vma;
+!       /* When this function is called from elfNN_ia64_final_link
+!         the correct value to use is os->size.  When called from
+!         elfNN_ia64_relax_section we are in the middle of section
+!         sizing; some sections will already have os->size set, others
+!         will have os->size zero and os->rawsize the previous size.  */
+!       hi = os->vma + (! final && os->rawsize ? os->rawsize : os->size);
+        if (hi < lo)
+  	hi = (bfd_vma) -1;
+  
+*************** elfNN_ia64_final_link (bfd *abfd, struct
+*** 4462,4468 ****
+        /* We assume after gp is set, section size will only decrease. We
+  	 need to adjust gp for it.  */
+        _bfd_set_gp_value (abfd, 0);
+!       if (! elfNN_ia64_choose_gp (abfd, info))
+  	return FALSE;
+        gp_val = _bfd_get_gp_value (abfd);
+  
+--- 4467,4473 ----
+        /* We assume after gp is set, section size will only decrease. We
+  	 need to adjust gp for it.  */
+        _bfd_set_gp_value (abfd, 0);
+!       if (! elfNN_ia64_choose_gp (abfd, info, TRUE))
+  	return FALSE;
+        gp_val = _bfd_get_gp_value (abfd);
+  
+Common subdirectories: ../binutils-2.21.51.0.6.orig/bfd/hosts and bfd/hosts
+diff -cp ../binutils-2.21.51.0.6.orig/bfd/libbfd.c bfd/libbfd.c
+*** ../binutils-2.21.51.0.6.orig/bfd/libbfd.c	2011-09-30 15:19:59.141307259 +0100
+--- bfd/libbfd.c	2011-09-30 15:25:13.021343526 +0100
+*************** _bfd_generic_get_section_contents (bfd *
+*** 866,872 ****
+        return FALSE;
+      }
+  
+!   sz = section->rawsize ? section->rawsize : section->size;
+    if (offset + count < count
+        || offset + count > sz)
+      {
+--- 866,880 ----
+        return FALSE;
+      }
+  
+!   /* We do allow reading of a section after bfd_final_link has
+!      written the contents out to disk.  In that situation, rawsize is
+!      just a stale version of size, so ignore it.  Otherwise we must be
+!      reading an input section, where rawsize, if different to size,
+!      is the on-disk size.  */
+!   if (abfd->direction != write_direction && section->rawsize != 0)
+!     sz = section->rawsize;
+!   else
+!     sz = section->size;
+    if (offset + count < count
+        || offset + count > sz)
+      {
+*************** _bfd_generic_get_section_contents_in_win
+*** 919,925 ****
+        w->data = w->i->data;
+        return bfd_get_section_contents (abfd, section, w->data, offset, count);
+      }
+!   sz = section->rawsize ? section->rawsize : section->size;
+    if (offset + count > sz
+        || ! bfd_get_file_window (abfd, section->filepos + offset, count, w,
+  				TRUE))
+--- 927,936 ----
+        w->data = w->i->data;
+        return bfd_get_section_contents (abfd, section, w->data, offset, count);
+      }
+!   if (abfd->direction != write_direction && section->rawsize != 0)
+!     sz = section->rawsize;
+!   else
+!     sz = section->size;
+    if (offset + count > sz
+        || ! bfd_get_file_window (abfd, section->filepos + offset, count, w,
+  				TRUE))
+Common subdirectories: ../binutils-2.21.51.0.6.orig/bfd/.libs and bfd/.libs
+Common subdirectories: ../binutils-2.21.51.0.6.orig/bfd/po and bfd/po
+diff -cp ../binutils-2.21.51.0.6.orig/bfd/section.c bfd/section.c
+*** ../binutils-2.21.51.0.6.orig/bfd/section.c	2011-09-30 15:19:58.967307246 +0100
+--- bfd/section.c	2011-09-30 15:25:33.676345621 +0100
+*************** bfd_get_section_contents (bfd *abfd,
+*** 1459,1465 ****
+        return TRUE;
+      }
+  
+!   sz = section->rawsize ? section->rawsize : section->size;
+    if ((bfd_size_type) offset > sz
+        || count > sz
+        || offset + count > sz
+--- 1459,1468 ----
+        return TRUE;
+      }
+  
+!   if (abfd->direction != write_direction && section->rawsize != 0)
+!     sz = section->rawsize;
+!   else
+!     sz = section->size;
+    if ((bfd_size_type) offset > sz
+        || count > sz
+        || offset + count > sz

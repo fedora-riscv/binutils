@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.21.51.0.6
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -34,6 +34,7 @@ Patch08: binutils-2.20.51.0.2-build-id.patch
 Patch09: binutils-2.21.51.0.6-dynamic-notes.patch
 Patch10: binutils-2.21.51.0.6-assign-to-dot.patch
 Patch11: binutils-2.21.51.0.6-allow-ARM-NOTES.patch
+Patch12: binutils-2.21.51.0.6-section-size.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -135,6 +136,7 @@ using libelf instead of BFD.
 %patch09 -p0 -b .dynamic-notes~
 %patch10 -p1 -b .dot-assign~
 %patch11 -p0 -b .arm-notes~
+%patch12 -p0 -b .section-size~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -425,6 +427,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Sep  30 2011 Nick Clifton <nickc@redhat.com> - 2.21.51.0.6-8
+- Fix choice of section size.  (BZ 741053)
+
 * Tue Jul  19 2011 Nick Clifton <nickc@redhat.com> - 2.21.51.0.6-7
 - Allow .note sections in ARM binaries.
 
