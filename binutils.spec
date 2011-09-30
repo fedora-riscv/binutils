@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.21.53.0.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -247,9 +247,14 @@ make CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
 make -C bfd clean
 make CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
 
+# Rebuild libopcodes.a with -fPIC.
+make -C opcodes clean
+make CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
+
 install -m 644 bfd/libbfd.a %{buildroot}%{_libdir}
 install -m 644 libiberty/libiberty.a %{buildroot}%{_libdir}
 install -m 644 include/libiberty.h %{buildroot}%{_prefix}/include
+install -m 644 opcodes/libopcodes.a %{buildroot}%{_libdir}
 # Remove Windows/Novell only man pages
 rm -f %{buildroot}%{_mandir}/man1/{dlltool,nlmconv,windres}*
 
@@ -424,6 +429,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Sep  30 2011 Ricky Zhou <ricky@fedoraproject.org> - 2.21.53.0.1-5
+- Rebuild libopcodes.a with -fPIC. (BZ 7344315)
+
 * Fri Aug  12 2011 Nick Clifton <nickc@redhat.com> - 2.21.53.0.1-4
 - Import patch to fix demangling of template arguments.  (BZ 730225)
 
