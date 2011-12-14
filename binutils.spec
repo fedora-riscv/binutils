@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.21.53.0.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -34,6 +34,7 @@ Patch08: binutils-2.20.51.0.2-build-id.patch
 Patch09: binutils-2.21.53.0.1-debug_macro.patch
 Patch10: binutils-2.21.53.0.1-ppc64-stub-size.patch
 Patch11: binutils-2.21.53.0.1-demangle.patch
+Patch12: binutils-2.21.53.0.1-strip-g.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -135,6 +136,7 @@ using libelf instead of BFD.
 %patch09 -p0 -b .debug_macro~
 %patch10 -p0 -b .stub_size~
 %patch11 -p0 -b .demangle~
+%patch12 -p0 -b .strip-g~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -429,6 +431,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Dec  14 2011 Nick Clifton <nickc@redhat.com> - 2.21.53.0.1-6
+- Import fix for "strip -g", aka PR binutils/13180. (BZ 765782)
+
 * Fri Sep  30 2011 Ricky Zhou <ricky@fedoraproject.org> - 2.21.53.0.1-5
 - Rebuild libopcodes.a with -fPIC. (BZ 7344315)
 
