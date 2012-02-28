@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.22.52.0.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -432,6 +432,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Feb 28 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.22.52.0.1-6
+- Rebuilt for c++ ABI breakage
+
 * Wed Feb 14 2012 Mark Wielaard <mjw@redhat.com> - 2.22.52.0.1-5
 - Add upstream ld/13621 'dangling global hidden symbol in symtab' patch.
 
