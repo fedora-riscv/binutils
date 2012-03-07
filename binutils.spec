@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.22.52.0.1
-Release: 6%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -39,6 +39,14 @@ Patch07: binutils-2.20.51.0.10-sec-merge-emit.patch
 Patch08: binutils-2.22.52.0.1-weakdef.patch
 # From upstream, fixes ld/13621 bug 'dangling global hidden symbol in symtab'
 Patch09: binutils-2.22.52.0.1-ld-13621.patch
+# From upstream
+Patch10: binutils-rh797752.patch
+# Enable -zrelro by default: BZ #621983
+Patch11: binutils-2.22.52.0.1-relro-on-by-default.patch
+# From upstream
+Patch12: binutils-2.22.52.0.1-x86_64-hidden-ifunc.patch
+# From upstream
+Patch13: binutils-2.22.52.0.1-tsx.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -138,6 +146,12 @@ using libelf instead of BFD.
 %patch07 -p0 -b .sec-merge-emit~
 %patch08 -p1 -b .weakdef~
 %patch09 -p1 -b .ld-13621~
+%patch10 -p1 -b .cxxfilt-docs~
+%if 0%{?fedora} >= 18
+%patch11 -p0 -b .relro~
+%endif
+%patch12 -p0 -b .x86_64-hidden-ifunc~
+%patch13 -p0 -b .tsx~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -432,8 +446,17 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Tue Feb 28 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.22.52.0.1-6
-- Rebuilt for c++ ABI breakage
+* Wed Mar 07 2012 Jakub Jelinek <jakub@redhat.com> - 2.22.52.0.1-8
+- Fix up handling of hidden ifunc relocs on x86_64
+- Add Intel TSX support
+
+%if 0%{?fedora} >= 18
+* Tue Mar 06 2012 Nick Clifton <nickc@redhat.com> - 2.22.52.0.1-7
+- Enable -zrelro be default. (#621983)
+%endif
+
+* Mon Feb 27 2012 Jeff Law <law@redhat.com> - 2.22.52.0.1-6
+- Fix c++filt docs (#797752)
 
 * Wed Feb 14 2012 Mark Wielaard <mjw@redhat.com> - 2.22.52.0.1-5
 - Add upstream ld/13621 'dangling global hidden symbol in symtab' patch.
