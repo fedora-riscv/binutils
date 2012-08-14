@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.22.52.0.1
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -49,6 +49,8 @@ Patch12: binutils-2.22.52.0.1-x86_64-hidden-ifunc.patch
 Patch13: binutils-2.22.52.0.1-tsx.patch
 # From upstream
 Patch14: binutils-2.22.52.0.1-hidden-ifunc.patch
+# From upstream (fix for #833355)
+Patch15: binutils-2.22.52.0.1-gold-keep.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -155,6 +157,7 @@ using libelf instead of BFD.
 %patch12 -p0 -b .x86_64-hidden-ifunc~
 %patch13 -p0 -b .tsx~
 %patch14 -p0 -b .hidden-ifunc~
+%patch15 -p0 -b .gold-keep~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -453,6 +456,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Aug 14 2012 Nick Clifton <nickc@redhat.com> - 2.22.52.0.1-12
+- Make GOLD honour KEEP directives in linker scripts  (#8333355)
+
 * Tue Jun 26 2012 Nick Clifton <nickc@redhat.com> - 2.22.52.0.1-11
 - Honour %{powerpc64}  (#834651)
 
