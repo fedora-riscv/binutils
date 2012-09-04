@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.22.52.0.1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -51,6 +51,8 @@ Patch13: binutils-2.22.52.0.1-tsx.patch
 Patch14: binutils-2.22.52.0.1-hidden-ifunc.patch
 # From upstream (fix for #833355)
 Patch15: binutils-2.22.52.0.1-gold-keep.patch
+# From upstream (fix for #854108)
+Patch16: binutils-2.22.52.0.1-OP_VEX.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -158,6 +160,7 @@ using libelf instead of BFD.
 %patch13 -p0 -b .tsx~
 %patch14 -p0 -b .hidden-ifunc~
 %patch15 -p0 -b .gold-keep~
+%patch16 -p0 -b .OP_VEX~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -456,6 +459,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Sep 04 2012 Nick Clifton <nickc@redhat.com> - 2.22.52.0.1-13
+- Import patch for PR14355 to fix seg-fault in objdump  (#854108)
+
 * Tue Aug 14 2012 Nick Clifton <nickc@redhat.com> - 2.22.52.0.1-12
 - Make GOLD honour KEEP directives in linker scripts  (#8333355)
 
