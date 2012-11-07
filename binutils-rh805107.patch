@@ -1,0 +1,39 @@
+commit b3c9c2482e3f22f4b5ac5968dff87d27cf2c572b
+Author: Andreas Krebbel <Andreas.Krebbel@de.ibm.com>
+Date:   Mon Nov 5 12:31:07 2012 +0000
+
+    2012-11-05  Andreas Krebbel  <Andreas.Krebbel@de.ibm.com>
+    
+    	PR target/14788
+    	* elf32-s390.c (elf_s390_relocate_section): Set elf.dynobj for
+    	local ifunc symbols.
+    	* elf64-s390.c (elf_s390_relocate_section): Likewise.
+
+diff --git a/bfd/elf32-s390.c b/bfd/elf32-s390.c
+index d6eedfa..7a9d89c 100644
+--- a/bfd/elf32-s390.c
++++ b/bfd/elf32-s390.c
+@@ -1013,6 +1013,9 @@ elf_s390_check_relocs (bfd *abfd,
+ 	    {
+ 	      struct plt_entry *plt;
+ 
++	      if (htab->elf.dynobj == NULL)
++		htab->elf.dynobj = abfd;
++
+ 	      if (!s390_elf_create_ifunc_sections (htab->elf.dynobj, info))
+ 		return FALSE;
+ 
+diff --git a/bfd/elf64-s390.c b/bfd/elf64-s390.c
+index 19926c6..2b6d9bf 100644
+--- a/bfd/elf64-s390.c
++++ b/bfd/elf64-s390.c
+@@ -937,6 +937,9 @@ elf_s390_check_relocs (bfd *abfd,
+ 	    {
+ 	      struct plt_entry *plt;
+ 
++	      if (htab->elf.dynobj == NULL)
++		htab->elf.dynobj = abfd;
++
+ 	      if (!s390_elf_create_ifunc_sections (htab->elf.dynobj, info))
+ 		return FALSE;
+ 
