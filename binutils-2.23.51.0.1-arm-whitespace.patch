@@ -1,0 +1,26 @@
+*** ../binutils-2.23.51.0.1.orig/gas/config/tc-arm.c	2013-01-25 10:22:50.082164710 +0000
+--- gas/config/tc-arm.c	2013-01-25 10:25:23.668311486 +0000
+*************** const char FLT_CHARS[] = "rRsSfFdDxXeEpP
+*** 872,877 ****
+--- 872,880 ----
+  static inline int
+  skip_past_char (char ** str, char c)
+  {
++   /* PR gas/14987: Allow for whitespace before the expected character.  */
++   skip_whitespace (*str);
++   
+    if (**str == c)
+      {
+        (*str)++;
+*************** parse_address_main (char **str, int i, i
+*** 5155,5160 ****
+--- 5158,5166 ----
+        return PARSE_OPERAND_SUCCESS;
+      }
+  
++   /* PR gas/14887: Allow for whitespace after the opening bracket.  */
++   skip_whitespace (p);
++ 
+    if ((reg = arm_reg_parse (&p, REG_TYPE_RN)) == FAIL)
+      {
+        inst.error = _(reg_expected_msgs[REG_TYPE_RN]);

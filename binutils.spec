@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.51.0.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -45,6 +45,7 @@ Patch11: binutils-2.23.51.0.1-gold-keep.patch
 # Bugfixes for s390[x] IFUNC support
 Patch12: binutils-rh805974.patch
 Patch13: binutils-rh805107.patch
+Patch14: binutils-2.23.51.0.1-arm-whitespace.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -151,6 +152,7 @@ using libelf instead of BFD.
 %patch11 -p0 -b .gold-keep~
 %patch12 -p1 
 %patch13 -p1 
+%patch14 -p0 -b .arm-whitespace~ 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -449,6 +451,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Jan 24 2013 Nick Clifton<nickc@redhat.com> 2.23.51.0.1-6
+- Allow more whitespace in ARM instructions.  (#892261)
+
 * Wed Nov 7 2012 Jeff Law <law@redhat.com> 2.23.51.0.1-5
 - Fix segfault with local ifunc symbols on s390[x] (#805107).
 
