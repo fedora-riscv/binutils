@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.51.0.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -46,6 +46,7 @@ Patch11: binutils-2.23.51.0.1-gold-keep.patch
 Patch12: binutils-rh805974.patch
 Patch13: binutils-rh805107.patch
 Patch14: binutils-2.23.51.0.1-arm-whitespace.patch
+Patch15: binutils-2.23.51.0.1-ppc64-dyn-rel-count.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -153,6 +154,7 @@ using libelf instead of BFD.
 %patch12 -p1 
 %patch13 -p1 
 %patch14 -p0 -b .arm-whitespace~ 
+%patch15 -p0 -b .dyn-rel-count~ 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -451,6 +453,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Feb  4 2013 Nick Clifton<nickc@redhat.com> 2.23.51.0.1-7
+- Don't error when elf_gc_sweep_symbol clears def_regular.  (#906273)
+
 * Fri Jan 24 2013 Nick Clifton<nickc@redhat.com> 2.23.51.0.1-6
 - Allow more whitespace in ARM instructions.  (#892261)
 
