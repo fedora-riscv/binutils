@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.51.0.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -47,6 +47,8 @@ Patch12: binutils-rh805974.patch
 Patch13: binutils-rh805107.patch
 Patch14: binutils-2.23.51.0.1-arm-whitespace.patch
 Patch15: binutils-2.23.51.0.1-ppc64-dyn-rel-count.patch
+# Prevent seg-fault in readelf when reading a corrupt archive file.
+Patch16: binutils-2.23.51.0.1-readelf-corrupt-ar.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -155,6 +157,7 @@ using libelf instead of BFD.
 %patch13 -p1 
 %patch14 -p0 -b .arm-whitespace~ 
 %patch15 -p0 -b .dyn-rel-count~ 
+%patch16 -p0 -b .corrupt-ar~ 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -453,6 +456,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Feb  7 2013 Nick Clifton<nickc@redhat.com> 2.23.51.0.1-8
+- Prevent a seg-fault in readelf when examining a corrupt archive.  (#908567)
+
 * Mon Feb  4 2013 Nick Clifton<nickc@redhat.com> 2.23.51.0.1-7
 - Don't error when elf_gc_sweep_symbol clears def_regular.  (#906273)
 
