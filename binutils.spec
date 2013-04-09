@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.52.0.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -46,6 +46,8 @@ Patch11: binutils-2.23.52.0.1-64-bit-thin-archives.patch
 Patch12: binutils-2.23.52.0.1-as-doc-texinfo-fixes.patch
 # Revert HJ's patch for  PR15149.  This stops the reporting of weak DT_NEEDED symbols.
 Patch13: binutils-2.23.52.0.1-revert-pr15149.patch
+# Fix search paths for 64-bit linux aarch64 targets.
+Patch14: binutils-2.23.52.0.1-aarch64-lib64.patch
 
 Provides: bundled(libiberty)
 
@@ -456,6 +458,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Apr 09 2013 Nick Clifton <nickc@redhat.com> - 2.23.52.0.1-7
+- Fix library search paths for 64-bit aarch64 linux targets.  (#950098)
+
 * Wed Mar 13 2013 Nick Clifton <nickc@redhat.com> - 2.23.52.0.1-6
 - Add explicit requirement of /usr/bin/pod2man.  (#920545)
 
