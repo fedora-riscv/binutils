@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.52.0.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -48,6 +48,8 @@ Patch12: binutils-2.23.52.0.1-as-doc-texinfo-fixes.patch
 Patch13: binutils-2.23.52.0.1-revert-pr15149.patch
 # Fix search paths for 64-bit linux aarch64 targets.
 Patch14: binutils-2.23.52.0.1-aarch64-lib64.patch
+# Check regular references without non-GOT references when building shared libraries.
+Patch15: binutils-2.23.52.0.1-check-regular-ifunc-refs.patch
 
 Provides: bundled(libiberty)
 
@@ -159,6 +161,8 @@ using libelf instead of BFD.
 %patch11 -p0 -b .64bit-thin-archives~
 %patch12 -p0 -b .gas-texinfo~
 %patch13 -p0 -b .revert-pr15149~
+%patch14 -p0 -b .aarch64-lib64~
+%patch15 -p0 -b .check-ifunc~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -458,6 +462,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Apr 17 2013 Nick Clifton <nickc@redhat.com> - 2.23.52.0.1-8
+- Import patch for FSF mainline PR 15371 to fix ifunc references in shared libraries.  (#927818)
+
 * Tue Apr 09 2013 Nick Clifton <nickc@redhat.com> - 2.23.52.0.1-7
 - Fix library search paths for 64-bit aarch64 linux targets.  (#950098)
 
