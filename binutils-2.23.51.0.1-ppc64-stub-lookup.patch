@@ -1,0 +1,109 @@
+*** ../binutils-2.23.51.0.1.orig/bfd/elf64-ppc.c	2013-05-14 10:52:10.963140237 +0100
+--- bfd/elf64-ppc.c	2013-05-14 10:54:48.477144603 +0100
+*************** ppc64_elf_relocate_section (bfd *output_
+*** 12250,12256 ****
+    for (; rel < relend; rel++)
+      {
+        enum elf_ppc64_reloc_type r_type;
+!       bfd_vma addend, orig_addend;
+        bfd_reloc_status_type r;
+        Elf_Internal_Sym *sym;
+        asection *sec;
+--- 12250,12256 ----
+    for (; rel < relend; rel++)
+      {
+        enum elf_ppc64_reloc_type r_type;
+!       bfd_vma addend;
+        bfd_reloc_status_type r;
+        Elf_Internal_Sym *sym;
+        asection *sec;
+*************** ppc64_elf_relocate_section (bfd *output_
+*** 12270,12275 ****
+--- 12270,12276 ----
+        struct ppc_stub_hash_entry *stub_entry;
+        bfd_vma max_br_offset;
+        bfd_vma from;
++       const Elf_Internal_Rela orig_rel = *rel;
+  
+        r_type = ELF64_R_TYPE (rel->r_info);
+        r_symndx = ELF64_R_SYM (rel->r_info);
+*************** ppc64_elf_relocate_section (bfd *output_
+*** 12289,12295 ****
+        sym_name = NULL;
+        unresolved_reloc = FALSE;
+        warned = FALSE;
+-       orig_addend = rel->r_addend;
+  
+        if (r_symndx < symtab_hdr->sh_info)
+  	{
+--- 12290,12295 ----
+*************** ppc64_elf_relocate_section (bfd *output_
+*** 12853,12859 ****
+  	      && h->oh != NULL
+  	      && h->oh->is_func_descriptor)
+  	    fdh = ppc_follow_link (h->oh);
+! 	  stub_entry = ppc_get_stub_entry (input_section, sec, fdh, rel, htab);
+  	  if (stub_entry != NULL
+  	      && (stub_entry->stub_type == ppc_stub_plt_call
+  		  || stub_entry->stub_type == ppc_stub_plt_call_r2save
+--- 12853,12860 ----
+  	      && h->oh != NULL
+  	      && h->oh->is_func_descriptor)
+  	    fdh = ppc_follow_link (h->oh);
+! 	  stub_entry = ppc_get_stub_entry (input_section, sec, fdh, &orig_rel,
+! 					   htab);
+  	  if (stub_entry != NULL
+  	      && (stub_entry->stub_type == ppc_stub_plt_call
+  		  || stub_entry->stub_type == ppc_stub_plt_call_r2save
+*************** ppc64_elf_relocate_section (bfd *output_
+*** 13134,13140 ****
+  		  }
+  
+  		for (; ent != NULL; ent = ent->next)
+! 		  if (ent->addend == orig_addend
+  		      && ent->owner == input_bfd
+  		      && ent->tls_type == tls_type)
+  		    break;
+--- 13135,13141 ----
+  		  }
+  
+  		for (; ent != NULL; ent = ent->next)
+! 		  if (ent->addend == orig_rel.r_addend
+  		      && ent->owner == input_bfd
+  		      && ent->tls_type == tls_type)
+  		    break;
+*************** ppc64_elf_relocate_section (bfd *output_
+*** 13287,13293 ****
+  	    {
+  	      struct plt_entry *ent;
+  	      for (ent = h->elf.plt.plist; ent != NULL; ent = ent->next)
+! 		if (ent->addend == orig_addend
+  		    && ent->plt.offset != (bfd_vma) -1)
+  		  {
+  		    relocation = (htab->plt->output_section->vma
+--- 13288,13294 ----
+  	    {
+  	      struct plt_entry *ent;
+  	      for (ent = h->elf.plt.plist; ent != NULL; ent = ent->next)
+! 		if (ent->addend == orig_rel.r_addend
+  		    && ent->plt.offset != (bfd_vma) -1)
+  		  {
+  		    relocation = (htab->plt->output_section->vma
+*************** ppc64_elf_relocate_section (bfd *output_
+*** 13861,13867 ****
+  	      if (!((*info->callbacks->reloc_overflow)
+  		    (info, (h ? &h->elf.root : NULL), sym_name,
+  		     ppc64_elf_howto_table[r_type]->name,
+! 		     orig_addend, input_bfd, input_section, rel->r_offset)))
+  		return FALSE;
+  	    }
+  	  else
+--- 13862,13869 ----
+  	      if (!((*info->callbacks->reloc_overflow)
+  		    (info, (h ? &h->elf.root : NULL), sym_name,
+  		     ppc64_elf_howto_table[r_type]->name,
+! 		     orig_rel.r_addend, input_bfd, input_section,
+! 		     rel->r_offset)))
+  		return FALSE;
+  	    }
+  	  else

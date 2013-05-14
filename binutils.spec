@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.51.0.1
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -49,6 +49,8 @@ Patch14: binutils-2.23.51.0.1-arm-whitespace.patch
 Patch15: binutils-2.23.51.0.1-ppc64-dyn-rel-count.patch
 # Prevent seg-fault in readelf when reading a corrupt archive file.
 Patch16: binutils-2.23.51.0.1-readelf-corrupt-ar.patch
+# Fix lookup of stub names.  BZ #962469
+Patch17: binutils-2.23.51.0.1-ppc64-stub-lookup.patch
 
 %define gold_arches %ix86 x86_64
 
@@ -158,6 +160,7 @@ using libelf instead of BFD.
 %patch14 -p0 -b .arm-whitespace~ 
 %patch15 -p0 -b .dyn-rel-count~ 
 %patch16 -p0 -b .corrupt-ar~ 
+%patch17 -p0 -b .stub-lookup~ 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -456,26 +459,29 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Thu Feb  7 2013 Nick Clifton<nickc@redhat.com> 2.23.51.0.1-8
+* Tue May 14 2013 Nick Clifton <nickc@redhat.com> 2.23.51.0.1-9
+- Fix stub lookups for PPC64.  (#962469)
+
+* Thu Feb  7 2013 Nick Clifton <nickc@redhat.com> 2.23.51.0.1-8
 - Prevent a seg-fault in readelf when examining a corrupt archive.  (#908567)
 
-* Mon Feb  4 2013 Nick Clifton<nickc@redhat.com> 2.23.51.0.1-7
+* Mon Feb  4 2013 Nick Clifton <nickc@redhat.com> 2.23.51.0.1-7
 - Don't error when elf_gc_sweep_symbol clears def_regular.  (#906273)
 
-* Fri Jan 24 2013 Nick Clifton<nickc@redhat.com> 2.23.51.0.1-6
+* Fri Jan 24 2013 Nick Clifton <nickc@redhat.com> 2.23.51.0.1-6
 - Allow more whitespace in ARM instructions.  (#892261)
 
 * Wed Nov 7 2012 Jeff Law <law@redhat.com> 2.23.51.0.1-5
-- Fix segfault with local ifunc symbols on s390[x] (#805107).
+- Fix segfault with local ifunc symbols on s390[x].  (#805107).
 
 * Tue Sep 4 2012 Jeff Law <law@redhat.com> 2.23.51.0.1-4
 - Correctly handle PLTOFF relocs for s390 IFUNCs.
 
 * Tue Aug 14 2012 Karsten Hopp <karsten@redhat.com> 2.23.51.0.1-3
-- apply F17 commit cd2fda5 to honour {powerpc64} macro (#834651)
+- Apply F17 commit cd2fda5 to honour {powerpc64} macro.  (#834651)
 
 * Tue Aug 14 2012 Nick Clifton <nickc@redhat.com> - 2.23.51.0.1-2
-- Make GOLD honour KEEP directives in linker scripts  (#8333355)
+- Make GOLD honour KEEP directives in linker scripts.  (#8333355)
 
 * Wed Aug 08 2012 Nick Clifton <nickc@redhat.com> - 2.23.51.0.1-1
 - Rebase on 2.23.51.0.1 release.  (#846433)
