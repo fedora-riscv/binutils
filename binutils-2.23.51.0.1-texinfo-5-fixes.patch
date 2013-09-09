@@ -1,0 +1,443 @@
+*** ../orig.binutils-2.23.51.0.1/bfd/doc/bfd.texinfo	2013-09-09 13:00:58.147342859 +0100
+--- bfd/doc/bfd.texinfo	2013-09-09 13:13:41.013364007 +0100
+*************** All of BFD lives in one directory.
+*** 322,328 ****
+  @printindex cp
+  
+  @tex
+! % I think something like @colophon should be in texinfo.  In the
+  % meantime:
+  \long\def\colophon{\hbox to0pt{}\vfill
+  \centerline{The body of this manual is set in}
+--- 322,328 ----
+  @printindex cp
+  
+  @tex
+! % I think something like @@colophon should be in texinfo.  In the
+  % meantime:
+  \long\def\colophon{\hbox to0pt{}\vfill
+  \centerline{The body of this manual is set in}
+*************** All of BFD lives in one directory.
+*** 333,339 ****
+  \centerline{{\sl\fontname\tensl\/}}
+  \centerline{are used for emphasis.}\vfill}
+  \page\colophon
+! % Blame: doc@cygnus.com, 28mar91.
+  @end tex
+  
+  @bye
+--- 333,339 ----
+  \centerline{{\sl\fontname\tensl\/}}
+  \centerline{are used for emphasis.}\vfill}
+  \page\colophon
+! % Blame: doc@@cygnus.com, 28mar91.
+  @end tex
+  
+  @bye
+*** ../orig.binutils-2.23.51.0.1/ld/ld.texinfo	2013-09-09 13:01:22.352343530 +0100
+--- ld/ld.texinfo	2013-09-09 13:13:54.391364377 +0100
+*************** If you have more than one @code{SECT} st
+*** 7836,7842 ****
+  @printindex cp
+  
+  @tex
+! % I think something like @colophon should be in texinfo.  In the
+  % meantime:
+  \long\def\colophon{\hbox to0pt{}\vfill
+  \centerline{The body of this manual is set in}
+--- 7836,7842 ----
+  @printindex cp
+  
+  @tex
+! % I think something like @@colophon should be in texinfo.  In the
+  % meantime:
+  \long\def\colophon{\hbox to0pt{}\vfill
+  \centerline{The body of this manual is set in}
+*************** If you have more than one @code{SECT} st
+*** 7847,7853 ****
+  \centerline{{\sl\fontname\tensl\/}}
+  \centerline{are used for emphasis.}\vfill}
+  \page\colophon
+! % Blame: doc@cygnus.com, 28mar91.
+  @end tex
+  
+  @bye
+--- 7847,7853 ----
+  \centerline{{\sl\fontname\tensl\/}}
+  \centerline{are used for emphasis.}\vfill}
+  \page\colophon
+! % Blame: doc@@cygnus.com, 28mar91.
+  @end tex
+  
+  @bye
+*** ../orig.binutils-2.23.51.0.1/binutils/doc/binutils.texi	2013-09-09 13:01:21.710343513 +0100
+--- binutils/doc/binutils.texi	2013-09-09 13:21:05.477376327 +0100
+*************** equivalent. At least one of the @option{
+*** 4375,4381 ****
+  
+  @table @env
+  
+! @itemx --input-mach=@var{machine}
+  Set the matching input ELF machine type to @var{machine}.  If
+  @option{--input-mach} isn't specified, it will match any ELF
+  machine types.
+--- 4375,4381 ----
+  
+  @table @env
+  
+! @item --input-mach=@var{machine}
+  Set the matching input ELF machine type to @var{machine}.  If
+  @option{--input-mach} isn't specified, it will match any ELF
+  machine types.
+*************** machine types.
+*** 4383,4403 ****
+  The supported ELF machine types are, @var{L1OM}, @var{K1OM} and
+  @var{x86-64}.
+  
+! @itemx --output-mach=@var{machine}
+  Change the ELF machine type in the ELF header to @var{machine}.  The
+  supported ELF machine types are the same as @option{--input-mach}.
+  
+! @itemx --input-type=@var{type}
+  Set the matching input ELF file type to @var{type}.  If
+  @option{--input-type} isn't specified, it will match any ELF file types.
+  
+  The supported ELF file types are, @var{rel}, @var{exec} and @var{dyn}.
+  
+! @itemx --output-type=@var{type}
+  Change the ELF file type in the ELF header to @var{type}.  The
+  supported ELF types are the same as @option{--input-type}.
+  
+! @itemx --input-osabi=@var{osabi}
+  Set the matching input ELF file OSABI to @var{osabi}.  If
+  @option{--input-osabi} isn't specified, it will match any ELF OSABIs.
+  
+--- 4383,4403 ----
+  The supported ELF machine types are, @var{L1OM}, @var{K1OM} and
+  @var{x86-64}.
+  
+! @item --output-mach=@var{machine}
+  Change the ELF machine type in the ELF header to @var{machine}.  The
+  supported ELF machine types are the same as @option{--input-mach}.
+  
+! @item --input-type=@var{type}
+  Set the matching input ELF file type to @var{type}.  If
+  @option{--input-type} isn't specified, it will match any ELF file types.
+  
+  The supported ELF file types are, @var{rel}, @var{exec} and @var{dyn}.
+  
+! @item --output-type=@var{type}
+  Change the ELF file type in the ELF header to @var{type}.  The
+  supported ELF types are the same as @option{--input-type}.
+  
+! @item --input-osabi=@var{osabi}
+  Set the matching input ELF file OSABI to @var{osabi}.  If
+  @option{--input-osabi} isn't specified, it will match any ELF OSABIs.
+  
+*************** The supported ELF OSABIs are, @var{none}
+*** 4407,4413 ****
+  @var{FreeBSD}, @var{TRU64}, @var{Modesto}, @var{OpenBSD}, @var{OpenVMS},
+  @var{NSK}, @var{AROS} and @var{FenixOS}.
+  
+! @itemx --output-osabi=@var{osabi}
+  Change the ELF OSABI in the ELF header to @var{osabi}.  The
+  supported ELF OSABI are the same as @option{--input-osabi}.
+  
+--- 4407,4413 ----
+  @var{FreeBSD}, @var{TRU64}, @var{Modesto}, @var{OpenBSD}, @var{OpenVMS},
+  @var{NSK}, @var{AROS} and @var{FenixOS}.
+  
+! @item --output-osabi=@var{osabi}
+  Change the ELF OSABI in the ELF header to @var{osabi}.  The
+  supported ELF OSABI are the same as @option{--input-osabi}.
+  
+diff -rcp ../orig.binutils-2.23.51.0.1/gas/doc/c-arc.texi gas/doc/c-arc.texi
+*** ../orig.binutils-2.23.51.0.1/gas/doc/c-arc.texi	2013-09-09 13:00:50.358342644 +0100
+--- gas/doc/c-arc.texi	2013-09-09 13:37:16.326403240 +0100
+*************** The extension instructions are not macro
+*** 220,226 ****
+  encodings for use of these instructions according to the specification
+  by the user.  The parameters are:
+  
+! @table @bullet
+  @item @var{name}
+  Name of the extension instruction 
+  
+--- 220,226 ----
+  encodings for use of these instructions according to the specification
+  by the user.  The parameters are:
+  
+! @itemize @bullet
+  @item @var{name}
+  Name of the extension instruction 
+  
+*************** code were: inst 0,r1,r2.  You use OP1_IM
+*** 279,285 ****
+  with SYNTAX_20P.
+  
+  @end itemize 
+! @end table
+  
+  For example, defining 64-bit multiplier with immediate operands:
+  
+--- 279,285 ----
+  with SYNTAX_20P.
+  
+  @end itemize 
+! @end itemize
+  
+  For example, defining 64-bit multiplier with immediate operands:
+  
+diff -rcp ../orig.binutils-2.23.51.0.1/gas/doc/c-arm.texi gas/doc/c-arm.texi
+*** ../orig.binutils-2.23.51.0.1/gas/doc/c-arm.texi	2013-09-09 13:00:50.347342643 +0100
+--- gas/doc/c-arm.texi	2013-09-09 13:41:44.319410669 +0100
+*************** ARM and THUMB instructions had their own
+*** 381,387 ****
+  @code{unified} syntax, which can be selected via the @code{.syntax}
+  directive, and has the following main features:
+  
+! @table @bullet
+  @item
+  Immediate operands do not require a @code{#} prefix.
+  
+--- 381,387 ----
+  @code{unified} syntax, which can be selected via the @code{.syntax}
+  directive, and has the following main features:
+  
+! @itemize @bullet
+  @item
+  Immediate operands do not require a @code{#} prefix.
+  
+*************** The @code{.N} and @code{.W} suffixes are
+*** 406,412 ****
+  @item
+  All instructions set the flags if and only if they have an @code{s}
+  affix.
+! @end table
+  
+  @node ARM-Chars
+  @subsection Special Characters
+--- 406,412 ----
+  @item
+  All instructions set the flags if and only if they have an @code{s}
+  affix.
+! @end itemize
+  
+  @node ARM-Chars
+  @subsection Special Characters
+*************** Either @samp{#} or @samp{$} can be used
+*** 442,469 ****
+  @cindex register names, ARM
+  *TODO* Explain about ARM register naming, and the predefined names.
+  
+- @node ARM-Neon-Alignment
+- @subsection NEON Alignment Specifiers
+- 
+- @cindex alignment for NEON instructions
+- Some NEON load/store instructions allow an optional address
+- alignment qualifier.
+- The ARM documentation specifies that this is indicated by
+- @samp{@@ @var{align}}. However GAS already interprets
+- the @samp{@@} character as a "line comment" start,
+- so @samp{: @var{align}} is used instead.  For example:
+- 
+- @smallexample
+-         vld1.8 @{q0@}, [r0, :128]
+- @end smallexample
+- 
+- @node ARM Floating Point
+- @section Floating Point
+- 
+- @cindex floating point, ARM (@sc{ieee})
+- @cindex ARM floating point (@sc{ieee})
+- The ARM family uses @sc{ieee} floating-point numbers.
+- 
+  @node ARM-Relocations
+  @subsection ARM relocation generation
+  
+--- 442,447 ----
+*************** respectively.  For example to load the 3
+*** 510,515 ****
+--- 488,515 ----
+          MOVT r0, #:upper16:foo
+  @end smallexample
+  
++ @node ARM-Neon-Alignment
++ @subsection NEON Alignment Specifiers
++ 
++ @cindex alignment for NEON instructions
++ Some NEON load/store instructions allow an optional address
++ alignment qualifier.
++ The ARM documentation specifies that this is indicated by
++ @samp{@@ @var{align}}. However GAS already interprets
++ the @samp{@@} character as a "line comment" start,
++ so @samp{: @var{align}} is used instead.  For example:
++ 
++ @smallexample
++         vld1.8 @{q0@}, [r0, :128]
++ @end smallexample
++ 
++ @node ARM Floating Point
++ @section Floating Point
++ 
++ @cindex floating point, ARM (@sc{ieee})
++ @cindex ARM floating point (@sc{ieee})
++ The ARM family uses @sc{ieee} floating-point numbers.
++ 
+  @node ARM Directives
+  @section ARM Machine Directives
+  
+diff -rcp ../orig.binutils-2.23.51.0.1/gas/doc/c-mips.texi gas/doc/c-mips.texi
+*** ../orig.binutils-2.23.51.0.1/gas/doc/c-mips.texi	2013-09-09 13:00:50.399342645 +0100
+--- gas/doc/c-mips.texi	2013-09-09 13:38:59.834406109 +0100
+*************** the @samp{mad} and @samp{madu} instructi
+*** 234,240 ****
+  instructions around accesses to the @samp{HI} and @samp{LO} registers.
+  @samp{-no-m4650} turns off this option.
+  
+! @itemx -m3900
+  @itemx -no-m3900
+  @itemx -m4100
+  @itemx -no-m4100
+--- 234,240 ----
+  instructions around accesses to the @samp{HI} and @samp{LO} registers.
+  @samp{-no-m4650} turns off this option.
+  
+! @item -m3900
+  @itemx -no-m3900
+  @itemx -m4100
+  @itemx -no-m4100
+diff -rcp ../orig.binutils-2.23.51.0.1/gas/doc/c-score.texi gas/doc/c-score.texi
+*** ../orig.binutils-2.23.51.0.1/gas/doc/c-score.texi	2013-09-09 13:00:50.336342643 +0100
+--- gas/doc/c-score.texi	2013-09-09 13:39:18.698406632 +0100
+*************** implicitly with the @code{gp} register.
+*** 37,43 ****
+  @item -EB
+  Assemble code for a big-endian cpu
+  
+! @itemx -EL
+  Assemble code for a little-endian cpu
+  
+  @item -FIXDD 
+--- 37,43 ----
+  @item -EB
+  Assemble code for a big-endian cpu
+  
+! @item -EL
+  Assemble code for a little-endian cpu
+  
+  @item -FIXDD 
+*************** Assemble code for no warning message for
+*** 49,61 ****
+  @item -SCORE5
+  Assemble code for target is SCORE5
+  
+! @itemx -SCORE5U
+  Assemble code for target is SCORE5U
+  
+! @itemx -SCORE7
+  Assemble code for target is SCORE7, this is default setting
+  
+! @itemx -SCORE3
+  Assemble code for target is SCORE3
+  
+  @item -march=score7
+--- 49,61 ----
+  @item -SCORE5
+  Assemble code for target is SCORE5
+  
+! @item -SCORE5U
+  Assemble code for target is SCORE5U
+  
+! @item -SCORE7
+  Assemble code for target is SCORE7, this is default setting
+  
+! @item -SCORE3
+  Assemble code for target is SCORE3
+  
+  @item -march=score7
+diff -rcp ../orig.binutils-2.23.51.0.1/gas/doc/c-tic54x.texi gas/doc/c-tic54x.texi
+*** ../orig.binutils-2.23.51.0.1/gas/doc/c-tic54x.texi	2013-09-09 13:00:50.336342643 +0100
+--- gas/doc/c-tic54x.texi	2013-09-09 13:40:26.669408516 +0100
+*************** In this example, x is replaced with SYM2
+*** 109,115 ****
+  is replaced with x.  At this point, x has already been encountered
+  and the substitution stops.
+  
+! @smallexample @code
+   .asg   "x",SYM1 
+   .asg   "SYM1",SYM2
+   .asg   "SYM2",x
+--- 109,115 ----
+  is replaced with x.  At this point, x has already been encountered
+  and the substitution stops.
+  
+! @smallexample
+   .asg   "x",SYM1 
+   .asg   "SYM1",SYM2
+   .asg   "SYM2",x
+*************** Substitution may be forced in situations
+*** 126,139 ****
+  ambiguous by placing colons on either side of the subsym.  The following
+  code: 
+  
+! @smallexample @code
+   .eval  "10",x
+  LAB:X:  add     #x, a
+  @end smallexample
+  
+  When assembled becomes:
+  
+! @smallexample @code
+  LAB10  add     #10, a
+  @end smallexample
+  
+--- 126,139 ----
+  ambiguous by placing colons on either side of the subsym.  The following
+  code: 
+  
+! @smallexample
+   .eval  "10",x
+  LAB:X:  add     #x, a
+  @end smallexample
+  
+  When assembled becomes:
+  
+! @smallexample
+  LAB10  add     #10, a
+  @end smallexample
+  
+*************** The @code{LDX} pseudo-op is provided for
+*** 309,315 ****
+  of a label or address.  For example, if an address @code{_label} resides
+  in extended program memory, the value of @code{_label} may be loaded as
+  follows:
+! @smallexample @code
+   ldx     #_label,16,a    ; loads extended bits of _label
+   or      #_label,a       ; loads lower 16 bits of _label
+   bacc    a               ; full address is in accumulator A
+--- 309,315 ----
+  of a label or address.  For example, if an address @code{_label} resides
+  in extended program memory, the value of @code{_label} may be loaded as
+  follows:
+! @smallexample
+   ldx     #_label,16,a    ; loads extended bits of _label
+   or      #_label,a       ; loads lower 16 bits of _label
+   bacc    a               ; full address is in accumulator A
+*************** Assign @var{name} the string @var{string
+*** 345,351 ****
+  performed on @var{string} before assignment.
+  
+  @cindex @code{eval} directive, TIC54X
+! @itemx .eval @var{string}, @var{name}
+  Evaluate the contents of string @var{string} and assign the result as a
+  string to the subsym @var{name}.  String replacement is performed on
+  @var{string} before assignment. 
+--- 345,351 ----
+  performed on @var{string} before assignment.
+  
+  @cindex @code{eval} directive, TIC54X
+! @item .eval @var{string}, @var{name}
+  Evaluate the contents of string @var{string} and assign the result as a
+  string to the subsym @var{name}.  String replacement is performed on
+  @var{string} before assignment. 
