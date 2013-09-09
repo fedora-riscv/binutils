@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.52.0.1
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -56,6 +56,8 @@ Patch16: binutils-2.23.52.0.1-dwz-alt-debuginfo.patch
 Patch17: binutils-2.23.52.0.1-avx512-mpx-sha.patch
 # Add support for x86-64 -mcmodel=large -fpic TLS transitions.  BZ #994244
 Patch18: binutils-2.23.52.0.1-x86-64-mcmodel=large-tls.patch
+# Make readelf flush stdout before emitting an error or warning message.
+Patch19: binutils-2.23.51.0.1-readelf-flush-stdout.patch
 
 Provides: bundled(libiberty)
 
@@ -172,6 +174,7 @@ using libelf instead of BFD.
 %patch16 -p0 -b .dwz~
 %patch17 -p0 -b .avx512-mpx-sha~
 %patch18 -p0 -b .x86-64-mcmodel=large-tls~
+%patch19 -p0 -b .flush~ 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -471,6 +474,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Sep 09 2013 Nick Clifton <nickc@redhat.com> - 2.23.52.0.1-11
+- Make readelf flush stdout before emitting an error or warning message.  (#1005182)
+- Fix problems building docs using texinfo version 5.
+
 * Thu Aug 29 2013 Jakub Jelinek <jakub@redhat.com> - 2.23.52.0.1-10
 - Add Intel AVX3, MPX and SHA support.
 - Add support for x86-64 -mcmodel=large -fpic TLS transitions.  (#994244)
