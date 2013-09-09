@@ -476,7 +476,6 @@ exit 0
 %changelog
 * Mon Sep 09 2013 Nick Clifton <nickc@redhat.com> - 2.23.52.0.1-11
 - Make readelf flush stdout before emitting an error or warning message.  (#1005182)
-- Fix problems building docs using texinfo version 5.
 
 * Thu Aug 29 2013 Jakub Jelinek <jakub@redhat.com> - 2.23.52.0.1-10
 - Add Intel AVX3, MPX and SHA support.
