@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.23.52.0.1
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -58,6 +58,8 @@ Patch17: binutils-2.23.52.0.1-avx512-mpx-sha.patch
 Patch18: binutils-2.23.52.0.1-x86-64-mcmodel=large-tls.patch
 # Make readelf flush stdout before emitting an error or warning message.
 Patch19: binutils-2.23.51.0.1-readelf-flush-stdout.patch
+# Fix NM when displaying dynamic symbols in multiple files.  BZ #1022845
+Patch20: binutils-2.23.52.0.1-nm-dynsym.patch
 
 Provides: bundled(libiberty)
 
@@ -175,6 +177,7 @@ using libelf instead of BFD.
 %patch17 -p0 -b .avx512-mpx-sha~
 %patch18 -p0 -b .x86-64-mcmodel=large-tls~
 %patch19 -p0 -b .flush~ 
+%patch20 -p0 -b .nm-dynsym~ 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -474,6 +477,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Oct 24 2013 Nick Clifton <nickc@redhat.com> - 2.23.52.0.1-12
+- Stop NM from halting if it encounters a file with no symbols when displaying dynamic symbols in multiple files.  (#1022845)
+
 * Mon Sep 09 2013 Nick Clifton <nickc@redhat.com> - 2.23.52.0.1-11
 - Make readelf flush stdout before emitting an error or warning message.  (#1005182)
 
