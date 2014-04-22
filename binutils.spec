@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -53,6 +53,8 @@ Patch14: binutils-2.24-s390-mkopc.patch
 Patch15: binutils-2.24-elfnn-aarch64.patch
 # Fix decoding of abstract instance names using DW_FORM_ref_addr.
 Patch16: binutils-2.24-DW_FORM_ref_addr.patch
+# Fix compiling using gcc 4.9
+Patch17: binutils-2.24-set-section-macros.patch
 
 Provides: bundled(libiberty)
 
@@ -171,6 +173,7 @@ using libelf instead of BFD.
 %patch14 -p0 -b .mkopc~
 %patch15 -p0 -b .elf-aarch64~
 %patch16 -p0 -b .ref-addr~
+%patch17 -p0 -b .sec-macros~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -476,6 +479,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Apr 22 2014 Nick Clifton <nickc@redhat.com> - 2.24-12
+- Fix compiling using gcc 4.9  (#1087374)
+
 * Thu Mar 27 2014 Nick Clifton <nickc@redhat.com> - 2.24-11
 - Use %{version} in Source string.  Delete unused patches.
 
