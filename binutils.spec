@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -55,6 +55,8 @@ Patch15: binutils-2.24-elfnn-aarch64.patch
 Patch16: binutils-2.24-DW_FORM_ref_addr.patch
 # Fix compiling using gcc 4.9
 Patch17: binutils-2.24-set-section-macros.patch
+# Fix detections of uncompressed .debug_str sections that look like they have been compressed.
+Patch18: binutils-2.24-fake-zlib-sections.patch
 
 Provides: bundled(libiberty)
 
@@ -174,6 +176,7 @@ using libelf instead of BFD.
 %patch15 -p0 -b .elf-aarch64~
 %patch16 -p0 -b .ref-addr~
 %patch17 -p0 -b .sec-macros~
+%patch18 -p0 -b .fake-zlib~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -479,6 +482,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Apr 28 2014 Nick Clifton <nickc@redhat.com> - 2.24-13
+- Fix detection of uncompressed .debug_str sections.  (#1082370)
+
 * Tue Apr 22 2014 Nick Clifton <nickc@redhat.com> - 2.24-12
 - Fix compiling using gcc 4.9  (#1087374)
 
