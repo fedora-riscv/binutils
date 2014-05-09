@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -57,6 +57,8 @@ Patch16: binutils-2.24-DW_FORM_ref_addr.patch
 Patch17: binutils-2.24-set-section-macros.patch
 # Fix detections of uncompressed .debug_str sections that look like they have been compressed.
 Patch18: binutils-2.24-fake-zlib-sections.patch
+# Fix detections little endian PPC shared libraries
+Patch19: binutils-2.24-ldforcele.patch
 
 Provides: bundled(libiberty)
 
@@ -177,6 +179,9 @@ using libelf instead of BFD.
 %patch16 -p0 -b .ref-addr~
 %patch17 -p0 -b .sec-macros~
 %patch18 -p0 -b .fake-zlib~
+%ifarch ppc64le
+%patch19 -p0 -b .ldforcele~
+%endif
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -229,6 +234,11 @@ esac
 case %{binutils_target} in ppc*|ppc64*)
   CARGS="$CARGS --enable-targets=spu"
   ;;
+esac
+
+case %{binutils_target} in  ppc64le*)
+    CARGS="$CARGS --enable-targets=powerpc-linux"
+    ;;
 esac
 
 %if 0%{?_with_debug:1}
@@ -482,6 +492,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri May 09 2014 Nick Clifton <nickc@redhat.com> - 2.24-14
+- Fix detection of little endian PPC64 binaries.  (#1095885)
+
 * Mon Apr 28 2014 Nick Clifton <nickc@redhat.com> - 2.24-13
 - Fix detection of uncompressed .debug_str sections.  (#1082370)
 
