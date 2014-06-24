@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -59,6 +59,10 @@ Patch17: binutils-2.24-set-section-macros.patch
 Patch18: binutils-2.24-fake-zlib-sections.patch
 # Fix detections little endian PPC shared libraries
 Patch19: binutils-2.24-ldforcele.patch
+Patch20: binutils-2.24-arm-static-tls.patch
+Patch21: binutils-2.24-fat-lto-objects.patch
+Patch22: binutils-2.24-symbol-warning.patch
+Patch23: binutils-2.24-aarch64-ld-shared-non-PIC-xfail.patch
 
 Provides: bundled(libiberty)
 
@@ -182,6 +186,10 @@ using libelf instead of BFD.
 %ifarch ppc64le
 %patch19 -p0 -b .ldforcele~
 %endif
+%patch20 -p1 -b .armstatictls~
+%patch21 -p1 -b .fatlto~
+%patch22 -p1 -b .symwarn~
+%patch23 -p1 -b .ld-aarch64-xfails~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -492,6 +500,16 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Jun 24 2014 Kyle McMartin <kyle@redhat.com> - 2.24-16
+- Backport a couple LTO testsuite fixes from HEAD.
+  Default to -ffat-lto-objects for some ld tests, which was the default in
+  gcc 4.8, but changed in 4.9, and resulted in some failures.
+- Add STATIC_TLS flag on ARM when IE relocs are emitted in a shared
+  library. Also fix up offsets in the testsuite resulting from the
+  addition of the flags.
+- XFail some ld tests on AArch64 to cut some of the spurious testsuite
+  failures down.
+
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.24-15
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 
