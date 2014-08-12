@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -66,7 +66,7 @@ Patch23: binutils-2.24-aarch64-ld-shared-non-PIC-xfail.patch
 
 Provides: bundled(libiberty)
 
-%define gold_arches %ix86 x86_64 %arm
+%define gold_arches %ix86 x86_64 %arm ppc* %{power64}
 
 %ifarch %gold_arches
 %define build_gold	both
@@ -500,6 +500,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Aug 12 2014 Jeff Law <law@redhat.com> - 2.24-17
+- Enable gold for PPC.
+
 * Tue Jun 24 2014 Kyle McMartin <kyle@redhat.com> - 2.24-16
 - Backport a couple LTO testsuite fixes from HEAD.
   Default to -ffat-lto-objects for some ld tests, which was the default in
