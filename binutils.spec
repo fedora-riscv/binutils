@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -63,6 +63,7 @@ Patch20: binutils-2.24-arm-static-tls.patch
 Patch21: binutils-2.24-fat-lto-objects.patch
 Patch22: binutils-2.24-symbol-warning.patch
 Patch23: binutils-2.24-aarch64-ld-shared-non-PIC-xfail.patch
+Patch24: binutils-2.24-weak-sym-merge.patch
 
 Provides: bundled(libiberty)
 
@@ -190,6 +191,7 @@ using libelf instead of BFD.
 %patch21 -p1 -b .fatlto~
 %patch22 -p1 -b .symwarn~
 %patch23 -p1 -b .ld-aarch64-xfails~
+%patch24 -p0 -b .weak-sym-merge~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -500,6 +502,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Aug 15 2014 Nick Clifton <nickc@redhat.com> - 2.24-17
+- Correct elf_merge_st_other arguments for weak symbols.
+  Resolves: #1126436
+
 * Tue Jun 24 2014 Kyle McMartin <kyle@redhat.com> - 2.24-16
 - Backport a couple LTO testsuite fixes from HEAD.
   Default to -ffat-lto-objects for some ld tests, which was the default in
