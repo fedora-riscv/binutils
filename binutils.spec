@@ -13,11 +13,13 @@
 %define isnative 0
 %define enable_shared 0
 %endif
+# BZ 1124342: Enable deterministic archives by default.
+%define enable_deterministic_archives 1
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -278,6 +280,9 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %else
   --disable-shared \
 %endif
+%if %{enable_deterministic_archives}
+  --enable-deterministic-archives \
+%endif
   $CARGS \
   --enable-plugins \
   --with-bugurl=http://bugzilla.redhat.com/bugzilla/
@@ -502,6 +507,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Aug 19 2014 Nick Clifton <nickc@redhat.com> - 2.24-20
+- Enable deterministic archives by default.
+  Resolves: BZ #1124342
+
 * Fri Aug 15 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.24-19
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
 
