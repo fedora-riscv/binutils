@@ -66,6 +66,9 @@ Patch23: binutils-2.24-aarch64-ld-shared-non-PIC-xfail.patch
 Patch24: binutils-2.24-weak-sym-merge.patch
 Patch25: binutils-2.24-indirect-chain.patch
 Patch26: binutils-2.24-aarch64-fix-final_link_relocate.patch
+Patch27: binutils-2.24-aarch64-fix-gotplt-offset-ifunc.patch
+Patch28: binutils-2.24-aarch64-fix-static-ifunc.patch
+Patch29: binutils-2.24-aarch64-fix-ie-relax.patch
 
 Provides: bundled(libiberty)
 
@@ -196,6 +199,9 @@ using libelf instead of BFD.
 %patch24 -p0 -b .weak-sym-merge~
 %patch25 -p0 -b .indirect-chain~
 %patch26 -p1 -b .aa64-final-link~
+%patch27 -p1 -b .aa64-1~
+%patch28 -p1 -b .aa64-2~
+%patch29 -p1 -b .aa64-3~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -506,6 +512,18 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Aug 22 2014 Kyle McMartin <kmcmarti@redhat.com>
+- binutils-2.24-aarch64-fix-gotplt-offset-ifunc.patch
+  binutils-2.24-aarch64-fix-static-ifunc.patch, split elfnn-aarch64 patches
+  into upstream git commits, to make it easier to figure out what's
+  backported already
+- binutils-2.24-aarch64-fix-ie-relax.patch: add fix for gd to ie relaxation
+  when target register is >16 (pretty unlikely, but...)
+
+* Thu Aug 21 2014 Kyle McMartin <kmcmarti@redhat.com>
+- bfd/elfnn-aarch64.c: use correct offsets in final_link_relocate
+  Resolves: BZ #1126199
+
 * Tue Aug 26 2014 Nick Clifton <nickc@redhat.com> - 2.24-20
 - Import patch from mainline to fix indirect symbol resolution.
   Resolves: BZ #1123714
