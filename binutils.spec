@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -64,6 +64,7 @@ Patch21: binutils-2.24-fat-lto-objects.patch
 Patch22: binutils-2.24-symbol-warning.patch
 Patch23: binutils-2.24-aarch64-ld-shared-non-PIC-xfail.patch
 Patch24: binutils-2.24-weak-sym-merge.patch
+Patch26: binutils-2.24-aarch64-fix-final_link_relocate.patch
 
 Provides: bundled(libiberty)
 
@@ -192,6 +193,7 @@ using libelf instead of BFD.
 %patch22 -p1 -b .symwarn~
 %patch23 -p1 -b .ld-aarch64-xfails~
 %patch24 -p0 -b .weak-sym-merge~
+%patch26 -p1 -b .aa64-final-link~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -502,6 +504,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Aug 21 2014 Kyle McMartin <kmcmarti@redhat.com> - 2.24-19
+- bfd/elfnn-aarch64.c: use correct offsets in final_link_relocate
+  Resolves: BZ #1126199
+
 * Fri Aug 15 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.24-18
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
 
