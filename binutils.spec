@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -69,6 +69,7 @@ Patch26: binutils-2.24-aarch64-fix-final_link_relocate.patch
 Patch27: binutils-2.24-aarch64-fix-gotplt-offset-ifunc.patch
 Patch28: binutils-2.24-aarch64-fix-static-ifunc.patch
 Patch29: binutils-2.24-aarch64-fix-ie-relax.patch
+Patch30: binutils-HEAD-change-ld-notice-interface.patch
 
 Provides: bundled(libiberty)
 
@@ -202,11 +203,13 @@ using libelf instead of BFD.
 %patch27 -p1 -b .aa64-1~
 %patch28 -p1 -b .aa64-2~
 %patch29 -p1 -b .aa64-3~
+%patch30 -p1 -b .ldplugin~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
-# On ppc64 we might use 64KiB pages
+# On ppc64 and aarch64, we might use 64KiB pages
 sed -i -e '/#define.*ELF_COMMONPAGESIZE/s/0x1000$/0x10000/' bfd/elf*ppc.c
+sed -i -e '/#define.*ELF_COMMONPAGESIZE/s/0x1000$/0x10000/' bfd/elf*aarch64.c
 # LTP sucks
 perl -pi -e 's/i\[3-7\]86/i[34567]86/g' */conf*
 sed -i -e 's/%''{release}/%{release}/g' bfd/Makefile{.am,.in}
@@ -512,17 +515,16 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Fri Aug 22 2014 Kyle McMartin <kmcmarti@redhat.com>
+* Tue Aug 26 2014 Kyle McMartin <kmcmarti@redhat.com> - 2.24-21
+- aarch64: increase common page size to 64KB
+- binutils-HEAD-change-ld-notice-interface.patch: backport fix from HEAD
+  that fixes LTO + ifunc when using ld.bfd instead of gold.
 - binutils-2.24-aarch64-fix-gotplt-offset-ifunc.patch
   binutils-2.24-aarch64-fix-static-ifunc.patch, split elfnn-aarch64 patches
   into upstream git commits, to make it easier to figure out what's
   backported already
 - binutils-2.24-aarch64-fix-ie-relax.patch: add fix for gd to ie relaxation
   when target register is >16 (pretty unlikely, but...)
-
-* Thu Aug 21 2014 Kyle McMartin <kmcmarti@redhat.com>
-- bfd/elfnn-aarch64.c: use correct offsets in final_link_relocate
-  Resolves: BZ #1126199
 
 * Tue Aug 26 2014 Nick Clifton <nickc@redhat.com> - 2.24-20
 - Import patch from mainline to fix indirect symbol resolution.
