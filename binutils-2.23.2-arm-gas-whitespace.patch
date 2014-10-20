@@ -1,0 +1,141 @@
+*** ../binutils-2.23.2.orig/gas/config/tc-arm.c	2014-10-20 14:30:44.307550085 +0100
+--- gas/config/tc-arm.c	2014-10-20 14:37:24.108406427 +0100
+*************** const char FLT_CHARS[] = "rRsSfFdDxXeEpP
+*** 885,890 ****
+--- 885,893 ----
+  static inline int
+  skip_past_char (char ** str, char c)
+  {
++   /* PR gas/14987: Allow for whitespace before the expected character.  */
++   skip_whitespace (*str);
++ 
+    if (**str == c)
+      {
+        (*str)++;
+*************** arm_reg_parse_multi (char **ccp)
+*** 1154,1159 ****
+--- 1157,1164 ----
+    char *p;
+    struct reg_entry *reg;
+  
++   skip_whitespace (start);
++ 
+  #ifdef REGISTER_PREFIX
+    if (*start != REGISTER_PREFIX)
+      return NULL;
+*************** parse_reg_list (char ** strp)
+*** 1579,1584 ****
+--- 1584,1591 ----
+    /* We come back here if we get ranges concatenated by '+' or '|'.  */
+    do
+      {
++       skip_whitespace (str);
++ 
+        another_range = 0;
+  
+        if (*str == '{')
+*************** parse_reg_list (char ** strp)
+*** 1632,1638 ****
+  		 || (in_range = 1, *str++ == '-'));
+  	  str--;
+  
+! 	  if (*str++ != '}')
+  	    {
+  	      first_error (_("missing `}'"));
+  	      return FAIL;
+--- 1639,1645 ----
+  		 || (in_range = 1, *str++ == '-'));
+  	  str--;
+  
+!  	  if (skip_past_char (&str, '}') == FAIL)
+  	    {
+  	      first_error (_("missing `}'"));
+  	      return FAIL;
+*************** parse_vfp_reg_list (char **ccp, unsigned
+*** 1730,1743 ****
+    unsigned long mask = 0;
+    int i;
+  
+!   if (*str != '{')
+      {
+        inst.error = _("expecting {");
+        return FAIL;
+      }
+  
+-   str++;
+- 
+    switch (etype)
+      {
+      case REGLIST_VFP_S:
+--- 1737,1748 ----
+    unsigned long mask = 0;
+    int i;
+  
+!   if (skip_past_char (&str, '{') == FAIL)
+      {
+        inst.error = _("expecting {");
+        return FAIL;
+      }
+  
+    switch (etype)
+      {
+      case REGLIST_VFP_S:
+*************** s_arm_unwind_save_mmxwr (void)
+*** 3928,3935 ****
+      }
+    while (skip_past_comma (&input_line_pointer) != FAIL);
+  
+!   if (*input_line_pointer == '}')
+!     input_line_pointer++;
+  
+    demand_empty_rest_of_line ();
+  
+--- 3933,3939 ----
+      }
+    while (skip_past_comma (&input_line_pointer) != FAIL);
+  
+!   skip_past_char (&input_line_pointer, '}');
+  
+    demand_empty_rest_of_line ();
+  
+*************** s_arm_unwind_save_mmxwcg (void)
+*** 4026,4031 ****
+--- 4030,4037 ----
+    if (*input_line_pointer == '{')
+      input_line_pointer++;
+  
++   skip_whitespace (input_line_pointer);
++ 
+    do
+      {
+        reg = arm_reg_parse (&input_line_pointer, REG_TYPE_MMXWCG);
+*************** s_arm_unwind_save_mmxwcg (void)
+*** 4061,4068 ****
+      }
+    while (skip_past_comma (&input_line_pointer) != FAIL);
+  
+!   if (*input_line_pointer == '}')
+!     input_line_pointer++;
+  
+    demand_empty_rest_of_line ();
+  
+--- 4067,4073 ----
+      }
+    while (skip_past_comma (&input_line_pointer) != FAIL);
+  
+!   skip_past_char (&input_line_pointer, '}');
+  
+    demand_empty_rest_of_line ();
+  
+*************** parse_address_main (char **str, int i, i
+*** 5168,5173 ****
+--- 5173,5181 ----
+        return PARSE_OPERAND_SUCCESS;
+      }
+  
++   /* PR gas/14887: Allow for whitespace after the opening bracket.  */
++   skip_whitespace (p);
++ 
+    if ((reg = arm_reg_parse (&p, REG_TYPE_RN)) == FAIL)
+      {
+        inst.error = _(reg_expected_msgs[REG_TYPE_RN]);
