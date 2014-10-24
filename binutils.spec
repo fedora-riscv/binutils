@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -205,6 +205,7 @@ using libelf instead of BFD.
 %patch28 -p1 -b .aa64-2~
 %patch29 -p1 -b .aa64-3~
 %patch30 -p1 -b .ldplugin~
+%patch31 -p0 -b .srec~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -516,7 +517,7 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Fri Oct 24 2014 Nick Clifton <nickc@redhat.com> - 2.24-22
+* Fri Oct 24 2014 Nick Clifton <nickc@redhat.com> - 2.24-23
 - Import patch from mainline to fix seg-fault when reading corrupt srec fields.
   Resolves: BZ #1156272
 
