@@ -27,7 +27,7 @@ Name: %{?cross}binutils%{?_with_debug:-debug}
 # official binutils release happens (2.24.0) we will be able to restore
 # Version to an honest value and everything will be good again.
 Version: 2.23.88.0.1
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -88,6 +88,8 @@ Patch26: binutils-2.23.2-DW_FORM_ref_addr.patch
 Patch27: binutils-2.23.2-fake-zlib-sections.patch
 # Add support for ignoring whitespace in ARM assembler instructions.
 Patch28: binutils-2.23.2-arm-gas-whitespace.patch
+# Fix seg-fault when parsing corrupt srec files.
+Patch29: binutils-2.24-corrupt-srec.patch
 
 Provides: bundled(libiberty)
 
@@ -221,6 +223,7 @@ using libelf instead of BFD.
 %patch26 -p0 -b .ref_addr~ 
 %patch27 -p0 -b .fake-zlib~ 
 %patch28 -p0 -b .arm-whitespace~ 
+%patch29 -p0 -b .srec~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -526,6 +529,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Oct 24 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-19
+- Import patch from mainline to fix seg-fault when reading corrupt srec fields.
+  Resolves: BZ #1156272
+
 * Mon Oct 20 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-18
 - Ignore extraneous whitespace in ARM assembler.  (#1154176)
 
