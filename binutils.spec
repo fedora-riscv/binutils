@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -70,6 +70,7 @@ Patch27: binutils-2.24-aarch64-fix-gotplt-offset-ifunc.patch
 Patch28: binutils-2.24-aarch64-fix-static-ifunc.patch
 Patch29: binutils-2.24-aarch64-fix-ie-relax.patch
 Patch30: binutils-HEAD-change-ld-notice-interface.patch
+Patch31: binutils-2.24-corrupt-srec.patch
 
 Provides: bundled(libiberty)
 
@@ -515,6 +516,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Oct 24 2014 Nick Clifton <nickc@redhat.com> - 2.24-22
+- Import patch from mainline to fix seg-fault when reading corrupt srec fields.
+  Resolves: BZ #1156272
+
 * Tue Aug 26 2014 Kyle McMartin <kmcmarti@redhat.com> - 2.24-21
 - aarch64: increase common page size to 64KB
 - binutils-HEAD-change-ld-notice-interface.patch: backport fix from HEAD
