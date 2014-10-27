@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -73,6 +73,7 @@ Patch28: binutils-2.24-aarch64-fix-static-ifunc.patch
 Patch29: binutils-2.24-aarch64-fix-ie-relax.patch
 Patch30: binutils-HEAD-change-ld-notice-interface.patch
 Patch31: binutils-2.24-corrupt-srec.patch
+Patch32: binutils-2.24-corrupt-groups.patch
 
 Provides: bundled(libiberty)
 
@@ -208,6 +209,7 @@ using libelf instead of BFD.
 %patch29 -p1 -b .aa64-3~
 %patch30 -p1 -b .ldplugin~
 %patch31 -p0 -b .srec~
+%patch32 -p0 -b .groups~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -522,6 +524,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Oct 27 2014 Nick Clifton <nickc@redhat.com> - 2.24-25
+- Import patch from mainline to fix seg-fault when reading corrupt group headers.
+  Resolves: BZ #1157276
+
 * Fri Oct 24 2014 Nick Clifton <nickc@redhat.com> - 2.24-24
 - Import patch from mainline to fix seg-fault when reading corrupt srec fields.
   Resolves: BZ #1156272
