@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -73,6 +73,7 @@ Patch30: binutils-HEAD-change-ld-notice-interface.patch
 Patch31: binutils-2.24-corrupt-srec.patch
 Patch32: binutils-2.24-corrupt-groups.patch
 Patch33: binutils-2.24-corrupt-elf.patch
+Patch34: binutils-2.24-corrupt-elf.2.patch
 
 Provides: bundled(libiberty)
 
@@ -210,6 +211,7 @@ using libelf instead of BFD.
 %patch31 -p0 -b .corrupt-srec~
 %patch32 -p0 -b .corrupt-groups~
 %patch33 -p0 -b .corrupt-elf~
+%patch34 -p0 -b .corrupt-elf2~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -521,6 +523,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Oct 29 2014 Nick Clifton <nickc@redhat.com> - 2.24-26
+- Fix memory corruption bug introduced by the previous patch.
+
 * Tue Oct 28 2014 Nick Clifton <nickc@redhat.com> - 2.24-25
 - Import patches for PR/17510 and PR/17512 to fix reading corrupt ELF binaries.
   Resolves: BZ #1157276, #1157277
