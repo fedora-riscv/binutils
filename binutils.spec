@@ -27,7 +27,7 @@ Name: %{?cross}binutils%{?_with_debug:-debug}
 # official binutils release happens (2.24.0) we will be able to restore
 # Version to an honest value and everything will be good again.
 Version: 2.23.88.0.1
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -94,6 +94,7 @@ Patch29: binutils-2.24-corrupt-srec.patch
 Patch30: binutils-2.24-corrupt-groups.patch
 # Fix seg-fault when parsing corrupt ELF string table indicies.
 Patch31: binutils-2.23.2-corrupt-elf.patch
+Patch32: binutils-2.24-corrupt-elf.2.patch
 
 Provides: bundled(libiberty)
 
@@ -230,6 +231,7 @@ using libelf instead of BFD.
 %patch29 -p0 -b .corrupt-srec~
 %patch30 -p0 -b .corrupt-groups~
 %patch31 -p0 -b .corrupt-elf~
+%patch32 -p0 -b .corrupt-elf2~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -535,6 +537,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Oct 29 2014 Nick Clifton <nickc@redhat.com> - 2.23.99.0.1-22
+- Fix memory corruption bug introduced by the previous patch.
+
 * Tue Oct 28 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-21
 - Import patches for PR/17510 and PR/17512 to fix reading corrupt ELF binaries.
   Resolves: BZ #1157276, #1157277
