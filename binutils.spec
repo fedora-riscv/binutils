@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 27%{?dist}
+Release: 28%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -72,10 +72,8 @@ Patch27: binutils-2.24-aarch64-fix-gotplt-offset-ifunc.patch
 Patch28: binutils-2.24-aarch64-fix-static-ifunc.patch
 Patch29: binutils-2.24-aarch64-fix-ie-relax.patch
 Patch30: binutils-HEAD-change-ld-notice-interface.patch
-Patch31: binutils-2.24-corrupt-srec.patch
-Patch32: binutils-2.24-corrupt-groups.patch
-Patch33: binutils-2.24-corrupt-elf.patch
-Patch34: binutils-2.24-corrupt-elf.2.patch
+Patch31: binutils-2.24-corrupt-binaries.patch
+Patch32: binutils-2.24-strings-default-all.patch
 
 Provides: bundled(libiberty)
 
@@ -210,10 +208,8 @@ using libelf instead of BFD.
 %patch28 -p1 -b .aa64-2~
 %patch29 -p1 -b .aa64-3~
 %patch30 -p1 -b .ldplugin~
-%patch31 -p0 -b .corrupt-srec~
-%patch32 -p0 -b .corrupt-groups~
-%patch33 -p0 -b .corrupt-elf~
-%patch34 -p0 -b .corrupt-elf2~
+%patch31 -p0 -b .corrupt-binaries~
+%patch32 -p0 -b .strings-all~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -528,6 +524,12 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.24-28
+- Fix buffer overrun in ihex parser.
+- Fix memory corruption in previous patch.
+- Consoldiate corrupt handling patches into just one patch.
+- Default strings command to using -a.
+
 * Wed Oct 29 2014 Nick Clifton <nickc@redhat.com> - 2.24-27
 - Fix memory corruption bug introduced by the previous patch.
 
