@@ -27,7 +27,7 @@ Name: %{?cross}binutils%{?_with_debug:-debug}
 # official binutils release happens (2.24.0) we will be able to restore
 # Version to an honest value and everything will be good again.
 Version: 2.23.88.0.1
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -88,13 +88,9 @@ Patch26: binutils-2.23.2-DW_FORM_ref_addr.patch
 Patch27: binutils-2.23.2-fake-zlib-sections.patch
 # Add support for ignoring whitespace in ARM assembler instructions.
 Patch28: binutils-2.23.2-arm-gas-whitespace.patch
-# Fix seg-fault when parsing corrupt srec files.
-Patch29: binutils-2.24-corrupt-srec.patch
-# Fix seg-fault when parsing corrupt ELF group headers.
-Patch30: binutils-2.24-corrupt-groups.patch
-# Fix seg-fault when parsing corrupt ELF string table indicies.
-Patch31: binutils-2.23.2-corrupt-elf.patch
-Patch32: binutils-2.24-corrupt-elf.2.patch
+# Fix seg-faults when parsing corrupt binary files.
+Patch29: binutils-2.23.2-corrupt-binaries.patch
+
 
 Provides: bundled(libiberty)
 
@@ -228,10 +224,7 @@ using libelf instead of BFD.
 %patch26 -p0 -b .ref_addr~ 
 %patch27 -p0 -b .fake-zlib~ 
 %patch28 -p0 -b .arm-whitespace~ 
-%patch29 -p0 -b .corrupt-srec~
-%patch30 -p0 -b .corrupt-groups~
-%patch31 -p0 -b .corrupt-elf~
-%patch32 -p0 -b .corrupt-elf2~
+%patch29 -p0 -b .corrupt-binaries~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -537,7 +530,12 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Wed Oct 29 2014 Nick Clifton <nickc@redhat.com> - 2.23.99.0.1-22
+* Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-23
+- Fix buffer overrun in ihex parser.
+- Fix memory corruption in previous patch.
+- Consoldiate corrupt handling patches into just one patch.
+
+* Wed Oct 29 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-22
 - Fix memory corruption bug introduced by the previous patch.
 
 * Tue Oct 28 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-21

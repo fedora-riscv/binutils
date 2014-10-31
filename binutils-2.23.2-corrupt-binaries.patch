@@ -1,8 +1,92 @@
 diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
-*** ../binutils-2.23.2.orig/bfd/elf.c	2014-10-28 11:06:38.209610616 +0000
---- bfd/elf.c	2014-10-28 11:09:52.471668367 +0000
+*** ../binutils-2.23.2.orig/bfd/elf.c	2014-10-31 12:38:26.769472025 +0000
+--- bfd/elf.c	2014-10-31 12:51:53.769801297 +0000
+*************** setup_group (bfd *abfd, Elf_Internal_Shd
+*** 599,607 ****
+  		  if (shdr->contents == NULL)
+  		    {
+  		      _bfd_error_handler
+! 			(_("%B: Corrupt size field in group section header: 0x%lx"), abfd, shdr->sh_size);
+  		      bfd_set_error (bfd_error_bad_value);
+! 		      return FALSE;
+  		    }
+  
+  		  memset (shdr->contents, 0, amt);
+--- 599,608 ----
+  		  if (shdr->contents == NULL)
+  		    {
+  		      _bfd_error_handler
+! 			(_("%B: corrupt size field in group section header: 0x%lx"), abfd, shdr->sh_size);
+  		      bfd_set_error (bfd_error_bad_value);
+! 		      -- num_group;
+! 		      continue;
+  		    }
+  
+  		  memset (shdr->contents, 0, amt);
+*************** setup_group (bfd *abfd, Elf_Internal_Shd
+*** 609,616 ****
+  		  if (bfd_seek (abfd, shdr->sh_offset, SEEK_SET) != 0
+  		      || (bfd_bread (shdr->contents, shdr->sh_size, abfd)
+  			  != shdr->sh_size))
+! 		    return FALSE;
+! 
+  		  /* Translate raw contents, a flag word followed by an
+  		     array of elf section indices all in target byte order,
+  		     to the flag word followed by an array of elf section
+--- 610,626 ----
+  		  if (bfd_seek (abfd, shdr->sh_offset, SEEK_SET) != 0
+  		      || (bfd_bread (shdr->contents, shdr->sh_size, abfd)
+  			  != shdr->sh_size))
+! 		    {
+! 		      _bfd_error_handler
+! 			(_("%B: invalid size field in group section header: 0x%lx"), abfd, shdr->sh_size);
+! 		      bfd_set_error (bfd_error_bad_value);
+! 		      -- num_group;
+! 		      /* PR 17510: If the group contents are even partially
+! 			 corrupt, do not allow any of the contents to be used.  */
+! 		      memset (shdr->contents, 0, amt);
+! 		      continue;
+! 		    }
+! 		  
+  		  /* Translate raw contents, a flag word followed by an
+  		     array of elf section indices all in target byte order,
+  		     to the flag word followed by an array of elf section
+*************** setup_group (bfd *abfd, Elf_Internal_Shd
+*** 642,647 ****
+--- 652,672 ----
+  		    }
+  		}
+  	    }
++ 
++ 	  /* PR 17510: Corrupt binaries might contain invalid groups.  */
++ 	  if (num_group != (unsigned) elf_tdata (abfd)->num_group)
++ 	    {
++ 	      elf_tdata (abfd)->num_group = num_group;
++ 
++ 	      /* If all groups are invalid then fail.  */
++ 	      if (num_group == 0)
++ 		{
++ 		  elf_tdata (abfd)->group_sect_ptr = NULL;
++ 		  elf_tdata (abfd)->num_group = num_group = -1;
++ 		  (*_bfd_error_handler) (_("%B: no valid group sections found"), abfd);
++ 		  bfd_set_error (bfd_error_bad_value);
++ 		}
++ 	    }
+  	}
+      }
+  
+*************** setup_group (bfd *abfd, Elf_Internal_Shd
+*** 707,712 ****
+--- 732,738 ----
+      {
+        (*_bfd_error_handler) (_("%B: no group info for section %A"),
+  			     abfd, newsect);
++       return FALSE;
+      }
+    return TRUE;
+  }
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1573,1610 ****
+*** 1547,1584 ****
     Elf_Internal_Ehdr *ehdr;
     const struct elf_backend_data *bed;
     const char *name;
@@ -41,12 +125,13 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         if (hdr->sh_link > elf_numsections (abfd))
   	{
   	  /* PR 10478: Accept Solaris binaries with a sh_link
---- 1573,1639 ----
+--- 1573,1646 ----
     Elf_Internal_Ehdr *ehdr;
     const struct elf_backend_data *bed;
     const char *name;
 +   bfd_boolean ret = TRUE;
 +   static bfd_boolean * sections_being_created = NULL;
++   static bfd * sections_being_created_abfd = NULL;
 +   static unsigned int nesting = 0;
   
     if (shindex >= elf_numsections (abfd))
@@ -59,13 +144,19 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
 + 	 loop.  Detect this here, by refusing to load a section that we are
 + 	 already in the process of loading.  We only trigger this test if
 + 	 we have nested at least three sections deep as normal ELF binaries
-+ 	 can expect to recurse at least once.  */
-+       
++ 	 can expect to recurse at least once.
++ 
++ 	 FIXME: It would be better if this array was attached to the bfd,
++ 	 rather than being held in a static pointer.  */
++ 
++       if (sections_being_created_abfd != abfd)
++ 	sections_being_created = NULL;
 +       if (sections_being_created == NULL)
 + 	{
 + 	  /* FIXME: It would be more efficient to attach this array to the bfd somehow.  */
 + 	  sections_being_created = (bfd_boolean *)
 + 	    bfd_zalloc (abfd, elf_numsections (abfd) * sizeof (bfd_boolean));
++ 	  sections_being_created_abfd = abfd;
 + 	}
 +       if (sections_being_created [shindex])
 + 	{
@@ -110,7 +201,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	{
   	  /* PR 10478: Accept Solaris binaries with a sh_link
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1618,1628 ****
+*** 1592,1602 ****
   		break;
   	      /* Otherwise fall through.  */
   	    default:
@@ -122,7 +213,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         else if (elf_elfsections (abfd)[hdr->sh_link]->sh_type != SHT_STRTAB)
   	{
   	  Elf_Internal_Shdr *dynsymhdr;
---- 1647,1657 ----
+--- 1654,1664 ----
   		break;
   	      /* Otherwise fall through.  */
   	    default:
@@ -135,7 +226,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	{
   	  Elf_Internal_Shdr *dynsymhdr;
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1651,1674 ****
+*** 1625,1648 ****
   		}
   	    }
   	}
@@ -160,7 +251,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         BFD_ASSERT (elf_onesymtab (abfd) == 0);
         elf_onesymtab (abfd) = shindex;
         elf_tdata (abfd)->symtab_hdr = *hdr;
---- 1680,1705 ----
+--- 1687,1712 ----
   		}
   	    }
   	}
@@ -188,7 +279,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         elf_onesymtab (abfd) = shindex;
         elf_tdata (abfd)->symtab_hdr = *hdr;
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1685,1691 ****
+*** 1659,1665 ****
   	  && (abfd->flags & DYNAMIC) != 0
   	  && ! _bfd_elf_make_section_from_shdr (abfd, hdr, name,
   						shindex))
@@ -196,7 +287,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
         /* Go looking for SHT_SYMTAB_SHNDX too, since if there is one we
   	 can't read symbols without that section loaded as well.  It
---- 1716,1722 ----
+--- 1723,1729 ----
   	  && (abfd->flags & DYNAMIC) != 0
   	  && ! _bfd_elf_make_section_from_shdr (abfd, hdr, name,
   						shindex))
@@ -205,7 +296,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         /* Go looking for SHT_SYMTAB_SHNDX too, since if there is one we
   	 can't read symbols without that section loaded as well.  It
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1711,1736 ****
+*** 1685,1710 ****
   		  break;
   	      }
   	  if (i != shindex)
@@ -232,7 +323,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         BFD_ASSERT (elf_dynsymtab (abfd) == 0);
         elf_dynsymtab (abfd) = shindex;
         elf_tdata (abfd)->dynsymtab_hdr = *hdr;
---- 1742,1770 ----
+--- 1749,1777 ----
   		  break;
   	      }
   	  if (i != shindex)
@@ -263,7 +354,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         elf_dynsymtab (abfd) = shindex;
         elf_tdata (abfd)->dynsymtab_hdr = *hdr;
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1739,1772 ****
+*** 1713,1746 ****
   
         /* Besides being a symbol table, we also treat this as a regular
   	 section, so that objcopy can handle it.  */
@@ -298,7 +389,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         if (elf_elfsections (abfd)[elf_dynsymtab (abfd)]->sh_link == shindex)
   	{
   	dynsymtab_strtab:
---- 1773,1810 ----
+--- 1780,1817 ----
   
         /* Besides being a symbol table, we also treat this as a regular
   	 section, so that objcopy can handle it.  */
@@ -338,7 +429,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	{
   	dynsymtab_strtab:
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1775,1782 ****
+*** 1749,1756 ****
   	  elf_elfsections (abfd)[shindex] = hdr;
   	  /* We also treat this as a regular section, so that objcopy
   	     can handle it.  */
@@ -347,7 +438,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	}
   
         /* If the string table isn't one of the above, then treat it as a
---- 1813,1821 ----
+--- 1820,1828 ----
   	  elf_elfsections (abfd)[shindex] = hdr;
   	  /* We also treat this as a regular section, so that objcopy
   	     can handle it.  */
@@ -358,7 +449,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
         /* If the string table isn't one of the above, then treat it as a
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1794,1802 ****
+*** 1768,1776 ****
   		{
   		  /* Prevent endless recursion on broken objects.  */
   		  if (i == shindex)
@@ -368,7 +459,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   		  if (elf_onesymtab (abfd) == i)
   		    goto symtab_strtab;
   		  if (elf_dynsymtab (abfd) == i)
---- 1833,1841 ----
+--- 1840,1848 ----
   		{
   		  /* Prevent endless recursion on broken objects.  */
   		  if (i == shindex)
@@ -379,7 +470,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   		    goto symtab_strtab;
   		  if (elf_dynsymtab (abfd) == i)
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1804,1810 ****
+*** 1778,1784 ****
   		}
   	    }
   	}
@@ -387,7 +478,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
       case SHT_REL:
       case SHT_RELA:
---- 1843,1850 ----
+--- 1850,1857 ----
   		}
   	    }
   	}
@@ -397,7 +488,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
       case SHT_REL:
       case SHT_RELA:
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1819,1825 ****
+*** 1793,1799 ****
   	if (hdr->sh_entsize
   	    != (bfd_size_type) (hdr->sh_type == SHT_REL
   				? bed->s->sizeof_rel : bed->s->sizeof_rela))
@@ -405,7 +496,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
   	/* Check for a bogus link to avoid crashing.  */
   	if (hdr->sh_link >= num_sec)
---- 1859,1865 ----
+--- 1866,1872 ----
   	if (hdr->sh_entsize
   	    != (bfd_size_type) (hdr->sh_type == SHT_REL
   				? bed->s->sizeof_rel : bed->s->sizeof_rela))
@@ -414,7 +505,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	/* Check for a bogus link to avoid crashing.  */
   	if (hdr->sh_link >= num_sec)
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1827,1834 ****
+*** 1801,1808 ****
   	    ((*_bfd_error_handler)
   	     (_("%B: invalid link %lu for reloc section %s (index %u)"),
   	      abfd, hdr->sh_link, name, shindex));
@@ -423,7 +514,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	  }
   
   	/* For some incomprehensible reason Oracle distributes
---- 1867,1875 ----
+--- 1874,1882 ----
   	    ((*_bfd_error_handler)
   	     (_("%B: invalid link %lu for reloc section %s (index %u)"),
   	      abfd, hdr->sh_link, name, shindex));
@@ -434,7 +525,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
   	/* For some incomprehensible reason Oracle distributes
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1869,1875 ****
+*** 1843,1849 ****
   	if ((elf_elfsections (abfd)[hdr->sh_link]->sh_type == SHT_SYMTAB
   	     || elf_elfsections (abfd)[hdr->sh_link]->sh_type == SHT_DYNSYM)
   	    && ! bfd_section_from_shdr (abfd, hdr->sh_link))
@@ -442,7 +533,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
   	/* If this reloc section does not use the main symbol table we
   	   don't treat it as a reloc section.  BFD can't adequately
---- 1910,1916 ----
+--- 1917,1923 ----
   	if ((elf_elfsections (abfd)[hdr->sh_link]->sh_type == SHT_SYMTAB
   	     || elf_elfsections (abfd)[hdr->sh_link]->sh_type == SHT_DYNSYM)
   	    && ! bfd_section_from_shdr (abfd, hdr->sh_link))
@@ -451,7 +542,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	/* If this reloc section does not use the main symbol table we
   	   don't treat it as a reloc section.  BFD can't adequately
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1884,1897 ****
+*** 1858,1871 ****
   	    || hdr->sh_info >= num_sec
   	    || elf_elfsections (abfd)[hdr->sh_info]->sh_type == SHT_REL
   	    || elf_elfsections (abfd)[hdr->sh_info]->sh_type == SHT_RELA)
@@ -466,7 +557,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
   	esdt = elf_section_data (target_sect);
   	if (hdr->sh_type == SHT_RELA)
---- 1925,1942 ----
+--- 1932,1949 ----
   	    || hdr->sh_info >= num_sec
   	    || elf_elfsections (abfd)[hdr->sh_info]->sh_type == SHT_REL
   	    || elf_elfsections (abfd)[hdr->sh_info]->sh_type == SHT_RELA)
@@ -486,7 +577,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	esdt = elf_section_data (target_sect);
   	if (hdr->sh_type == SHT_RELA)
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1903,1909 ****
+*** 1877,1883 ****
   	amt = sizeof (*hdr2);
   	hdr2 = (Elf_Internal_Shdr *) bfd_alloc (abfd, amt);
   	if (hdr2 == NULL)
@@ -494,7 +585,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	*hdr2 = *hdr;
   	*p_hdr = hdr2;
   	elf_elfsections (abfd)[shindex] = hdr2;
---- 1948,1954 ----
+--- 1955,1961 ----
   	amt = sizeof (*hdr2);
   	hdr2 = (Elf_Internal_Shdr *) bfd_alloc (abfd, amt);
   	if (hdr2 == NULL)
@@ -503,7 +594,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	*p_hdr = hdr2;
   	elf_elfsections (abfd)[shindex] = hdr2;
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1919,1952 ****
+*** 1893,1926 ****
   	      target_sect->use_rela_p = 1;
   	  }
   	abfd->flags |= HAS_RELOC;
@@ -538,7 +629,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         if (hdr->contents != NULL)
   	{
   	  Elf_Internal_Group *idx = (Elf_Internal_Group *) hdr->contents;
---- 1964,2000 ----
+--- 1971,2007 ----
   	      target_sect->use_rela_p = 1;
   	  }
   	abfd->flags |= HAS_RELOC;
@@ -577,7 +668,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	{
   	  Elf_Internal_Group *idx = (Elf_Internal_Group *) hdr->contents;
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1972,1978 ****
+*** 1946,1952 ****
   		}
   	    }
   	}
@@ -585,7 +676,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
       default:
         /* Possibly an attributes section.  */
---- 2020,2026 ----
+--- 2027,2033 ----
   		}
   	    }
   	}
@@ -594,7 +685,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
       default:
         /* Possibly an attributes section.  */
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1980,1993 ****
+*** 1954,1967 ****
   	  || hdr->sh_type == bed->obj_attrs_section_type)
   	{
   	  if (! _bfd_elf_make_section_from_shdr (abfd, hdr, name, shindex))
@@ -609,7 +700,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   
         if (hdr->sh_type >= SHT_LOUSER && hdr->sh_type <= SHT_HIUSER)
   	{
---- 2028,2041 ----
+--- 2035,2048 ----
   	  || hdr->sh_type == bed->obj_attrs_section_type)
   	{
   	  if (! _bfd_elf_make_section_from_shdr (abfd, hdr, name, shindex))
@@ -625,7 +716,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         if (hdr->sh_type >= SHT_LOUSER && hdr->sh_type <= SHT_HIUSER)
   	{
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 1999,2007 ****
+*** 1973,1981 ****
   		 "specific section `%s' [0x%8x]"),
   	       abfd, name, hdr->sh_type);
   	  else
@@ -635,7 +726,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	}
         else if (hdr->sh_type >= SHT_LOPROC
   	       && hdr->sh_type <= SHT_HIPROC)
---- 2047,2058 ----
+--- 2054,2065 ----
   		 "specific section `%s' [0x%8x]"),
   	       abfd, name, hdr->sh_type);
   	  else
@@ -649,7 +740,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         else if (hdr->sh_type >= SHT_LOPROC
   	       && hdr->sh_type <= SHT_HIPROC)
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 2022,2029 ****
+*** 1996,2003 ****
   		 "`%s' [0x%8x]"),
   	       abfd, name, hdr->sh_type);
   	  else
@@ -658,7 +749,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   	}
         else
   	/* FIXME: We should handle this section.  */
---- 2073,2083 ----
+--- 2080,2090 ----
   		 "`%s' [0x%8x]"),
   	       abfd, name, hdr->sh_type);
   	  else
@@ -671,7 +762,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
         else
   	/* FIXME: We should handle this section.  */
 *************** bfd_section_from_shdr (bfd *abfd, unsign
-*** 2031,2040 ****
+*** 2005,2014 ****
   	  (_("%B: don't know how to handle section `%s' [0x%8x]"),
   	   abfd, name, hdr->sh_type);
   
@@ -682,7 +773,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
   }
   
   /* Return the local symbol specified by ABFD, R_SYMNDX.  */
---- 2085,2101 ----
+--- 2092,2111 ----
   	  (_("%B: don't know how to handle section `%s' [0x%8x]"),
   	   abfd, name, hdr->sh_type);
   
@@ -692,37 +783,85 @@ diff -cpr ../binutils-2.23.2.orig/bfd/elf.c bfd/elf.c
 !  fail:
 !   ret = FALSE;
 !  success:
-!   if (sections_being_created)
+!   if (sections_being_created && sections_being_created_abfd == abfd)
 !     sections_being_created [shindex] = FALSE;
 !   if (-- nesting == 0)
-!     sections_being_created = NULL;
+!     {
+!       sections_being_created = NULL;
+!       sections_being_created_abfd = abfd;
+!     }
 !   return ret;
   }
   
   /* Return the local symbol specified by ABFD, R_SYMNDX.  */
+*************** elfcore_write_lwpstatus (bfd *abfd,
+*** 9179,9185 ****
+    lwpstat.pr_lwpid  = pid >> 16;
+    lwpstat.pr_cursig = cursig;
+  #if defined (HAVE_LWPSTATUS_T_PR_REG)
+!   memcpy (lwpstat.pr_reg, gregs, sizeof (lwpstat.pr_reg));
+  #elif defined (HAVE_LWPSTATUS_T_PR_CONTEXT)
+  #if !defined(gregs)
+    memcpy (lwpstat.pr_context.uc_mcontext.gregs,
+--- 9276,9282 ----
+    lwpstat.pr_lwpid  = pid >> 16;
+    lwpstat.pr_cursig = cursig;
+  #if defined (HAVE_LWPSTATUS_T_PR_REG)
+!   memcpy (&lwpstat.pr_reg, gregs, sizeof (lwpstat.pr_reg));
+  #elif defined (HAVE_LWPSTATUS_T_PR_CONTEXT)
+  #if !defined(gregs)
+    memcpy (lwpstat.pr_context.uc_mcontext.gregs,
+diff -cpr ../binutils-2.23.2.orig/bfd/ihex.c bfd/ihex.c
+*** ../binutils-2.23.2.orig/bfd/ihex.c	2014-10-31 12:38:26.776472057 +0000
+--- bfd/ihex.c	2014-10-31 12:49:11.214404454 +0000
+*************** ihex_scan (bfd *abfd)
+*** 322,328 ****
+  	    {
+  	      if (! ISHEX (buf[i]))
+  		{
+! 		  ihex_bad_byte (abfd, lineno, hdr[i], error);
+  		  goto error_return;
+  		}
+  	    }
+--- 322,328 ----
+  	    {
+  	      if (! ISHEX (buf[i]))
+  		{
+! 		  ihex_bad_byte (abfd, lineno, buf[i], error);
+  		  goto error_return;
+  		}
+  	    }
 diff -cpr ../binutils-2.23.2.orig/bfd/peXXigen.c bfd/peXXigen.c
-*** ../binutils-2.23.2.orig/bfd/peXXigen.c	2014-10-28 11:06:38.223610692 +0000
---- bfd/peXXigen.c	2014-10-28 11:10:51.399989230 +0000
+*** ../binutils-2.23.2.orig/bfd/peXXigen.c	2014-10-31 12:38:26.780472075 +0000
+--- bfd/peXXigen.c	2014-10-31 12:49:47.735571710 +0000
 *************** _bfd_XXi_swap_aouthdr_in (bfd * abfd,
-*** 461,466 ****
---- 461,477 ----
+*** 461,467 ****
     {
       int idx;
   
-+     /* PR 17512: Corrupt PE binaries can cause seg-faults.  */
-+     if (a->NumberOfRvaAndSizes > 16)
-+       {
-+ 	(*_bfd_error_handler)
-+ 	  (_("%B: aout header specifies an invalid number of data-directory entries: %d"),
-+ 	   abfd, a->NumberOfRvaAndSizes);
-+ 	/* Paranoia: If the number is corrupt, then assume that the
-+ 	   actual entries themselves might be corrupt as well.  */
-+ 	a->NumberOfRvaAndSizes = 0;
-+       }
-+ 
-      for (idx = 0; idx < 16; idx++)
+!     for (idx = 0; idx < 16; idx++)
         {
           /* If data directory is empty, rva also should be 0.  */
+  	int size =
+--- 461,478 ----
+    {
+      int idx;
+  
+!     /* PR 17512: Corrupt PE binaries can cause seg-faults.  */
+!     if (a->NumberOfRvaAndSizes > 16)
+!       {
+! 	(*_bfd_error_handler)
+! 	  (_("%B: aout header specifies an invalid number of data-directory entries: %d"),
+! 	   abfd, a->NumberOfRvaAndSizes);
+! 	/* Paranoia: If the number is corrupt, then assume that the
+! 	   actual entries themselves might be corrupt as well.  */
+! 	a->NumberOfRvaAndSizes = 0;
+!       }
+! 
+!     for (idx = 0; idx < a->NumberOfRvaAndSizes; idx++)
+        {
+          /* If data directory is empty, rva also should be 0.  */
+  	int size =
 *************** pe_print_edata (bfd * abfd, void * vfile
 *** 1365,1371 ****
     bfd_size_type datasize = 0;
@@ -757,6 +896,24 @@ diff -cpr ../binutils-2.23.2.orig/bfd/peXXigen.c bfd/peXXigen.c
         dataoff = addr - section->vma;
         datasize = extra->DataDirectory[PE_EXPORT_TABLE].Size;
 *************** pe_print_edata (bfd * abfd, void * vfile
+*** 1427,1432 ****
+--- 1445,1459 ----
+  	}
+      }
+  
++   /* PR 17512: Handle corrupt PE binaries.  */
++   if (datasize < 36)
++     {
++       fprintf (file,
++ 	       _("\nThere is an export table in %s, but it is too small (%d)\n"),
++ 	       section->name, (int) datasize);
++       return TRUE;
++     }
++ 
+    fprintf (file, _("\nThere is an export table in %s at 0x%lx\n"),
+  	   section->name, (unsigned long) addr);
+  
+*************** pe_print_edata (bfd * abfd, void * vfile
 *** 1470,1477 ****
     fprintf (file,
   	   _("Name \t\t\t\t"));
@@ -766,7 +923,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/peXXigen.c bfd/peXXigen.c
   
     fprintf (file,
   	   _("Ordinal Base \t\t\t%ld\n"), edt.base);
---- 1488,1498 ----
+--- 1497,1507 ----
     fprintf (file,
   	   _("Name \t\t\t\t"));
     bfd_fprintf_vma (abfd, file, edt.name);
@@ -787,7 +944,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/peXXigen.c bfd/peXXigen.c
       {
         bfd_vma eat_member = bfd_get_32 (abfd,
   				       data + edt.eat_addr + (i * 4) - adj);
---- 1538,1549 ----
+--- 1547,1558 ----
   	  _("\nExport Address Table -- Ordinal Base %ld\n"),
   	  edt.base);
   
@@ -809,7 +966,7 @@ diff -cpr ../binutils-2.23.2.orig/bfd/peXXigen.c bfd/peXXigen.c
       {
         bfd_vma name_ptr = bfd_get_32 (abfd,
   				    data +
---- 1579,1594 ----
+--- 1588,1603 ----
     fprintf (file,
   	   _("\n[Ordinal/Name Pointer] Table\n"));
   
@@ -827,8 +984,8 @@ diff -cpr ../binutils-2.23.2.orig/bfd/peXXigen.c bfd/peXXigen.c
         bfd_vma name_ptr = bfd_get_32 (abfd,
   				    data +
 diff -cpr ../binutils-2.23.2.orig/bfd/srec.c bfd/srec.c
-*** ../binutils-2.23.2.orig/bfd/srec.c	2014-10-28 11:06:38.218610665 +0000
---- bfd/srec.c	2014-10-28 11:06:52.621689089 +0000
+*** ../binutils-2.23.2.orig/bfd/srec.c	2014-10-31 12:38:26.777472062 +0000
+--- bfd/srec.c	2014-10-31 12:49:11.217404468 +0000
 *************** srec_bad_byte (bfd *abfd,
 *** 248,254 ****
       }
@@ -847,19 +1004,43 @@ diff -cpr ../binutils-2.23.2.orig/bfd/srec.c bfd/srec.c
         if (! ISPRINT (c))
   	sprintf (buf, "\\%03o", (unsigned int) c);
 *************** srec_scan (bfd *abfd)
-*** 454,460 ****
+*** 454,461 ****
   	case 'S':
   	  {
   	    file_ptr pos;
 ! 	    char hdr[3];
-  	    unsigned int bytes, min_bytes;
+! 	    unsigned int bytes;
   	    bfd_vma address;
   	    bfd_byte *data;
---- 454,460 ----
+  	    unsigned char check_sum;
+--- 454,461 ----
   	case 'S':
   	  {
   	    file_ptr pos;
 ! 	    unsigned char hdr[3];
-  	    unsigned int bytes, min_bytes;
+! 	    unsigned int bytes, min_bytes;
   	    bfd_vma address;
   	    bfd_byte *data;
+  	    unsigned char check_sum;
+*************** srec_scan (bfd *abfd)
+*** 478,483 ****
+--- 478,496 ----
+  	      }
+  
+  	    check_sum = bytes = HEX (hdr + 1);
++ 	    min_bytes = 3;
++ 	    if (hdr[0] == '2' || hdr[0] == '8')
++ 	      min_bytes = 4;
++ 	    else if (hdr[0] == '3' || hdr[0] == '7')
++ 	      min_bytes = 5;
++ 	    if (bytes < min_bytes)
++ 	      {
++ 		(*_bfd_error_handler) (_("%B:%d: byte count %d too small\n"),
++ 				       abfd, lineno, bytes);
++ 		bfd_set_error (bfd_error_bad_value);
++ 		goto error_return;
++ 	      }
++ 
+  	    if (bytes * 2 > bufsize)
+  	      {
+  		if (buf != NULL)
