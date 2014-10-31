@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 27%{?dist}
+Release: 28%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -519,6 +519,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.22-28
+- Remove bogus part of addr2line-dynsymtab.patch.
+  Resovles: BZ #1157706
+
 * Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.24-27
 - Fix buffer overrun in ihex parser.
 - Fix memory corruption in previous patch.
