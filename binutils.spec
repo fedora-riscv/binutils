@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 28%{?dist}
+Release: 29%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -72,6 +72,7 @@ Patch29: binutils-2.24-aarch64-fix-ie-relax.patch
 Patch30: binutils-HEAD-change-ld-notice-interface.patch
 Patch31: binutils-2.24-corrupt-binaries.patch
 Patch32: binutils-2.24-strings-default-all.patch
+Patch33: binutils-2.24-plugin-sym-add.patch
 
 Provides: bundled(libiberty)
 
@@ -208,6 +209,7 @@ using libelf instead of BFD.
 %patch30 -p1 -b .ldplugin~
 %patch31 -p0 -b .corrupt-binaries~
 %patch32 -p0 -b .strings-all~
+%patch33 -p0 -b .plugin-syms~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -519,6 +521,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Nov 06 2014 Nick Clifton <nickc@redhat.com> - 2.22-29
+- Fix seg-fault when adding symbols via a plugin.
+  Resovles: BZ #1149660
+
 * Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.22-28
 - Remove bogus part of addr2line-dynsymtab.patch.
   Resovles: BZ #1157706
