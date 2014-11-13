@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 29%{?dist}
+Release: 30%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -73,6 +73,7 @@ Patch30: binutils-HEAD-change-ld-notice-interface.patch
 Patch31: binutils-2.24-corrupt-binaries.patch
 Patch32: binutils-2.24-strings-default-all.patch
 Patch33: binutils-2.24-plugin-sym-add.patch
+Patch34: binutils-2.24-corrupt-ar.patch
 
 Provides: bundled(libiberty)
 
@@ -521,11 +522,15 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Thu Nov 06 2014 Nick Clifton <nickc@redhat.com> - 2.22-29
+* Thu Nov 13 2014 Nick Clifton <nickc@redhat.com> - 2.24-30
+- Fix problems with the ar program reported in FSF PR 17533.
+  Resolves: BZ #1162666, #1162655
+
+* Thu Nov 06 2014 Nick Clifton <nickc@redhat.com> - 2.24-29
 - Fix seg-fault when adding symbols via a plugin.
   Resovles: BZ #1149660
 
-* Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.22-28
+* Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.24-28
 - Remove bogus part of addr2line-dynsymtab.patch.
   Resovles: BZ #1157706
 
