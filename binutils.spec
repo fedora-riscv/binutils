@@ -27,7 +27,7 @@ Name: %{?cross}binutils%{?_with_debug:-debug}
 # official binutils release happens (2.24.0) we will be able to restore
 # Version to an honest value and everything will be good again.
 Version: 2.23.88.0.1
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -90,6 +90,8 @@ Patch27: binutils-2.23.2-fake-zlib-sections.patch
 Patch28: binutils-2.23.2-arm-gas-whitespace.patch
 # Fix seg-faults when parsing corrupt binary files.
 Patch29: binutils-2.23.2-corrupt-binaries.patch
+# Fix seg-faults when parsing corrupt archives.
+Patch30: binutils-2.24-corrupt-ar.patch
 
 
 Provides: bundled(libiberty)
@@ -530,6 +532,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Nov 13 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-25
+- Fix problems with the ar program reported in FSF PR 17533.
+  Resolves: BZ #1162666, #1162655
+
 * Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-24
 - Remove bogus part of addr2line-dynsymtab.patch.
   Resovles: BZ #1157706
