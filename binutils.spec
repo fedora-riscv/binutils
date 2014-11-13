@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 28%{?dist}
+Release: 29%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -74,6 +74,7 @@ Patch29: binutils-2.24-aarch64-fix-ie-relax.patch
 Patch30: binutils-HEAD-change-ld-notice-interface.patch
 Patch31: binutils-2.24-corrupt-binaries.patch
 Patch32: binutils-2.24-strings-default-all.patch
+Patch33: binutils-2.24-corrupt-ar.patch
 
 Provides: bundled(libiberty)
 
@@ -210,6 +211,7 @@ using libelf instead of BFD.
 %patch30 -p1 -b .ldplugin~
 %patch31 -p0 -b .corrupt-binaries~
 %patch32 -p0 -b .strings-all~
+%patch33 -p0 -b .corrupt-ar~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -524,6 +526,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Nov 13 2014 Nick Clifton <nickc@redhat.com> - 2.24-29
+- Fix problems with the ar program reported in FSF PR 17533.
+  Resolves: BZ #1162666, #1162655
+
 * Fri Oct 31 2014 Nick Clifton <nickc@redhat.com> - 2.24-28
 - Fix buffer overrun in ihex parser.
 - Fix memory corruption in previous patch.
