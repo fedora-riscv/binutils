@@ -1,0 +1,31 @@
+*** ../binutils-2.24.orig/bfd/plugin.c	2014-11-06 15:23:23.689457559 +0000
+--- bfd/plugin.c	2014-11-06 15:25:13.280962560 +0000
+*************** add_symbols (void * handle,
+*** 274,286 ****
+  
+    plugin_data->nsyms = nsyms;
+    plugin_data->syms = syms;
+  
+    bfd_plugin_get_symbols_in_object_only (abfd);
+  
+    if ((nsyms + plugin_data->object_only_nsyms) != 0)
+      abfd->flags |= HAS_SYMS;
+  
+-   abfd->tdata.plugin_data = plugin_data;
+    return LDPS_OK;
+  }
+  
+--- 274,286 ----
+  
+    plugin_data->nsyms = nsyms;
+    plugin_data->syms = syms;
++   abfd->tdata.plugin_data = plugin_data;
+  
+    bfd_plugin_get_symbols_in_object_only (abfd);
+  
+    if ((nsyms + plugin_data->object_only_nsyms) != 0)
+      abfd->flags |= HAS_SYMS;
+  
+    return LDPS_OK;
+  }
+  

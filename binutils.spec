@@ -27,7 +27,7 @@ Name: %{?cross}binutils%{?_with_debug:-debug}
 # official binutils release happens (2.24.0) we will be able to restore
 # Version to an honest value and everything will be good again.
 Version: 2.23.88.0.1
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -92,6 +92,7 @@ Patch28: binutils-2.23.2-arm-gas-whitespace.patch
 Patch29: binutils-2.23.2-corrupt-binaries.patch
 # Fix seg-faults when parsing corrupt archives.
 Patch30: binutils-2.24-corrupt-ar.patch
+Patch31: binutils-2.24-plugin-sym-add.patch
 
 
 Provides: bundled(libiberty)
@@ -227,6 +228,8 @@ using libelf instead of BFD.
 %patch27 -p0 -b .fake-zlib~ 
 %patch28 -p0 -b .arm-whitespace~ 
 %patch29 -p0 -b .corrupt-binaries~
+%patch30 -p0 -b .corrupt-ar~
+%patch31 -p0 -b .plugin-sym~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -532,6 +535,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Nov 19 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-26
+- Fix seg-fault when adding symbols via a plugin.
+  Resolves: BZ #1149660
+
 * Thu Nov 13 2014 Nick Clifton <nickc@redhat.com> - 2.23.88.0.1-25
 - Fix problems with the ar program reported in FSF PR 17533.
   Resolves: BZ #1162666, #1162655

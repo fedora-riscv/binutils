@@ -1,17 +1,3 @@
-diff -cpr ../binutils-2.24.orig/bfd/archive.c ./bfd/archive.c
-*** ../binutils-2.24.orig/bfd/archive.c	2014-11-13 11:08:46.720741346 +0000
---- ./bfd/archive.c	2014-11-13 11:12:38.908876606 +0000
-*************** _bfd_slurp_extended_name_table (bfd *abf
-*** 1299,1304 ****
---- 1299,1306 ----
-  	{
-  	byebye:
-  	  free (namedata);
-+ 	  bfd_ardata (abfd)->extended_names = NULL;
-+ 	  bfd_ardata (abfd)->extended_names_size = 0;
-  	  return FALSE;
-  	}
-  
 diff -cpr ../binutils-2.24.orig/binutils/ar.c ./binutils/ar.c
 *** ../binutils-2.24.orig/binutils/ar.c	2014-11-13 11:08:46.808741776 +0000
 --- ./binutils/ar.c	2014-11-13 11:10:10.510151199 +0000
@@ -33,7 +19,6 @@ diff -cpr ../binutils-2.24.orig/binutils/ar.c ./binutils/ar.c
     if (bfd_stat_arch_elt (abfd, &buf) != 0)
       /* xgettext:c-format */
       fatal (_("internal stat error on %s"), bfd_get_filename (abfd));
-Only in ./binutils: ar.c.orig
 diff -cpr ../binutils-2.24.orig/binutils/bucomm.c ./binutils/bucomm.c
 *** ../binutils-2.24.orig/binutils/bucomm.c	2014-11-13 11:08:46.791741693 +0000
 --- ./binutils/bucomm.c	2014-11-13 11:10:10.511151188 +0000
@@ -83,27 +68,6 @@ diff -cpr ../binutils-2.24.orig/binutils/bucomm.h ./binutils/bucomm.h
   extern char *program_name;
   
   /* filemode.c */
-diff -cpr ../binutils-2.24.orig/binutils/doc/binutils.texi ./binutils/doc/binutils.texi
-*** ../binutils-2.24.orig/binutils/doc/binutils.texi	2014-11-13 11:08:46.955742495 +0000
---- ./binutils/doc/binutils.texi	2014-11-13 11:10:10.513151165 +0000
-*************** a normal archive.  Instead the elements
-*** 234,240 ****
-  individually to the second archive.
-  
-  The paths to the elements of the archive are stored relative to the
-! archive itself.
-  
-  @cindex compatibility, @command{ar}
-  @cindex @command{ar} compatibility
---- 234,241 ----
-  individually to the second archive.
-  
-  The paths to the elements of the archive are stored relative to the
-! archive itself.  For security reasons absolute paths and paths with a
-! @code{/../} component are not allowed.
-  
-  @cindex compatibility, @command{ar}
-  @cindex @command{ar} compatibility
 diff -cpr ../binutils-2.24.orig/binutils/objcopy.c ./binutils/objcopy.c
 *** ../binutils-2.24.orig/binutils/objcopy.c	2014-11-13 11:08:46.798741727 +0000
 --- ./binutils/objcopy.c	2014-11-13 11:10:10.514151156 +0000
@@ -197,3 +161,101 @@ diff -cpr ../binutils-2.24.orig/binutils/objcopy.c ./binutils/objcopy.c
     /* Delete all the files that we opened.  */
     for (l = list; l != NULL; l = l->next)
       {
+*** ../binutils-2.23.2.orig/bfd/archive.c	2014-11-19 15:01:01.626689450 +0000
+--- bfd/archive.c	2014-11-19 15:06:45.700301515 +0000
+*************** _bfd_slurp_extended_name_table (bfd *abf
+*** 1281,1286 ****
+--- 1281,1288 ----
+  	{
+  	byebye:
+  	  bfd_release (abfd, namedata);
++ 	  bfd_ardata (abfd)->extended_names = NULL;
++ 	  bfd_ardata (abfd)->extended_names_size = 0;
+  	  return FALSE;
+  	}
+  
+*** ../binutils-2.23.2.orig/binutils/doc/binutils.texi	2014-11-19 15:01:01.711689848 +0000
+--- binutils/doc/binutils.texi	2014-11-19 15:14:13.036397824 +0000
+*************** relocatable objects are expected to rema
+*** 227,234 ****
+  contents of each object would only waste time and space.  Thin archives
+  are also @emph{flattened}, so that adding one or more archives to a
+  thin archive will add the elements of the nested archive individually.
+  The paths to the elements of the archive are stored relative to the
+! archive itself.
+  
+  @cindex compatibility, @command{ar}
+  @cindex @command{ar} compatibility
+--- 227,236 ----
+  contents of each object would only waste time and space.  Thin archives
+  are also @emph{flattened}, so that adding one or more archives to a
+  thin archive will add the elements of the nested archive individually.
++ 
+  The paths to the elements of the archive are stored relative to the
+! archive itself.  For security reasons absolute paths and paths with a
+! ! @code{/../} component are not allowed.
+  
+  @cindex compatibility, @command{ar}
+  @cindex @command{ar} compatibility
+*************** machine types.
+*** 4421,4441 ****
+  The supported ELF machine types are, @var{L1OM}, @var{K1OM} and
+  @var{x86-64}.
+  
+! @itemx --output-mach=@var{machine}
+  Change the ELF machine type in the ELF header to @var{machine}.  The
+  supported ELF machine types are the same as @option{--input-mach}.
+  
+! @itemx --input-type=@var{type}
+  Set the matching input ELF file type to @var{type}.  If
+  @option{--input-type} isn't specified, it will match any ELF file types.
+  
+  The supported ELF file types are, @var{rel}, @var{exec} and @var{dyn}.
+  
+! @itemx --output-type=@var{type}
+  Change the ELF file type in the ELF header to @var{type}.  The
+  supported ELF types are the same as @option{--input-type}.
+  
+! @itemx --input-osabi=@var{osabi}
+  Set the matching input ELF file OSABI to @var{osabi}.  If
+  @option{--input-osabi} isn't specified, it will match any ELF OSABIs.
+  
+--- 4423,4443 ----
+  The supported ELF machine types are, @var{L1OM}, @var{K1OM} and
+  @var{x86-64}.
+  
+! @item --output-mach=@var{machine}
+  Change the ELF machine type in the ELF header to @var{machine}.  The
+  supported ELF machine types are the same as @option{--input-mach}.
+  
+! @item --input-type=@var{type}
+  Set the matching input ELF file type to @var{type}.  If
+  @option{--input-type} isn't specified, it will match any ELF file types.
+  
+  The supported ELF file types are, @var{rel}, @var{exec} and @var{dyn}.
+  
+! @item --output-type=@var{type}
+  Change the ELF file type in the ELF header to @var{type}.  The
+  supported ELF types are the same as @option{--input-type}.
+  
+! @item --input-osabi=@var{osabi}
+  Set the matching input ELF file OSABI to @var{osabi}.  If
+  @option{--input-osabi} isn't specified, it will match any ELF OSABIs.
+  
+*************** The supported ELF OSABIs are, @var{none}
+*** 4445,4451 ****
+  @var{FreeBSD}, @var{TRU64}, @var{Modesto}, @var{OpenBSD}, @var{OpenVMS},
+  @var{NSK}, @var{AROS} and @var{FenixOS}.
+  
+! @itemx --output-osabi=@var{osabi}
+  Change the ELF OSABI in the ELF header to @var{osabi}.  The
+  supported ELF OSABI are the same as @option{--input-osabi}.
+  
+--- 4447,4453 ----
+  @var{FreeBSD}, @var{TRU64}, @var{Modesto}, @var{OpenBSD}, @var{OpenVMS},
+  @var{NSK}, @var{AROS} and @var{FenixOS}.
+  
+! @item --output-osabi=@var{osabi}
+  Change the ELF OSABI in the ELF header to @var{osabi}.  The
+  supported ELF OSABI are the same as @option{--input-osabi}.
+  
