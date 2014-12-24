@@ -18,8 +18,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.24
-Release: 29%{?dist}
+Version: 2.25
+Release: 1%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -34,8 +34,8 @@ Source2: binutils-2.19.50.0.1-output-format.sed
 Patch01: binutils-2.20.51.0.2-libtool-lib64.patch
 Patch02: binutils-2.20.51.0.10-ppc64-pie.patch
 Patch03: binutils-2.20.51.0.2-ia64-lib64.patch
-Patch04: binutils-2.20.51.0.2-version.patch
-Patch05: binutils-2.20.51.0.2-set-long-long.patch
+Patch04: binutils-2.25-version.patch
+Patch05: binutils-2.25-set-long-long.patch
 Patch06: binutils-2.20.51.0.10-copy-osabi.patch
 Patch07: binutils-2.20.51.0.10-sec-merge-emit.patch
 # Enable -zrelro by default: BZ #621983
@@ -46,35 +46,12 @@ Patch09: binutils-2.22.52.0.1-export-demangle.h.patch
 Patch10: binutils-2.22.52.0.4-no-config-h-check.patch
 # Fix addr2line to use the dynamic symbol table if it could not find any ordinary symbols.
 Patch11: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
-Patch12: binutils-2.23.2-kernel-ld-r.patch
+# Patch12: binutils-2.23.2-kernel-ld-r.patch
+Patch12: binutils-2.25-kernel-ld-r.patch
 # Correct bug introduced by patch 12
 Patch13: binutils-2.23.2-aarch64-em.patch
-# Fix building opcodes library with -Werror=format-security
-Patch14: binutils-2.24-s390-mkopc.patch
-# Import fixes for IFUNC and PLT handling for AArch64.
-Patch15: binutils-2.24-elfnn-aarch64.patch
-# Fix decoding of abstract instance names using DW_FORM_ref_addr.
-Patch16: binutils-2.24-DW_FORM_ref_addr.patch
-# Fix compiling using gcc 4.9
-Patch17: binutils-2.24-set-section-macros.patch
-# Fix detections of uncompressed .debug_str sections that look like they have been compressed.
-Patch18: binutils-2.24-fake-zlib-sections.patch
 # Fix detections little endian PPC shared libraries
-Patch19: binutils-2.24-ldforcele.patch
-Patch20: binutils-2.24-arm-static-tls.patch
-Patch21: binutils-2.24-fat-lto-objects.patch
-Patch22: binutils-2.24-symbol-warning.patch
-Patch23: binutils-2.24-aarch64-ld-shared-non-PIC-xfail.patch
-Patch24: binutils-2.24-weak-sym-merge.patch
-Patch25: binutils-2.24-indirect-chain.patch
-Patch26: binutils-2.24-aarch64-fix-final_link_relocate.patch
-Patch27: binutils-2.24-aarch64-fix-gotplt-offset-ifunc.patch
-Patch28: binutils-2.24-aarch64-fix-static-ifunc.patch
-Patch29: binutils-2.24-aarch64-fix-ie-relax.patch
-Patch30: binutils-HEAD-change-ld-notice-interface.patch
-Patch31: binutils-2.24-corrupt-binaries.patch
-Patch32: binutils-2.24-strings-default-all.patch
-Patch33: binutils-2.24-corrupt-ar.patch
+Patch14: binutils-2.24-ldforcele.patch
 
 Provides: bundled(libiberty)
 
@@ -171,47 +148,28 @@ using libelf instead of BFD.
 
 %prep
 %setup -q -n binutils-%{version}
-%patch01 -p0 -b .libtool-lib64~
-%patch02 -p0 -b .ppc64-pie~
+%patch01 -p1 -b .libtool-lib64~
+%patch02 -p1 -b .ppc64-pie~
 %ifarch ia64
 %if "%{_lib}" == "lib64"
-%patch03 -p0 -b .ia64-lib64~
+%patch03 -p1 -b .ia64-lib64~
 %endif
 %endif
-%patch04 -p0 -b .version~
-%patch05 -p0 -b .set-long-long~
-%patch06 -p0 -b .copy-osabi~
-%patch07 -p0 -b .sec-merge-emit~
+%patch04 -p1 -b .version~
+%patch05 -p1 -b .set-long-long~
+%patch06 -p1 -b .copy-osabi~
+%patch07 -p1 -b .sec-merge-emit~
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
-%patch08 -p0 -b .relro~
+%patch08 -p1 -b .relro~
 %endif
-%patch09 -p0 -b .export-demangle-h~
-%patch10 -p0 -b .no-config-h-check~
-%patch11 -p0 -b .addr2line~
-%patch12 -p0 -b .kernel-ld-r~
-%patch13 -p0 -b .aarch64~
-%patch14 -p0 -b .mkopc~
-%patch15 -p0 -b .elf-aarch64~
-%patch16 -p0 -b .ref-addr~
-%patch17 -p0 -b .sec-macros~
-%patch18 -p0 -b .fake-zlib~
+%patch09 -p1 -b .export-demangle-h~
+%patch10 -p1 -b .no-config-h-check~
+%patch11 -p1 -b .addr2line~
+%patch12 -p1 -b .kernel-ld-r~
+%patch13 -p1 -b .aarch64~
 %ifarch ppc64le
-%patch19 -p0 -b .ldforcele~
+%patch14 -p1 -b .ldforcele~
 %endif
-%patch20 -p1 -b .armstatictls~
-%patch21 -p1 -b .fatlto~
-%patch22 -p1 -b .symwarn~
-%patch23 -p1 -b .ld-aarch64-xfails~
-%patch24 -p0 -b .weak-sym-merge~
-%patch25 -p0 -b .indirect-chain~
-%patch26 -p1 -b .aa64-final-link~
-%patch27 -p1 -b .aa64-1~
-%patch28 -p1 -b .aa64-2~
-%patch29 -p1 -b .aa64-3~
-%patch30 -p1 -b .ldplugin~
-%patch31 -p0 -b .corrupt-binaries~
-%patch32 -p0 -b .strings-all~
-%patch33 -p0 -b .corrupt-ar~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -526,6 +484,28 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Dec 24 2014 Nick Clifton <nickc@redhat.com> - 2.25-1
+- Rebase on FSF binutils 2.25 release.
+- Retire: binutils-2.24-s390-mkopc.patch
+- Retire: binutils-2.24-elfnn-aarch64.patch
+- Retire: binutils-2.24-DW_FORM_ref_addr.patch
+- Retire: binutils-2.24-set-section-macros.patch
+- Retire: binutils-2.24-fake-zlib-sections.patch
+- Retire: binutils-2.24-arm-static-tls.patch
+- Retire: binutils-2.24-fat-lto-objects.patch
+- Retire: binutils-2.24-symbol-warning.patch
+- Retire: binutils-2.24-aarch64-ld-shared-non-PIC-xfail.patch
+- Retire: binutils-2.24-weak-sym-merge.patch
+- Retire: binutils-2.24-indirect-chain.patch
+- Retire: binutils-2.24-aarch64-fix-final_link_relocate.patch
+- Retire: binutils-2.24-aarch64-fix-gotplt-offset-ifunc.patch
+- Retire: binutils-2.24-aarch64-fix-static-ifunc.patch
+- Retire: binutils-2.24-aarch64-fix-ie-relax.patch
+- Retire: binutils-HEAD-change-ld-notice-interface.patch
+- Retire: binutils-2.24-corrupt-binaries.patch
+- Retire: binutils-2.24-strings-default-all.patch
+- Retire: binutils-2.24-corrupt-ar.patch
+
 * Thu Nov 13 2014 Nick Clifton <nickc@redhat.com> - 2.24-29
 - Fix problems with the ar program reported in FSF PR 17533.
   Resolves: BZ #1162666, #1162655
