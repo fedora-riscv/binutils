@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -420,8 +420,6 @@ then
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/gprof.info.gz
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/ld.info.gz
-  /sbin/install-info --info-dir=%{_infodir} %{_infodir}/standards.info.gz
-  /sbin/install-info --info-dir=%{_infodir} %{_infodir}/configure.info.gz
 fi
 %endif # %{isnative}
 exit 0
@@ -441,8 +439,6 @@ if [ $1 = 0 ]; then
     /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
     /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/gprof.info.gz
     /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/ld.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/standards.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/configure.info.gz
   fi
 fi
 %endif
@@ -484,6 +480,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Sat Dec 27 2014 Ralf Corsépius <corsepiu@fedoraproject.org> -  2.25-2
+- Reflect configure.info/standards.info having been dropped (RHBZ#1177359).
+
 * Wed Dec 24 2014 Nick Clifton <nickc@redhat.com> - 2.25-1
 - Rebase on FSF binutils 2.25 release.
 - Retire: binutils-2.24-s390-mkopc.patch
