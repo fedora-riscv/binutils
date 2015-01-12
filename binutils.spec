@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -55,7 +55,9 @@ Patch14: binutils-2.24-ldforcele.patch
 
 Provides: bundled(libiberty)
 
-%define gold_arches %ix86 x86_64 %arm ppc* %{power64}
+# BZ 1173780: Building GOLD for PPC is not working at the moment.
+# %define gold_arches %ix86 x86_64 %arm ppc* %{power64}
+%define gold_arches %ix86 x86_64 %arm
 
 %ifarch %gold_arches
 %define build_gold	both
@@ -480,6 +482,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Jan 12 2015 Nick Clifton <nickc@redhat.com> - 2.25-3
+- Suppress building of GOLD for PPC, for now...
+- Resolves: BZ #1173780
+
 * Sat Dec 27 2014 Ralf Corsépius <corsepiu@fedoraproject.org> -  2.25-2
 - Reflect configure.info/standards.info having been dropped (RHBZ#1177359).
 
