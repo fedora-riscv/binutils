@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -52,6 +52,9 @@ Patch12: binutils-2.25-kernel-ld-r.patch
 Patch13: binutils-2.23.2-aarch64-em.patch
 # Fix detections little endian PPC shared libraries
 Patch14: binutils-2.24-ldforcele.patch
+# Fix allocation of space for x86_64 PIE relocs.
+Patch15: binutils-2.25-x86_64-pie-relocs.patch
+
 
 Provides: bundled(libiberty)
 
@@ -172,6 +175,7 @@ using libelf instead of BFD.
 %ifarch ppc64le
 %patch14 -p1 -b .ldforcele~
 %endif
+%patch15 -p1 -b .x86_64-pie~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -482,6 +486,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Jan 20 2015 Nick Clifton <nickc@redhat.com> - 2.25-4
+- Import the fix for PR ld/17827 from FSF mainline.
+- Resolves: BZ #1182511
+
 * Mon Jan 12 2015 Nick Clifton <nickc@redhat.com> - 2.25-3
 - Suppress building of GOLD for PPC, for now...
 - Resolves: BZ #1173780
