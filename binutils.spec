@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -486,6 +486,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Feb 02 2015 Nick Clifton <nickc@redhat.com> - 2.25-5
+- Fix scanning for object symbols in binutils-2.25-kernel-ld-r.patch
+- Resolves: BZ #1149660
+
 * Tue Jan 20 2015 Nick Clifton <nickc@redhat.com> - 2.25-4
 - Import the fix for PR ld/17827 from FSF mainline.
 - Resolves: BZ #1182511
