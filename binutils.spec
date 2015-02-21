@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -486,6 +486,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Sat Feb 21 2015 Till Maas <opensource@till.name> - 2.25-6
+- Rebuilt for Fedora 23 Change
+  https://fedoraproject.org/wiki/Changes/Harden_all_packages_with_position-independent_code
+
 * Mon Feb 02 2015 Nick Clifton <nickc@redhat.com> - 2.25-5
 - Fix scanning for object symbols in binutils-2.25-kernel-ld-r.patch
 - Resolves: BZ #1149660
