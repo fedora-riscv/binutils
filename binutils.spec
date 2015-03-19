@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -316,7 +316,7 @@ install -m 644 libiberty/libiberty.a %{buildroot}%{_libdir}
 install -m 644 include/libiberty.h %{buildroot}%{_prefix}/include
 install -m 644 opcodes/libopcodes.a %{buildroot}%{_libdir}
 # Remove Windows/Novell only man pages
-rm -f %{buildroot}%{_mandir}/man1/{dlltool,nlmconv,windres}*
+rm -f %{buildroot}%{_mandir}/man1/{dlltool,nlmconv,windres,windmc}*
 
 %if %{enable_shared}
 chmod +x %{buildroot}%{_libdir}/lib*.so*
@@ -486,6 +486,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Mar 19 2015 Nick Clifton <nickc@redhat.com> - 2.25-6
+- Remove the windmc manual page, so that it is not installed.
+- Resolves: BZ #1203606
+
 * Sat Feb 21 2015 Till Maas <opensource@till.name> - 2.25-6
 - Rebuilt for Fedora 23 Change
   https://fedoraproject.org/wiki/Changes/Harden_all_packages_with_position-independent_code
