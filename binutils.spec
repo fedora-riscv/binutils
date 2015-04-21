@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -60,7 +60,7 @@ Provides: bundled(libiberty)
 
 # BZ 1173780: Building GOLD for PPC is not working at the moment.
 # %define gold_arches %ix86 x86_64 %arm ppc* %{power64}
-%define gold_arches %ix86 x86_64 %arm
+%define gold_arches %ix86 x86_64 %arm aarch64
 
 %ifarch %gold_arches
 %define build_gold	both
@@ -486,6 +486,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Apr 21 2015 Nick Clifton <nickc@redhat.com> - 2.25-7
+- Enable building GOLD for the AArch64.
+- Resolves: BZ #1203057
+
 * Thu Mar 19 2015 Nick Clifton <nickc@redhat.com> - 2.25-6
 - Remove the windmc manual page, so that it is not installed.
 - Resolves: BZ #1203606
