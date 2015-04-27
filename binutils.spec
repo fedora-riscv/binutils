@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -136,6 +136,8 @@ Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 Requires: zlib-devel
 Requires: binutils = %{version}-%{release}
+# BZ 1215242: We need touch...
+Requires: coreutils
 
 %description devel
 This package contains BFD and opcodes static and dynamic libraries.
@@ -486,6 +488,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Apr 27 2015 Nick Clifton <nickc@redhat.com> - 2.25-7
+- Require the coreutils so that touch is available.
+- Resolves: BZ #1215242
+
 * Tue Apr 21 2015 Nick Clifton <nickc@redhat.com> - 2.25-6
 - Enable building GOLD for the AArch64.
 - Resolves: BZ #1203057
