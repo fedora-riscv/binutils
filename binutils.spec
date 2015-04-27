@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 30%{?dist}
+Release: 31%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -153,6 +153,8 @@ Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
 Requires: zlib-devel
 Requires: binutils = %{version}-%{release}
+# BZ 1215242: We need touch...
+Requires: coreutils
 
 %description devel
 This package contains BFD and opcodes static and dynamic libraries.
@@ -522,6 +524,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Apr 27 2015 Nick Clifton <nickc@redhat.com> - 2.24-31
+- Require the coreutils so that touch is available.
+- Resolves: BZ #1215242
+
 * Thu Nov 13 2014 Nick Clifton <nickc@redhat.com> - 2.24-30
 - Fix problems with the ar program reported in FSF PR 17533.
   Resolves: BZ #1162666, #1162655
