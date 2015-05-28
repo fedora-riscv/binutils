@@ -17,7 +17,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.24
-Release: 31%{?dist}
+Release: 32%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -74,6 +74,7 @@ Patch31: binutils-2.24-corrupt-binaries.patch
 Patch32: binutils-2.24-strings-default-all.patch
 Patch33: binutils-2.24-plugin-sym-add.patch
 Patch34: binutils-2.24-corrupt-ar.patch
+Patch35: binutils-2.24-i386-gcc-warnings.patch
 
 Provides: bundled(libiberty)
 
@@ -213,6 +214,7 @@ using libelf instead of BFD.
 %patch31 -p0 -b .corrupt-binaries~
 %patch32 -p0 -b .strings-all~
 %patch33 -p0 -b .plugin-syms~
+%patch35 -p0 -b .i386-gas-warn~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -524,6 +526,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu May 28 2015 Nick Clifton <nickc@redhat.com> - 2.24-32
+- Fix compile time warnings building with gcc 5.1.
+- Resolves: BZ #1224187
+
 * Mon Apr 27 2015 Nick Clifton <nickc@redhat.com> - 2.24-31
 - Require the coreutils so that touch is available.
 - Resolves: BZ #1215242
