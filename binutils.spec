@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -59,7 +59,7 @@ Patch15: binutils-2.25-x86_64-pie-relocs.patch
 Provides: bundled(libiberty)
 
 # BZ 1173780: Building GOLD for PPC is not working at the moment.
-# %define gold_arches %ix86 x86_64 %arm ppc* %{power64}
+# %define gold_arches %ix86 x86_64 %arm aarch64 ppc* %{power64}
 %define gold_arches %ix86 x86_64 %arm aarch64
 
 %ifarch %gold_arches
@@ -184,6 +184,8 @@ using libelf instead of BFD.
 # On ppc64 and aarch64, we might use 64KiB pages
 sed -i -e '/#define.*ELF_COMMONPAGESIZE/s/0x1000$/0x10000/' bfd/elf*ppc.c
 sed -i -e '/#define.*ELF_COMMONPAGESIZE/s/0x1000$/0x10000/' bfd/elf*aarch64.c
+sed -i -e '/common_pagesize/s/4 /64 /' gold/powerpc.cc
+sed -i -e '/pagesize/s/0x1000,/0x10000,/' gold/aarch64.cc
 # LTP sucks
 perl -pi -e 's/i\[3-7\]86/i[34567]86/g' */conf*
 sed -i -e 's/%''{release}/%{release}/g' bfd/Makefile{.am,.in}
@@ -488,6 +490,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Jun 10 2015 Nick Clifton <nickc@redhat.com> - 2.25-10
+- Make the AArch64 GOLD port use 64K pages.
+- Resolves: BZ #1225156 and BZ #1215546
+
 * Mon Apr 27 2015 Nick Clifton <nickc@redhat.com> - 2.25-8
 - Require the coreutils so that touch is available.
 - Resolves: BZ #1215242
