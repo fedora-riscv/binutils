@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -54,6 +54,8 @@ Patch13: binutils-2.23.2-aarch64-em.patch
 Patch14: binutils-2.24-ldforcele.patch
 # Fix allocation of space for x86_64 PIE relocs.
 Patch15: binutils-2.25-x86_64-pie-relocs.patch
+# Issue an error message when attempting to resolve PC-relative dynamic relocs in non-PIC objects.
+Patch16: binutils-2.25-aarch64-fPIC-error.patch
 
 
 Provides: bundled(libiberty)
@@ -178,6 +180,10 @@ using libelf instead of BFD.
 %patch14 -p1 -b .ldforcele~
 %endif
 %patch15 -p1 -b .x86_64-pie~
+%ifarch aarch64
+%patch16 -p1 -b .aarch64-fpic~
+%endif
+
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -490,6 +496,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Jul 02 2015 Nick Clifton <nickc@redhat.com> - 2.25-12
+- For AArch64 issue an error message when attempting to resolve a
+  PC-relative dynamic reloc in a non-PIC object file.
+- Related: 1232499
+
 * Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.25-11
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
 
