@@ -18,8 +18,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.25
-Release: 12%{?dist}
+Version: 2.25.1
+Release: 1%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -52,10 +52,8 @@ Patch12: binutils-2.25-kernel-ld-r.patch
 Patch13: binutils-2.23.2-aarch64-em.patch
 # Fix detections little endian PPC shared libraries
 Patch14: binutils-2.24-ldforcele.patch
-# Fix allocation of space for x86_64 PIE relocs.
-Patch15: binutils-2.25-x86_64-pie-relocs.patch
 # Issue an error message when attempting to resolve PC-relative dynamic relocs in non-PIC objects.
-Patch16: binutils-2.25-aarch64-fPIC-error.patch
+Patch15: binutils-2.25-aarch64-fPIC-error.patch
 
 
 Provides: bundled(libiberty)
@@ -179,9 +177,8 @@ using libelf instead of BFD.
 %ifarch ppc64le
 %patch14 -p1 -b .ldforcele~
 %endif
-%patch15 -p1 -b .x86_64-pie~
 %ifarch aarch64
-%patch16 -p1 -b .aarch64-fpic~
+%patch15 -p1 -b .aarch64-fpic~
 %endif
 
 
@@ -496,6 +493,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Jul 23 2015 Nick Clifton <nickc@redhat.com> - 2.25.1-1
+- Rebase on FSF binutils 2.25.1 release.
+- Retire: binutils-2.25-x86_64-pie-relocs.patch
+
 * Thu Jul 02 2015 Nick Clifton <nickc@redhat.com> - 2.25-12
 - For AArch64 issue an error message when attempting to resolve a
   PC-relative dynamic reloc in a non-PIC object file.
