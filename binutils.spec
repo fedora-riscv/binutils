@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -52,8 +52,6 @@ Patch12: binutils-2.25-kernel-ld-r.patch
 Patch13: binutils-2.23.2-aarch64-em.patch
 # Fix detections little endian PPC shared libraries
 Patch14: binutils-2.24-ldforcele.patch
-# Issue an error message when attempting to resolve PC-relative dynamic relocs in non-PIC objects.
-Patch15: binutils-2.25-aarch64-fPIC-error.patch
 
 
 Provides: bundled(libiberty)
@@ -176,9 +174,6 @@ using libelf instead of BFD.
 %patch13 -p1 -b .aarch64~
 %ifarch ppc64le
 %patch14 -p1 -b .ldforcele~
-%endif
-%ifarch aarch64
-%patch15 -p1 -b .aarch64-fpic~
 %endif
 
 
@@ -493,6 +488,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Aug 04 2015 Nick Clifton <nickc@redhat.com> - 2.25.1-2
+- Retire: binutils-2.25-aarch64-fPIC-error.patch
+- Resovles: 1249969
+
 * Thu Jul 23 2015 Nick Clifton <nickc@redhat.com> - 2.25.1-1
 - Rebase on FSF binutils 2.25.1 release.
 - Retire: binutils-2.25-x86_64-pie-relocs.patch
