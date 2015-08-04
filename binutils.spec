@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -52,6 +52,8 @@ Patch12: binutils-2.25-kernel-ld-r.patch
 Patch13: binutils-2.23.2-aarch64-em.patch
 # Fix detections little endian PPC shared libraries
 Patch14: binutils-2.24-ldforcele.patch
+# Fix parsing of corupt iHex binaries
+Patch15: binutils-2.25.1-ihex-parsing.patch
 
 
 Provides: bundled(libiberty)
@@ -175,6 +177,7 @@ using libelf instead of BFD.
 %ifarch ppc64le
 %patch14 -p1 -b .ldforcele~
 %endif
+%patch15 -p1 -b .ihex~
 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
@@ -488,6 +491,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Aug 04 2015 Nick Clifton <nickc@redhat.com> - 2.25.1-3
+- Fix the parsing of corrupt iHex files.
+- Resovles: 1250141
+
 * Tue Aug 04 2015 Nick Clifton <nickc@redhat.com> - 2.25.1-2
 - Retire: binutils-2.25-aarch64-fPIC-error.patch
 - Resovles: 1249969
