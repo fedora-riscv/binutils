@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -54,6 +54,9 @@ Patch13: binutils-2.23.2-aarch64-em.patch
 Patch14: binutils-2.24-ldforcele.patch
 # Fix allocation of space for x86_64 PIE relocs.
 Patch15: binutils-2.25-x86_64-pie-relocs.patch
+# backport https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;h=e9c1bdad269c0c3352eebcc9481ed65144001b0b
+# Qt linked with gold crash on startup, BZ #1193044
+Patch16: binutils-2.25.1-dynamic_list.patch
 
 
 Provides: bundled(libiberty)
@@ -178,6 +181,7 @@ using libelf instead of BFD.
 %patch14 -p1 -b .ldforcele~
 %endif
 %patch15 -p1 -b .x86_64-pie~
+%patch16 -p1 -b .dynamic_list~
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -490,6 +494,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Aug 24 2015 Rex Dieter <rdieter@fedoraproject.org> 2.25-9
+- Qt linked with gold crash on startup (#1193044)
+
 * Wed Jun 10 2015 Nick Clifton <nickc@redhat.com> - 2.25-8
 - Make the AArch64 GOLD port use 64K pages.
 - Resolves: BZ #1225156 and BZ #1215546
