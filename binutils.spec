@@ -13,13 +13,14 @@
 %define isnative 0
 %define enable_shared 0
 %endif
-# BZ 1124342: Enable deterministic archives by default.
-%define enable_deterministic_archives 1
+# BZ 1124342: Provide a way to enable deterministic archives.
+# BZ 1195883: But do not do this by default.
+%define enable_deterministic_archives 0
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -273,6 +274,8 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %endif
 %if %{enable_deterministic_archives}
   --enable-deterministic-archives \
+%else    
+  --enable-deterministic-archives=no \
 %endif
   $CARGS \
   --enable-plugins \
@@ -494,6 +497,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Sep 10 2015 Nick Clifton <nickc@redhat.com> 2.25.1-5
+- Do not enable deterministic archives by default (#1195883)
+
 * Thu Aug 06 2015 Rex Dieter <rdieter@fedoraproject.org> 2.25.1-4
 - Qt linked with gold crash on startup (#1193044)
 
