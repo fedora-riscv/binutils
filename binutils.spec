@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -58,6 +58,7 @@ Patch15: binutils-2.25.1-ihex-parsing.patch
 # backport https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;h=e9c1bdad269c0c3352eebcc9481ed65144001b0b
 # Qt linked with gold crash on startup, BZ #1193044
 Patch16: binutils-2.25.1-dynamic_list.patch
+Patch17: binutils-2.25.1-aarch64-pr18668.patch
 
 Provides: bundled(libiberty)
 
@@ -182,6 +183,7 @@ using libelf instead of BFD.
 %endif
 %patch15 -p1 -b .ihex~
 %patch16 -p1 -b .dynamic_list~
+%patch17 -p1 
 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
@@ -497,6 +499,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Sep 11 2015 Nick Clifton <nickc@redhat.com> 2.25.1-6
+- Fix handling of AArch64 local GOT relocs.  (#1262091)
+
 * Thu Sep 10 2015 Nick Clifton <nickc@redhat.com> 2.25.1-5
 - Do not enable deterministic archives by default (#1195883)
 
