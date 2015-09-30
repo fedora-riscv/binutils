@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -185,9 +185,7 @@ using libelf instead of BFD.
 %patch14 -p1 -b .ldforcele~
 %endif
 %patch15 -p1 -b .x86_64-pie~
-%ifarch aarch64
 %patch16 -p1 -b .aarch64-fpic~
-%endif
 %patch17 -p1 -b .dynamic_list~
 %patch18 -p1 
 
@@ -503,6 +501,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Sep 30 2015 Nick Clifton <nickc@redhat.com> 2.25-15
+- Ensure that the patch applies for native AArch64 builds.  (#1262091)
+
 * Mon Sep 14 2015 Nick Clifton <nickc@redhat.com> 2.25-14
 - Fix handling of AArch64 local GOT relocs.  (#1262091)
 

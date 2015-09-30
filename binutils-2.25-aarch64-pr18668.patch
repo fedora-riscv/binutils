@@ -67,4 +67,4 @@
 +      *unresolved_reloc_p = FALSE;
        break;
  
-     case BFD_RELOC_AARCH64_16:
+     case BFD_RELOC_AARCH64_16_PCREL:
