@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -241,6 +241,11 @@ esac
 
 case %{binutils_target} in ppc*|ppc64*)
   CARGS="$CARGS --enable-targets=spu"
+  ;;
+esac
+
+case %{binutils_target} in ppc64-*)
+  CARGS="$CARGS --enable-targets=powerpc64le-linux"
   ;;
 esac
 
@@ -501,6 +506,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Oct 28 2015 Nick Clifton <nickc@redhat.com> 2.25.1-8
+- Enable little endian support when configuring for 64-bit PowerPC.
+  (#1275709)
+
 * Thu Sep 24 2015 Nick Clifton <nickc@redhat.com> 2.25.1-7
 - Fix incorrectly generated binaries and DSOs on PPC platforms.
   (#1247126)
