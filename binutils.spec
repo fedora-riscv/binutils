@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25.1
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -61,6 +61,8 @@ Patch16: binutils-2.25.1-dynamic_list.patch
 Patch17: binutils-2.25.1-aarch64-pr18668.patch
 # Fix incorrectly generated ELF binaries and DSOs
 Patch18: binutils-rh1247126.patch
+# Fix infinite recursion when a plugin tries to claim an unrecognized binary
+Patch19: binutils-2.25.1-plugin-format-checking.patch
 
 Provides: bundled(libiberty)
 
@@ -187,6 +189,7 @@ using libelf instead of BFD.
 %patch16 -p1 -b .dynamic_list~
 %patch17 -p1 
 %patch18 -p1
+%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -506,6 +509,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Nov 05 2015 Nick Clifton <nickc@redhat.com> 2.25.1-9
+- Prevent an infinite recursion when a plugin tries to claim a file in an unrecognised format.
+  (#1174065)
+
 * Wed Oct 28 2015 Nick Clifton <nickc@redhat.com> 2.25.1-8
 - Enable little endian support when configuring for 64-bit PowerPC.
   (#1275709)
@@ -2271,3 +2278,4 @@ exit 0
 * Wed Oct 22 1997 Erik Troan <ewt@redhat.com>
 - added 2.8.1.0.1 patch from hj
 - added patch for alpha palcode form rth
+
