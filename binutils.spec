@@ -19,8 +19,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.25.1
-Release: 9%{?dist}
+Version: 2.26
+Release: 1%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -32,6 +32,7 @@ URL: http://sources.redhat.com/binutils
 Source: http://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.bz2
 
 Source2: binutils-2.19.50.0.1-output-format.sed
+
 Patch01: binutils-2.20.51.0.2-libtool-lib64.patch
 Patch02: binutils-2.20.51.0.10-ppc64-pie.patch
 Patch03: binutils-2.20.51.0.2-ia64-lib64.patch
@@ -53,16 +54,8 @@ Patch12: binutils-2.25-kernel-ld-r.patch
 Patch13: binutils-2.23.2-aarch64-em.patch
 # Fix detections little endian PPC shared libraries
 Patch14: binutils-2.24-ldforcele.patch
-# Fix parsing of corupt iHex binaries
-Patch15: binutils-2.25.1-ihex-parsing.patch
-# backport https://sourceware.org/git/gitweb.cgi?p=binutils-gdb.git;h=e9c1bdad269c0c3352eebcc9481ed65144001b0b
-# Qt linked with gold crash on startup, BZ #1193044
-Patch16: binutils-2.25.1-dynamic_list.patch
-Patch17: binutils-2.25.1-aarch64-pr18668.patch
-# Fix incorrectly generated ELF binaries and DSOs
-Patch18: binutils-rh1247126.patch
-# Fix infinite recursion when a plugin tries to claim an unrecognized binary
-Patch19: binutils-2.25.1-plugin-format-checking.patch
+Patch15: binutils-2.25.1-plugin-format-checking.patch
+Patch16: binutils-2.25.1-cleansweep.patch
 
 Provides: bundled(libiberty)
 
@@ -185,11 +178,8 @@ using libelf instead of BFD.
 %ifarch ppc64le
 %patch14 -p1 -b .ldforcele~
 %endif
-%patch15 -p1 -b .ihex~
-%patch16 -p1 -b .dynamic_list~
-%patch17 -p1 
-%patch18 -p1
-%patch19 -p1
+%patch15 -p1
+%patch16 -p0
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -509,6 +499,14 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Jan 25 2016 Nick Clifton <nickc@redhat.com> 2.26-1
+- Rebase on FSF binutils 2.26 release.
+- Retire: binutils-2.25.1-ihex-parsing.patch
+- Retire: binutils-2.25.1-dynamic_list.patch
+- Retire: binutils-2.25.1-aarch64-pr18668.patch
+- Retire: binutils-rh1247126.patch
+  (#1271387)
+
 * Thu Nov 05 2015 Nick Clifton <nickc@redhat.com> 2.25.1-9
 - Prevent an infinite recursion when a plugin tries to claim a file in an unrecognised format.
   (#1174065)

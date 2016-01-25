@@ -1,13 +1,13 @@
 --- a/ld/emultempl/aarch64elf.em	2013-06-05 09:46:17.499278813 +0100
 +++ b/ld/emultempl/aarch64elf.em	2013-06-05 09:54:36.981292659 +0100
-@@ -264,7 +264,7 @@
+@@ -271,7 +271,7 @@ gld${EMULATION_NAME}_after_allocation (v
  }
  
  static void
 -gld${EMULATION_NAME}_finish (void)
 +gld${EMULATION_NAME}_local_finish (void)
  {
-   if (! link_info.relocatable)
+   if (!bfd_link_relocatable (&link_info))
      {
 @@ -276,7 +276,7 @@
  	}
