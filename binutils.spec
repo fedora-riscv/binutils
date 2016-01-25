@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -499,6 +499,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Jan 25 2016 Nick Clifton <nickc@redhat.com> 2.26-2
+- Fix kernel patch for PPC32 targets.
+
 * Mon Jan 25 2016 Nick Clifton <nickc@redhat.com> 2.26-1
 - Rebase on FSF binutils 2.26 release.
 - Retire: binutils-2.25.1-ihex-parsing.patch

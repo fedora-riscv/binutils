@@ -2323,3 +2323,14 @@ diff -rup binutils-2.25/ld/scripttempl/pe.sc binutils-2.25.patched/ld/scripttemp
  FUNCTION
  	bfd_update_compression_header
  
+--- binutils-2.26.orig/ld/emultempl/ppc32elf.em	2016-01-25 12:41:21.857975805 +0000
++++ binutils-2.26/ld/emultempl/ppc32elf.em	2016-01-25 12:43:56.424910846 +0000
+@@ -215,7 +215,7 @@ ppc_finish (void)
+ {
+   if (params.ppc476_workaround)
+     lang_for_each_statement (no_zero_padding);
+-  finish_default ();
++  gld${EMULATION_NAME}_finish ();
+ }
+ 
+ EOF
