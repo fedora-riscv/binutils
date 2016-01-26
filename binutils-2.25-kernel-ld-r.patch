@@ -2334,3 +2334,13 @@ diff -rup binutils-2.25/ld/scripttempl/pe.sc binutils-2.25.patched/ld/scripttemp
  }
  
  EOF
+--- binutils-2.26.orig/ld/emultempl/avrelf.em	2016-01-26 11:00:32.210889045 +0000
++++ binutils-2.26/ld/emultempl/avrelf.em	2016-01-26 11:00:41.222943557 +0000
+@@ -209,6 +209,6 @@ avr_finish (void)
+   else
+     elf_elfheader (abfd)->e_flags &= ~EF_AVR_LINKRELAX_PREPARED;
+ 
+-  finish_default ();
++  gld${EMULATION_NAME}_finish ();
+ }
+ EOF

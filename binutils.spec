@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -499,6 +499,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Jan 26 2016 Nick Clifton <nickc@redhat.com> 2.26-3
+- Fix kernel patch for AVR targets.
+
 * Mon Jan 25 2016 Nick Clifton <nickc@redhat.com> 2.26-2
 - Fix kernel patch for PPC32 targets.
 
