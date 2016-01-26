@@ -48,7 +48,7 @@ Patch09: binutils-2.22.52.0.1-export-demangle.h.patch
 Patch10: binutils-2.22.52.0.4-no-config-h-check.patch
 # Fix addr2line to use the dynamic symbol table if it could not find any ordinary symbols.
 Patch11: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
-# Patch12: binutils-2.23.2-kernel-ld-r.patch
+# H.J's convoluted kernel building patch.
 Patch12: binutils-2.25-kernel-ld-r.patch
 # Correct bug introduced by patch 12
 Patch13: binutils-2.23.2-aarch64-em.patch
