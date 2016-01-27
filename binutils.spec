@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -49,12 +49,12 @@ Patch10: binutils-2.22.52.0.4-no-config-h-check.patch
 # Fix addr2line to use the dynamic symbol table if it could not find any ordinary symbols.
 Patch11: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
 # H.J's convoluted kernel building patch.
-Patch12: binutils-2.25-kernel-ld-r.patch
+# Patch12: binutils-2.25-kernel-ld-r.patch
 # Correct bug introduced by patch 12
 Patch13: binutils-2.23.2-aarch64-em.patch
 # Fix detections little endian PPC shared libraries
 Patch14: binutils-2.24-ldforcele.patch
-Patch15: binutils-2.25.1-plugin-format-checking.patch
+# Patch15: binutils-2.25.1-plugin-format-checking.patch
 Patch16: binutils-2.25.1-cleansweep.patch
 
 Provides: bundled(libiberty)
@@ -173,12 +173,12 @@ using libelf instead of BFD.
 %patch09 -p1 -b .export-demangle-h~
 %patch10 -p1 -b .no-config-h-check~
 %patch11 -p1 -b .addr2line~
-%patch12 -p1 -b .kernel-ld-r~
+# %patch12 -p1 -b .kernel-ld-r~
 %patch13 -p1 -b .aarch64~
 %ifarch ppc64le
 %patch14 -p1 -b .ldforcele~
 %endif
-%patch15 -p1
+# %patch15 -p1
 %patch16 -p0
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
@@ -499,6 +499,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Jan 27 2016 Nick Clifton <nickc@redhat.com> 2.26-4
+- Drop the kernel patch entirely...
+- Retire: binutils-2.25-kernel-ld-r.patch
+- Retire: binutils-2.25.1-plugin-format-checking.patch
+
 * Tue Jan 26 2016 Nick Clifton <nickc@redhat.com> 2.26-3
 - Fix kernel patch for AVR targets.
 
