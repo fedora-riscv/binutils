@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -57,6 +57,7 @@ Patch14: binutils-2.24-ldforcele.patch
 # Patch15: binutils-2.25.1-plugin-format-checking.patch
 Patch16: binutils-2.25.1-cleansweep.patch
 Patch17: binutils-2.26-formatting.patch
+Patch18: binutils-2.26-dirsearch-destructor-unused.patch
 
 Provides: bundled(libiberty)
 
@@ -182,6 +183,7 @@ using libelf instead of BFD.
 # %patch15 -p1
 %patch16 -p0
 %patch17 -p0
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -501,8 +503,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Thu Feb 04 2016 Nick Clifton <nickc@redhat.com> 2.26-7
+* Thu Feb 04 2016 Nick Clifton <nickc@redhat.com> 2.26-8
 - Fix indentation in bfd/coff-[i386|x86_64].c to avoid compile time warning.
+- Mark GOLD's dir_caches destructor as unused.
 
 * Wed Feb 03 2016 Fedora Release Engineering <releng@fedoraproject.org> - 2.26-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
