@@ -16,3 +16,23 @@
  
  void
  Dir_caches::add(const char* dirname)
+--- binutils-2.26.orig/gold/arm.cc	2016-02-04 10:31:45.227796193 +0000
++++ binutils-2.26/gold/arm.cc	2016-02-04 12:02:43.897996168 +0000
+@@ -4493,7 +4493,7 @@ Stub::do_fixed_endian_write(unsigned cha
+ // Reloc_stub::Key methods.
+ 
+ // Dump a Key as a string for debugging.
+-
++#if 0
+ std::string
+ Reloc_stub::Key::name() const
+ {
+@@ -4524,7 +4524,7 @@ Reloc_stub::Key::name() const
+       return std::string(buffer);
+     }
+ }
+-
++#endif
+ // Reloc_stub methods.
+ 
+ // Determine the type of stub needed, if any, for a relocation of R_TYPE at
