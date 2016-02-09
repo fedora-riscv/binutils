@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -503,6 +503,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Feb 09 2016 Nick Clifton <nickc@redhat.com> 2.26-9
+- Fix indentation in bfd/elf64-s390.c, gas/config/tc-ia64.c
+  and bfd/pe-mips.c to avoid compile time warnings.
+
 * Thu Feb 04 2016 Nick Clifton <nickc@redhat.com> 2.26-8
 - Fix indentation in bfd/coff-[i386|x86_64].c to avoid compile time warning.
 - Suppress GOLD's dir_caches destructor.
