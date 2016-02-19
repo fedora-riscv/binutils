@@ -1,0 +1,42 @@
+--- binutils-2.25.orig/bfd/elf64-x86-64.c	2016-02-19 10:22:44.932019197 +0000
++++ binutils-2.25/bfd/elf64-x86-64.c	2016-02-19 10:24:07.288484359 +0000
+@@ -3569,8 +3569,16 @@ elf_x86_64_relocate_section (bfd *output
+ 	  bfd_vma plt_index;
+ 	  const char *name;
+ 
+-	  if ((input_section->flags & SEC_ALLOC) == 0
+-	      || h->plt.offset == (bfd_vma) -1)
++	  if ((input_section->flags & SEC_ALLOC) == 0)
++	    {
++	      /* Dynamic relocs are not propagated for SEC_DEBUGGING
++		 sections because such sections are not SEC_ALLOC and
++		 thus ld.so will not process them.  */
++	      if ((input_section->flags & SEC_DEBUGGING) != 0)
++		continue;
++	      abort ();
++	    }
++	  else if (h->plt.offset == (bfd_vma) -1)
+ 	    abort ();
+ 
+ 	  /* STT_GNU_IFUNC symbol must go through PLT.  */
+--- binutils-2.25.orig/bfd/elf32-i386.c	2016-02-19 10:22:44.899019010 +0000
++++ binutils-2.25/bfd/elf32-i386.c	2016-02-19 10:26:56.373436838 +0000
+@@ -3336,8 +3336,16 @@ elf_i386_relocate_section (bfd *output_b
+ 	  bfd_vma plt_index;
+ 	  const char *name;
+ 
+-	  if ((input_section->flags & SEC_ALLOC) == 0
+-	      || h->plt.offset == (bfd_vma) -1)
++	  if ((input_section->flags & SEC_ALLOC) == 0)
++	    {
++	      /* Dynamic relocs are not propagated for SEC_DEBUGGING
++		 sections because such sections are not SEC_ALLOC and
++		 thus ld.so will not process them.  */
++	      if ((input_section->flags & SEC_DEBUGGING) != 0)
++		continue;
++	      abort ();
++	    }
++	  else if (h->plt.offset == (bfd_vma) -1)
+ 	    abort ();
+ 
+ 	  /* STT_GNU_IFUNC symbol must go through PLT.  */

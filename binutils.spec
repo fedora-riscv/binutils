@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -61,7 +61,8 @@ Patch16: binutils-2.25-aarch64-fPIC-error.patch
 Patch17: binutils-2.25.1-dynamic_list.patch
 # Fix creating GOT entries for AArch64 binaries.
 Patch18: binutils-2.25-aarch64-pr18668.patch
-
+# Fix internal linker error processing IFUNC relocations in debug sections.
+Patch19: binutils-rh1309763.patch
 
 Provides: bundled(libiberty)
 
@@ -188,6 +189,7 @@ using libelf instead of BFD.
 %patch16 -p1 -b .aarch64-fpic~
 %patch17 -p1 -b .dynamic_list~
 %patch18 -p1 
+%patch19 -p1 
 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
@@ -501,6 +503,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Feb 19 2016 Nick Clifton <nickc@redhat.com> 2.25-16
+- Fix an internal error linking object files with IFUNC relocations in debug sections.
+  (#1309763)
+
 * Wed Sep 30 2015 Nick Clifton <nickc@redhat.com> 2.25-15
 - Ensure that the patch applies for native AArch64 builds.  (#1262091)
 
