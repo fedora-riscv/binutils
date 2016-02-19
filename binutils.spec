@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -60,6 +60,8 @@ Patch17: binutils-2.26-formatting.patch
 Patch18: binutils-2.26-fix-compile-warnings.patch
 # Enable -Bsymbolic and -Bsymbolic-functions to PIE
 Patch19: binutils-2.26-Bsymbolic_PIE.patch
+# Import H.J.Lu's Kernel LTO patch.
+Patch20: binutils-2.26-lto.patch
 
 Provides: bundled(libiberty)
 
@@ -187,6 +189,7 @@ using libelf instead of BFD.
 %patch17 -p0
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -506,6 +509,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Feb 19 2016 Nick Clifton  <nickc@redhat.com> 2.26-12
+- Import H.J.Lu's kernel LTO patch.
+  (#1302071)
+
 * Tue Feb 16 2016 poma <poma@gmail.com> 2.26-11
 - Enable -Bsymbolic and -Bsymbolic-functions to PIE.  Needed by Syslinux
   (#1308296)
