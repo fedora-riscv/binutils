@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -64,6 +64,8 @@ Patch19: binutils-2.26-Bsymbolic_PIE.patch
 Patch20: binutils-2.26-lto.patch
 # Import fix for PR 19698
 Patch21: binutils-rh1312151.patch
+# Import fix for PR 19601
+Patch22: binutils-2.26-fix-GOT-offset-calculation.patch
 
 Provides: bundled(libiberty)
 
@@ -193,6 +195,7 @@ using libelf instead of BFD.
 %patch19 -p1
 %patch20 -p1
 %patch21 -p1
+%patch22 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -512,6 +515,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Feb 29 2016 Nick Clifton  <nickc@redhat.com> 2.26-14
+- Import patch to fix x86 GOT offset calculation in 2.26 sources (PR 19601)
+  (#1312489)
+
 * Fri Feb 26 2016 Nick Clifton  <nickc@redhat.com> 2.26-13
 - Import patch to fix symbol versioning bug in 2.26 sources (PR 19698)
   (#1312151)
