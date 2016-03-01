@@ -19,7 +19,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.25
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -63,6 +63,9 @@ Patch17: binutils-2.25.1-dynamic_list.patch
 Patch18: binutils-2.25-aarch64-pr18668.patch
 # Fix internal linker error processing IFUNC relocations in debug sections.
 Patch19: binutils-rh1309763.patch
+# Fix seg-fault loading a binary that needs an incompatible plugin.
+Patch20: binutils-rh1311320.patch
+
 
 Provides: bundled(libiberty)
 
@@ -190,6 +193,7 @@ using libelf instead of BFD.
 %patch17 -p1 -b .dynamic_list~
 %patch18 -p1 
 %patch19 -p1 
+%patch20 -p1 
 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
@@ -503,6 +507,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Mar 01 2016 Nick Clifton <nickc@redhat.com> 2.25-17
+- Fix an internal error loading an object file that needs an incompatible plugin.
+  (#1311320)
+
 * Fri Feb 19 2016 Nick Clifton <nickc@redhat.com> 2.25-16
 - Fix an internal error linking object files with IFUNC relocations in debug sections.
   (#1309763)

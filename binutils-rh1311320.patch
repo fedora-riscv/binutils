@@ -1,0 +1,43 @@
+diff -rup binutils-2.25.orig/bfd/hash.c binutils-2.25/bfd/hash.c
+--- binutils-2.25.orig/bfd/hash.c	2016-03-01 08:08:16.065426095 +0000
++++ binutils-2.25/bfd/hash.c	2016-03-01 08:18:16.678210068 +0000
+@@ -423,6 +423,8 @@ bfd_hash_table_init (struct bfd_hash_tab
+ void
+ bfd_hash_table_free (struct bfd_hash_table *table)
+ {
++  if (table->memory == NULL)
++    return;
+   objalloc_free ((struct objalloc *) table->memory);
+   table->memory = NULL;
+ }
+diff -rup binutils-2.25.orig/bfd/plugin.c binutils-2.25/bfd/plugin.c
+--- binutils-2.25.orig/bfd/plugin.c	2016-03-01 08:08:16.076426138 +0000
++++ binutils-2.25/bfd/plugin.c	2016-03-01 08:09:56.776828118 +0000
+@@ -345,6 +345,10 @@ try_load_plugin (const char *pname, bfd
+   int i;
+   ld_plugin_onload onload;
+   enum ld_plugin_status status;
++  static bfd_boolean loading = FALSE;
++
++  if (loading)
++    goto err;
+ 
+   plugin_handle = dlopen (pname, RTLD_NOW);
+   if (!plugin_handle)
+@@ -378,12 +382,16 @@ try_load_plugin (const char *pname, bfd
+   if (status != LDPS_OK)
+     goto err;
+ 
++  loading = TRUE;
++  
+   if (!claim_file)
+     goto err;
+ 
+   if (!try_claim (abfd))
+     goto err;
+ 
++  loading = FALSE;
++  
+   return 1;
+ 
+  err:
