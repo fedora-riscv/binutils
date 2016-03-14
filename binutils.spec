@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -66,6 +66,8 @@ Patch20: binutils-2.26-lto.patch
 Patch21: binutils-rh1312151.patch
 # Import fix for PR 19601
 Patch22: binutils-2.26-fix-GOT-offset-calculation.patch
+# Import fix for PR 19579
+Patch23: binutils-2.26-common-definitions.patch
 
 Provides: bundled(libiberty)
 
@@ -196,6 +198,7 @@ using libelf instead of BFD.
 %patch20 -p1
 %patch21 -p1
 %patch22 -p1
+%patch23 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -515,6 +518,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Mar 14 2016 Nick Clifton  <nickc@redhat.com> 2.26-15
+- Import patch to have common symbols in an executable override definitions in shared objects (PR 19579)
+  (#1312507)
+
 * Mon Feb 29 2016 Nick Clifton  <nickc@redhat.com> 2.26-14
 - Import patch to fix x86 GOT offset calculation in 2.26 sources (PR 19601)
   (#1312489)
