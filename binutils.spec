@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -522,7 +522,7 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Tue Mar 15 2016 Nick Clifton  <nickc@redhat.com> 2.26-16
+* Tue Mar 15 2016 Nick Clifton  <nickc@redhat.com> 2.26-17
 - Fix strict aliasing errors compiling with broken F24 gcc.
   See thread starting here: https://sourceware.org/ml/binutils/2016-03/msg00119.html
   (#1312507)

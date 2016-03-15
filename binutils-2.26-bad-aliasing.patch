@@ -40,3 +40,16 @@ diff -rup binutils-2.26.orig/bfd/libcoff-in.h binutils-2.26/bfd/libcoff-in.h
  
  /* Tdata for sections in XCOFF files.  This is used by the linker.  */
  
+--- binutils-2.26.orig/gas/config/obj-elf.h	2016-03-15 09:50:29.143059664 +0000
++++ binutils-2.26/gas/config/obj-elf.h	2016-03-15 10:36:26.342646864 +0000
+@@ -93,8 +93,8 @@ extern void elf_begin (void);
+ #define LOCAL_LABEL_PREFIX '.'
+ #endif
+ 
+-/* should be conditional on address size! */
+-#define elf_symbol(asymbol) ((elf_symbol_type *) (&(asymbol)->the_bfd))
++/* Should be conditional on address size!  */
++#define elf_symbol(asymbol) ((elf_symbol_type *) (asymbol))
+ 
+ #ifndef S_GET_SIZE
+ #define S_GET_SIZE(S) \
