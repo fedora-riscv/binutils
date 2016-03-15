@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -68,6 +68,9 @@ Patch21: binutils-rh1312151.patch
 Patch22: binutils-2.26-fix-GOT-offset-calculation.patch
 # Import fix for PR 19579
 Patch23: binutils-2.26-common-definitions.patch
+# Fix compilation under broken F24 GCC, which geneerates bogus strict aliasing violations.
+# FIXME: Remove once GCC is fixed.
+Patch24: binutils-2.26-bad-aliasing.patch
 
 Provides: bundled(libiberty)
 
@@ -199,6 +202,7 @@ using libelf instead of BFD.
 %patch21 -p1
 %patch22 -p1
 %patch23 -p1
+%patch24 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -518,6 +522,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Mar 15 2016 Nick Clifton  <nickc@redhat.com> 2.26-16
+- Fix strict aliasing errors compiling with broken F24 gcc.
+  See thread starting here: https://sourceware.org/ml/binutils/2016-03/msg00119.html
+  (#1312507)
+
 * Mon Mar 14 2016 Nick Clifton  <nickc@redhat.com> 2.26-15
 - Import patch to have common symbols in an executable override definitions in shared objects (PR 19579)
   (#1312507)
