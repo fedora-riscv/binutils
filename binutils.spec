@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 16%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -48,28 +48,23 @@ Patch09: binutils-2.22.52.0.1-export-demangle.h.patch
 Patch10: binutils-2.22.52.0.4-no-config-h-check.patch
 # Fix addr2line to use the dynamic symbol table if it could not find any ordinary symbols.
 Patch11: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
-# H.J's convoluted kernel building patch.
-# Patch12: binutils-2.25-kernel-ld-r.patch
-# Correct bug introduced by patch 12
-# Patch13: binutils-2.23.2-aarch64-em.patch
 # Fix detections little endian PPC shared libraries
-Patch14: binutils-2.24-ldforcele.patch
-# Patch15: binutils-2.25.1-plugin-format-checking.patch
-Patch16: binutils-2.25.1-cleansweep.patch
-Patch17: binutils-2.26-formatting.patch
-Patch18: binutils-2.26-fix-compile-warnings.patch
+Patch12: binutils-2.24-ldforcele.patch
+Patch13: binutils-2.25.1-cleansweep.patch
+Patch14: binutils-2.26-formatting.patch
+Patch15: binutils-2.26-fix-compile-warnings.patch
 # Enable -Bsymbolic and -Bsymbolic-functions to PIE
-Patch19: binutils-2.26-Bsymbolic_PIE.patch
+Patch16: binutils-2.26-Bsymbolic_PIE.patch
 # Import H.J.Lu's Kernel LTO patch.
-Patch20: binutils-2.26-lto.patch
+Patch17: binutils-2.26-lto.patch
 # Import fix for PR 19698
-Patch21: binutils-rh1312151.patch
+Patch18: binutils-rh1312151.patch
 # Import fix for PR 19601
-Patch22: binutils-2.26-fix-GOT-offset-calculation.patch
+Patch19: binutils-2.26-fix-GOT-offset-calculation.patch
 # Import fix for PR 19579
-Patch23: binutils-2.26-common-definitions.patch
+Patch20: binutils-2.26-common-definitions.patch
 # Import fix for PR 19827
-Patch24: binutils-2.26-x86-PIE-relocations.patch
+Patch21: binutils-2.26-x86-PIE-relocations.patch
 
 Provides: bundled(libiberty)
 
@@ -187,21 +182,18 @@ using libelf instead of BFD.
 %patch09 -p1 -b .export-demangle-h~
 %patch10 -p1 -b .no-config-h-check~
 %patch11 -p1 -b .addr2line~
-# %patch12 -p1 -b .kernel-ld-r~
-# %patch13 -p1 -b .aarch64~
 %ifarch ppc64le
-%patch14 -p1 -b .ldforcele~
+%patch12 -p1 -b .ldforcele~
 %endif
-# %patch15 -p1
-%patch16 -p0
-%patch17 -p0
+%patch13 -p0
+%patch14 -p0
+%patch15 -p1
+%patch16 -p1
+%patch17 -p1
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
 %patch21 -p1
-%patch22 -p1
-%patch23 -p1
-%patch24 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -521,6 +513,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Apr 22 2016 Nick Clifton  <nickc@redhat.com> 2.26-20
+- Housekeeping: Delete retired patches.  Renumber patches.
+- Increase version number past F24 because F24 update is blocked by a version number comparison.
+
 * Fri Mar 18 2016 Nick Clifton  <nickc@redhat.com> 2.26-16
 - Import patch to fix generation of x86 relocs in PIE mode.  (PR 19827)
 
