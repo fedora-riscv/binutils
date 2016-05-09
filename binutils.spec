@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -525,6 +525,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon May 09 2016 Nick Clifton  <nickc@redhat.com> 2.26-19
+- Fix another compile time warning, this time in tc-arm.c.
+  (#1333695)
+
 * Wed Apr 20 2016 Nick Clifton  <nickc@redhat.com> 2.26-18
 - Import patch to fix generation of x86 relocs in PIE mode.  (PR 19827)
   (#1302071)
