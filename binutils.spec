@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -513,6 +513,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon May 09 2016 Nick Clifton  <nickc@redhat.com> 2.26-21
+- Fix another compile time warning, this time in tc-arm.c.
+  (#1333695)
+
 * Fri Apr 22 2016 Nick Clifton  <nickc@redhat.com> 2.26-20
 - Housekeeping: Delete retired patches.  Renumber patches.
 - Increase version number past F24 because F24 update is blocked by a version number comparison.
