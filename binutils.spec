@@ -20,7 +20,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -38,7 +38,7 @@ Patch02: binutils-2.20.51.0.10-ppc64-pie.patch
 Patch03: binutils-2.20.51.0.2-ia64-lib64.patch
 Patch04: binutils-2.25-version.patch
 Patch05: binutils-2.25-set-long-long.patch
-Patch06: binutils-2.20.51.0.10-copy-osabi.patch
+# Patch06: binutils-2.20.51.0.10-copy-osabi.patch
 Patch07: binutils-2.20.51.0.10-sec-merge-emit.patch
 # Enable -zrelro by default: BZ #621983
 Patch08: binutils-2.22.52.0.1-relro-on-by-default.patch
@@ -182,7 +182,7 @@ using libelf instead of BFD.
 %endif
 %patch04 -p1 -b .version~
 %patch05 -p1 -b .set-long-long~
-%patch06 -p1 -b .copy-osabi~
+# %patch06 -p1 -b .copy-osabi~
 %patch07 -p1 -b .sec-merge-emit~
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 %patch08 -p1 -b .relro~
@@ -525,6 +525,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Jun 02 2016 Nick Clifton  <nickc@redhat.com> 2.26-20
+- Retire the copy-osabi patch.
+  (#1252066)
+
 * Mon May 09 2016 Nick Clifton  <nickc@redhat.com> 2.26-19
 - Fix another compile time warning, this time in tc-arm.c.
   (#1333695)
