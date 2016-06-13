@@ -16,11 +16,13 @@
 # BZ 1124342: Provide a way to enable deterministic archives.
 # BZ 1195883: But do not do this by default.
 %define enable_deterministic_archives 0
+# BZ 1342618: Enable support for GCC LTO compilation.
+%define enable_lto 1
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.26
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -293,9 +295,13 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %else    
   --enable-deterministic-archives=no \
 %endif
+%if %{enable_lto}
+  --enable-lto \
+%endif
   $CARGS \
   --enable-plugins \
   --with-bugurl=http://bugzilla.redhat.com/bugzilla/
+
 make %{_smp_mflags} tooldir=%{_prefix} all
 make %{_smp_mflags} tooldir=%{_prefix} info
 
@@ -513,6 +519,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Jun 13 2016 Nick Clifton  <nickc@redhat.com> 2.26-23
+- Enable support for GCC's LTO.
+  (#1342618)
+
 * Thu Jun 02 2016 Nick Clifton  <nickc@redhat.com> 2.26-22
 - Retire the copy-osabi patch.
   (#1252066)
