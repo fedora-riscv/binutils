@@ -19,8 +19,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.26
-Release: 20%{?dist}
+Version: 2.26.1
+Release: 1%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -59,20 +59,20 @@ Patch16: binutils-2.25.1-cleansweep.patch
 Patch17: binutils-2.26-formatting.patch
 Patch18: binutils-2.26-fix-compile-warnings.patch
 # Enable -Bsymbolic and -Bsymbolic-functions to PIE
-Patch19: binutils-2.26-Bsymbolic_PIE.patch
+# Patch19: binutils-2.26-Bsymbolic_PIE.patch
 # Import H.J.Lu's Kernel LTO patch.
 Patch20: binutils-2.26-lto.patch
 # Import fix for PR 19698
-Patch21: binutils-rh1312151.patch
+# Patch21: binutils-rh1312151.patch
 # Import fix for PR 19601
-Patch22: binutils-2.26-fix-GOT-offset-calculation.patch
+# Patch22: binutils-2.26-fix-GOT-offset-calculation.patch
 # Import fix for PR 19579
-Patch23: binutils-2.26-common-definitions.patch
+# Patch23: binutils-2.26-common-definitions.patch
 # Fix compilation under broken F24 GCC, which geneerates bogus strict aliasing violations.
 # FIXME: Remove once GCC is fixed.
 Patch24: binutils-2.26-bad-aliasing.patch
 # Import fix for PR 19827
-Patch25: binutils-2.26-x86-PIE-relocations.patch
+# Patch25: binutils-2.26-x86-PIE-relocations.patch
 
 Provides: bundled(libiberty)
 
@@ -199,13 +199,13 @@ using libelf instead of BFD.
 %patch16 -p0
 %patch17 -p0
 %patch18 -p1
-%patch19 -p1
+# %patch19 -p1
 %patch20 -p1
-%patch21 -p1
-%patch22 -p1
-%patch23 -p1
+# %patch21 -p1
+# %patch22 -p1
+# %patch23 -p1
 %patch24 -p1
-%patch25 -p1
+# %patch25 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -525,6 +525,14 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Jun 29 2016 Nick Clifton <nickc@redhat.com> 2.26.1-1
+- Rebase on FSF binutils 2.26.1 release.
+- Retire: binutils-2.26-Bsymbolic_PIE.patch
+- Retire: binutils-rh1312151.patch
+- Retire: binutils-2.26-fix-GOT-offset-calculation.patch
+- Retire: binutils-2.26-common-definitions.patch
+- Retire: binutils-2.26-x86-PIE-relocations.patch
+
 * Thu Jun 02 2016 Nick Clifton  <nickc@redhat.com> 2.26-20
 - Retire the copy-osabi patch.
   (#1252066)
