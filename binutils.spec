@@ -18,11 +18,13 @@
 %define enable_deterministic_archives 0
 # BZ 1342618: Enable support for GCC LTO compilation.
 %define enable_lto 1
+# Disable the default generation of compressed debug sections.
+%define default_compress_debug 0
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.26
-Release: 23%{?dist}
+Version: 2.27
+Release: 1%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -40,33 +42,21 @@ Patch02: binutils-2.20.51.0.10-ppc64-pie.patch
 Patch03: binutils-2.20.51.0.2-ia64-lib64.patch
 Patch04: binutils-2.25-version.patch
 Patch05: binutils-2.25-set-long-long.patch
-# Patch06: binutils-2.20.51.0.10-copy-osabi.patch
-Patch07: binutils-2.20.51.0.10-sec-merge-emit.patch
+Patch06: binutils-2.20.51.0.10-sec-merge-emit.patch
 # Enable -zrelro by default: BZ #621983
-Patch08: binutils-2.22.52.0.1-relro-on-by-default.patch
+Patch07: binutils-2.22.52.0.1-relro-on-by-default.patch
 # Local patch - export demangle.h with the binutils-devel rpm.
-Patch09: binutils-2.22.52.0.1-export-demangle.h.patch
+Patch08: binutils-2.22.52.0.1-export-demangle.h.patch
 # Disable checks that config.h has been included before system headers.  BZ #845084
-Patch10: binutils-2.22.52.0.4-no-config-h-check.patch
+Patch09: binutils-2.22.52.0.4-no-config-h-check.patch
 # Fix addr2line to use the dynamic symbol table if it could not find any ordinary symbols.
-Patch11: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
+Patch10: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
 # Fix detections little endian PPC shared libraries
-Patch12: binutils-2.24-ldforcele.patch
-Patch13: binutils-2.25.1-cleansweep.patch
-Patch14: binutils-2.26-formatting.patch
-Patch15: binutils-2.26-fix-compile-warnings.patch
-# Enable -Bsymbolic and -Bsymbolic-functions to PIE
-Patch16: binutils-2.26-Bsymbolic_PIE.patch
+Patch11: binutils-2.24-ldforcele.patch
+Patch12: binutils-2.25.1-cleansweep.patch
+Patch13: binutils-2.26-fix-compile-warnings.patch
 # Import H.J.Lu's Kernel LTO patch.
-Patch17: binutils-2.26-lto.patch
-# Import fix for PR 19698
-Patch18: binutils-rh1312151.patch
-# Import fix for PR 19601
-Patch19: binutils-2.26-fix-GOT-offset-calculation.patch
-# Import fix for PR 19579
-Patch20: binutils-2.26-common-definitions.patch
-# Import fix for PR 19827
-Patch21: binutils-2.26-x86-PIE-relocations.patch
+Patch14: binutils-2.26-lto.patch
 
 Provides: bundled(libiberty)
 
@@ -112,8 +102,8 @@ Obsoletes: gnupro <= 1117-1
 %endif
 
 # The higher of these two numbers determines the default ld.
-%{!?ld_bfd_priority: %define ld_bfd_priority	50}
-%{!?ld_gold_priority:%define ld_gold_priority	30}
+%{!?ld_bfd_priority: %global ld_bfd_priority	50}
+%{!?ld_gold_priority:%global ld_gold_priority	30}
 
 %if "%{build_gold}" == "both"
 Requires(post): coreutils
@@ -176,26 +166,20 @@ using libelf instead of BFD.
 %endif
 %patch04 -p1 -b .version~
 %patch05 -p1 -b .set-long-long~
-# %patch06 -p1 -b .copy-osabi~
-%patch07 -p1 -b .sec-merge-emit~
+%patch06 -p1 -b .sec-merge-emit~
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
-%patch08 -p1 -b .relro~
+%patch07 -p1 -b .relro~
 %endif
-%patch09 -p1 -b .export-demangle-h~
-%patch10 -p1 -b .no-config-h-check~
-%patch11 -p1 -b .addr2line~
+%patch08 -p1 -b .export-demangle-h~
+%patch09 -p1 -b .no-config-h-check~
+%patch10 -p1 -b .addr2line~
 %ifarch ppc64le
-%patch12 -p1 -b .ldforcele~
+%patch11 -p1 -b .ldforcele~
 %endif
-%patch13 -p0
-%patch14 -p0
-%patch15 -p1
-%patch16 -p1
-%patch17 -p1
-%patch18 -p1
-%patch19 -p1
-%patch20 -p1
-%patch21 -p1
+%patch12 -p0
+%patch13 -p1
+%patch14 -p1
+
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -297,6 +281,11 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %endif
 %if %{enable_lto}
   --enable-lto \
+%endif
+%if %{default_compress_debug}
+  --enable-compressed-debug=all \
+%else
+  --enable-compressed-debug=none \
 %endif
   $CARGS \
   --enable-plugins \
@@ -519,6 +508,15 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Aug 03 2016 Nick Clifton  <nickc@redhat.com> 2.27-1
+- Rebase on FSF binutils 2.27 release.
+- Retire: binutils-2.26-formatting.patch
+- Retire: binutils-2.26-Bsymbolic_PIE.patch
+- Retire: binutils-rh1312151.patch
+- Retire: binutils-2.26-fix-GOT-offset-calculation.patch
+- Retire: binutils-2.26-common-definitions.patch
+- Retire: binutils-2.26-x86-PIE-relocations.patch
+
 * Mon Jun 13 2016 Nick Clifton  <nickc@redhat.com> 2.26-23
 - Enable support for GCC's LTO.
   (#1342618)
