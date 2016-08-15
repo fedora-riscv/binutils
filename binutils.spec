@@ -24,7 +24,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -57,6 +57,8 @@ Patch12: binutils-2.25.1-cleansweep.patch
 Patch13: binutils-2.26-fix-compile-warnings.patch
 # Import H.J.Lu's Kernel LTO patch.
 Patch14: binutils-2.26-lto.patch
+# Fix computation of sh_info field for .dynsym sections
+Patch15: binutils-2.27-local-dynsym-count.patch
 
 Provides: bundled(libiberty)
 
@@ -179,6 +181,7 @@ using libelf instead of BFD.
 %patch12 -p0
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
@@ -508,6 +511,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Aug 15 2016 Nick Clifton  <nickc@redhat.com> 2.27-2
+- Fix computation of sh_info field in the header of .dynsym sections.
+
 * Wed Aug 03 2016 Nick Clifton  <nickc@redhat.com> 2.27-1
 - Rebase on FSF binutils 2.27 release.
 - Retire: binutils-2.26-formatting.patch
