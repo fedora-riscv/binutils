@@ -21,8 +21,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.26
-Release: 23%{?dist}
+Version: 2.26.1
+Release: 1%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -53,20 +53,20 @@ Patch11: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
 # Fix detections little endian PPC shared libraries
 Patch12: binutils-2.24-ldforcele.patch
 Patch13: binutils-2.25.1-cleansweep.patch
-Patch14: binutils-2.26-formatting.patch
+# Patch14: binutils-2.26-formatting.patch
 Patch15: binutils-2.26-fix-compile-warnings.patch
 # Enable -Bsymbolic and -Bsymbolic-functions to PIE
-Patch16: binutils-2.26-Bsymbolic_PIE.patch
+# Patch16: binutils-2.26-Bsymbolic_PIE.patch
 # Import H.J.Lu's Kernel LTO patch.
 Patch17: binutils-2.26-lto.patch
 # Import fix for PR 19698
-Patch18: binutils-rh1312151.patch
+# Patch18: binutils-rh1312151.patch
 # Import fix for PR 19601
-Patch19: binutils-2.26-fix-GOT-offset-calculation.patch
+# Patch19: binutils-2.26-fix-GOT-offset-calculation.patch
 # Import fix for PR 19579
-Patch20: binutils-2.26-common-definitions.patch
+# Patch20: binutils-2.26-common-definitions.patch
 # Import fix for PR 19827
-Patch21: binutils-2.26-x86-PIE-relocations.patch
+# Patch21: binutils-2.26-x86-PIE-relocations.patch
 
 Provides: bundled(libiberty)
 
@@ -188,14 +188,14 @@ using libelf instead of BFD.
 %patch12 -p1 -b .ldforcele~
 %endif
 %patch13 -p0
-%patch14 -p0
+# %patch14 -p0
 %patch15 -p1
-%patch16 -p1
+# %patch16 -p1
 %patch17 -p1
-%patch18 -p1
-%patch19 -p1
-%patch20 -p1
-%patch21 -p1
+# %patch18 -p1
+# %patch19 -p1
+# %patch20 -p1
+# %patch21 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -519,6 +519,15 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Aug 15 2016 Nick Clifton <nickc@redhat.com> 2.26.1-1
+- Rebase on FSF binutils 2.26.1 release.
+- Retire: binutils-2.26-formatting.patch
+- Retire: binutils-2.26-Bsymbolic_PIE.patch
+- Retire: binutils-rh1312151.patch
+- Retire: binutils-2.26-fix-GOT-offset-calculation.patch
+- Retire: binutils-2.26-common-definitions.patch
+- Retire: binutils-2.26-x86-PIE-relocations.patch
+
 * Mon Jun 13 2016 Nick Clifton  <nickc@redhat.com> 2.26-23
 - Enable support for GCC's LTO.
   (#1342618)
