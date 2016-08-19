@@ -2504,3 +2504,53 @@ diff -rup binutils-2.26.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.26/ld/tes
  
  run_cc_link_tests $lto_link_symbol_tests
  
+--- /dev/null	2016-08-19 08:03:37.292222041 +0100
++++ binutils-2.27/ld/testsuite/ld-plugin/lto-4a.c	2016-08-19 12:14:15.685818046 +0100
+@@ -0,0 +1,7 @@
++extern void foo(void);
++
++int main(void)
++{
++  foo();
++  return 0;
++}
+--- /dev/null	2016-08-19 08:03:37.292222041 +0100
++++ binutils-2.27/ld/testsuite/ld-plugin/lto-4b.c	2016-08-19 12:14:19.603842115 +0100
+@@ -0,0 +1,9 @@
++#include <stdio.h>
++
++extern void bar (void);
++
++void foo(void)
++{
++  bar ();
++  printf ("hello foo\n");
++}
+--- /dev/null	2016-08-19 08:03:37.292222041 +0100
++++ binutils-2.27/ld/testsuite/ld-plugin/lto-4c.c	2016-08-19 12:14:21.987856760 +0100
+@@ -0,0 +1,6 @@
++#include <stdio.h>
++
++void bar (void)
++{
++  printf ("hello bar\n");
++}
+--- /dev/null	2016-08-19 08:03:37.292222041 +0100
++++ binutils-2.27/ld/testsuite/ld-plugin/lto-10a.c	2016-08-19 12:14:27.670891671 +0100
+@@ -0,0 +1,6 @@
++extern int foo(void);
++
++int main(void)
++{
++  return foo();
++}
+--- /dev/null	2016-08-19 08:03:37.292222041 +0100
++++ binutils-2.27/ld/testsuite/ld-plugin/lto-10b.c	2016-08-19 12:14:33.380926748 +0100
+@@ -0,0 +1,7 @@
++#include <stdio.h>
++
++int foo(void)
++{
++  printf ("hello\n");
++  return 0;
++}

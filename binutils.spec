@@ -24,7 +24,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -59,6 +59,10 @@ Patch13: binutils-2.26-fix-compile-warnings.patch
 Patch14: binutils-2.26-lto.patch
 # Fix computation of sh_info field for .dynsym sections
 Patch15: binutils-2.27-local-dynsym-count.patch
+# Put sections in a monotonically increasing order of file offset.
+Patch16: binutils-2.27-monotonic-section-offsets.patch
+# Make ARM and AArch64 ports properly support relro on by default.
+Patch17: binutils-2.27-arm-aarch64-default-relro.patch
 
 Provides: bundled(libiberty)
 
@@ -182,7 +186,8 @@ using libelf instead of BFD.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
-
+%patch16 -p1
+%patch17 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -511,6 +516,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Aug 19 2016 Nick Clifton  <nickc@redhat.com> 2.27-3
+- Put sections in a monotonically increasing order of file offset.
+- Allow ARM and AArch64 targets to have relro on by default.
+
 * Mon Aug 15 2016 Nick Clifton  <nickc@redhat.com> 2.27-2
 - Fix computation of sh_info field in the header of .dynsym sections.
 
