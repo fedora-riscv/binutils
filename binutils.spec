@@ -24,7 +24,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -291,9 +291,9 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
   --enable-lto \
 %endif
 %if %{default_compress_debug}
-  --enable-compressed-debug=all \
+  --enable-compressed-debug-sections=all \
 %else
-  --enable-compressed-debug=none \
+  --enable-compressed-debug-sections=none \
 %endif
   $CARGS \
   --enable-plugins \
@@ -516,6 +516,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Sep 01 2016 Nick Clifton  <nickc@redhat.com> 2.27-4
+- Properly disable the default generation of compressed debug sections.
+  (#1366182)
+
 * Fri Aug 19 2016 Nick Clifton  <nickc@redhat.com> 2.27-3
 - Put sections in a monotonically increasing order of file offset.
 - Allow ARM and AArch64 targets to have relro on by default.
