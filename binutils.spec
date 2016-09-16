@@ -1,8 +1,9 @@
 # rpmbuild parameters:
 # --define "binutils_target arm-linux-gnu" to create arm-linux-gnu-binutils.
-# --with debug: Build without optimizations and without splitting the debuginfo.
-# --without testsuite: Do not run the testsuite.  Default is to run it.
-# --with testsuite: Run the testsuite.  Default --with debug is not to run it.
+# --with=bootstrap: Build with minimal dependencies.
+# --with=debug: Build without optimizations and without splitting the debuginfo.
+# --without=docs: Skip building documentation.
+# --without=testsuite: Do not run the testsuite.
 
 %if 0%{!?binutils_target:1}
 %define binutils_target %{_target_platform}
@@ -21,10 +22,28 @@
 # Disable the default generation of compressed debug sections.
 %define default_compress_debug 0
 
+# Default: Not bootstrapping.
+%bcond_with bootstrap
+# Default: Not debug
+%bcond_with debug
+# Default: Always build documentation.
+%bcond_without docs
+# Default: Always run the testsuite.
+%bcond_without testsuite
+
+%if %{with bootstrap}
+%undefine with_docs
+%undefine with_testsuite
+%endif
+
+%if %{with debug}
+%undefine with_testsuite
+%endif
+
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -39,7 +58,7 @@ Source2: binutils-2.19.50.0.1-output-format.sed
 
 Patch01: binutils-2.20.51.0.2-libtool-lib64.patch
 Patch02: binutils-2.20.51.0.10-ppc64-pie.patch
-Patch03: binutils-2.20.51.0.2-ia64-lib64.patch
+# Patch03: binutils-2.20.51.0.2-ia64-lib64.patch
 Patch04: binutils-2.25-version.patch
 Patch05: binutils-2.25-set-long-long.patch
 Patch06: binutils-2.20.51.0.10-sec-merge-emit.patch
@@ -76,23 +95,35 @@ Provides: bundled(libiberty)
 %define build_gold	no
 %endif
 
-%if 0%{?_with_debug:1}
+%if %{with debug}
 # Define this if you want to skip the strip step and preserve debug info.
 # Useful for testing.
 %define __debug_install_post : > %{_builddir}/%{?buildsubdir}/debugfiles.list
 %define debug_package %{nil}
-%define run_testsuite 0%{?_with_testsuite:1}
-%else
-%define run_testsuite 0%{!?_without_testsuite:1}
 %endif
 
+
 Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
-BuildRequires: texinfo >= 4.0, gettext, flex, bison, zlib-devel
+
+# Gold needs bison in order to build gold/yyscript.c.
+# Bison needs m4.
+BuildRequires: bison, m4
+
+%if %{without bootstrap}
+BuildRequires: gettext, flex, zlib-devel
+%endif
+
+%if %{with docs}
+BuildRequires: texinfo >= 4.0
 # BZ 920545: We need pod2man in order to build the manual pages.
 BuildRequires: /usr/bin/pod2man
+Requires(post): /sbin/install-info
+Requires(preun): /sbin/install-info
+%endif
+
 # Required for: ld-bootstrap/bootstrap.exp bootstrap with --static
 # It should not be required for: ld-elf/elf.exp static {preinit,init,fini} array
-%if %{run_testsuite}
+%if %{with testsuite}
 # relro_test.sh uses dc which is part of the bc rpm, hence its inclusion here.
 BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc
 %if "%{build_gold}" == "both"
@@ -100,12 +131,8 @@ BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc
 BuildRequires: libstdc++-static
 %endif
 %endif
+
 Conflicts: gcc-c++ < 4.0.0
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
-%ifarch ia64
-Obsoletes: gnupro <= 1117-1
-%endif
 
 # The higher of these two numbers determines the default ld.
 %{!?ld_bfd_priority: %global ld_bfd_priority	50}
@@ -140,8 +167,10 @@ converting addresses to file and line).
 Summary: BFD and opcodes static and dynamic libraries and header files
 Group: System Environment/Libraries
 Provides: binutils-static = %{version}-%{release}
+%if %{with docs}
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
+%endif
 Requires: zlib-devel
 Requires: binutils = %{version}-%{release}
 # BZ 1215242: We need touch...
@@ -165,11 +194,11 @@ using libelf instead of BFD.
 %setup -q -n binutils-%{version}
 %patch01 -p1 -b .libtool-lib64~
 %patch02 -p1 -b .ppc64-pie~
-%ifarch ia64
-%if "%{_lib}" == "lib64"
-%patch03 -p1 -b .ia64-lib64~
-%endif
-%endif
+# %ifarch ia64
+# %if "%{_lib}" == "lib64"
+# %patch03 -p1 -b .ia64-lib64~
+# %endif
+# %endif
 %patch04 -p1 -b .version~
 %patch05 -p1 -b .set-long-long~
 %patch06 -p1 -b .sec-merge-emit~
@@ -214,6 +243,12 @@ do
   sed -i -e "s/^DEJATOOL = .*/DEJATOOL = $tool/" $tool/Makefile.in
 done
 touch */configure
+# Touch the .info files so that they are newer then the .texi files and
+# hence do not need to be rebuilt.  This eliminates the need for makeinfo.
+# The -print is there just to confirm that the command is working.
+%if %{without docs}
+  find . -name *.info -print -exec touch {} \;
+%endif
 
 %ifarch %{power64}
 %define _target_platform %{_arch}-%{_vendor}-%{_host_os}
@@ -299,12 +334,16 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
   --enable-plugins \
   --with-bugurl=http://bugzilla.redhat.com/bugzilla/
 
+%if %{with docs}  
 make %{_smp_mflags} tooldir=%{_prefix} all
 make %{_smp_mflags} tooldir=%{_prefix} info
+%else
+make %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
+%endif
 
 # Do not use %%check as it is run after %%install where libbfd.so is rebuild
 # with -fvisibility=hidden no longer being usable in its shared form.
-%if !%{run_testsuite}
+%if %{without testsuite}
 echo ====================TESTSUITE DISABLED=========================
 %else
 make -k check < /dev/null || :
@@ -322,9 +361,16 @@ rm -f binutils-%{_target_platform}.tar.bz2 binutils-%{_target_platform}-*.{sum,l
 
 %install
 rm -rf %{buildroot}
+%if %{with docs}  
 make install DESTDIR=%{buildroot}
+%else
+make install DESTDIR=%{buildroot} MAKEINFO=true
+%endif
+
 %if %{isnative}
+%if %{with info}
 make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
+%endif
 
 # Rebuild libiberty.a with -fPIC.
 # Future: Remove it together with its header file, projects should bundle it.
@@ -449,14 +495,12 @@ rm -rf %{buildroot}
 %endif
 %if %{isnative}
 /sbin/ldconfig
-# For --excludedocs:
-if [ -e %{_infodir}/binutils.info.gz ]
-then
+%if %{with docs}
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/as.info.gz
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/gprof.info.gz
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/ld.info.gz
-fi
+%endif # with docs
 %endif # %{isnative}
 exit 0
 
@@ -482,6 +526,13 @@ exit 0
 
 %if %{isnative}
 %postun -p /sbin/ldconfig
+  if [ -e %{_infodir}/binutils.info.gz ]
+  then
+    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/as.info.gz
+    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
+    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/gprof.info.gz
+    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/ld.info.gz
+  fi
 %endif # %{isnative}
 
 %files -f %{?cross}binutils.lang
@@ -495,6 +546,10 @@ exit 0
 %{_bindir}/%{?cross}ld*
 %endif
 %{_mandir}/man1/*
+%{_infodir}/as.info.gz
+%{_infodir}/binutils.info.gz
+%{_infodir}/gprof.info.gz
+%{_infodir}/ld.info.gz
 %if %{enable_shared}
 %{_libdir}/lib*.so
 %exclude %{_libdir}/libbfd.so
@@ -502,8 +557,10 @@ exit 0
 %endif
 
 %if %{isnative}
+%if %{with docs}
 %{_infodir}/[^b]*info*
 %{_infodir}/binutils*info*
+%endif
 
 %files devel
 %defattr(-,root,root,-)
@@ -511,11 +568,16 @@ exit 0
 %{_libdir}/lib*.a
 %{_libdir}/libbfd.so
 %{_libdir}/libopcodes.so
+%if %{with docs}
 %{_infodir}/bfd*info*
-
+%endif # with docs
 %endif # %{isnative}
 
 %changelog
+* Fri Sep 16 2016 Nick Clifton  <nickc@redhat.com> 2.27-5
+- Add support for building the rpm with "--with bootstrap" enabled.
+- Retire: binutils-2.20.51.0.2-ia64-lib64.patch
+
 * Thu Sep 01 2016 Nick Clifton  <nickc@redhat.com> 2.27-4
 - Properly disable the default generation of compressed debug sections.
   (#1366182)
