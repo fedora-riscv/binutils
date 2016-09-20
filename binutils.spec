@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -82,6 +82,8 @@ Patch15: binutils-2.27-local-dynsym-count.patch
 Patch16: binutils-2.27-monotonic-section-offsets.patch
 # Make ARM and AArch64 ports properly support relro on by default.
 Patch17: binutils-2.27-arm-aarch64-default-relro.patch
+# Skip PR14918 linker test for ARM native targets.
+Patch18: binutils-2.27-skip-rp14918-test-for-arm.patch
 
 Provides: bundled(libiberty)
 
@@ -89,10 +91,14 @@ Provides: bundled(libiberty)
 # %define gold_arches %ix86 x86_64 %arm aarch64 ppc* %{power64}
 %define gold_arches %ix86 x86_64 %arm aarch64
 
+%if %{with bootstrap}
+%define build_gold	no
+%else
 %ifarch %gold_arches
 %define build_gold	both
 %else
 %define build_gold	no
+%endif
 %endif
 
 %if %{with debug}
@@ -102,12 +108,15 @@ Provides: bundled(libiberty)
 %define debug_package %{nil}
 %endif
 
-
 Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+
+BuildRequires: gcc
 
 # Gold needs bison in order to build gold/yyscript.c.
 # Bison needs m4.
-BuildRequires: bison, m4
+%if "%{build_gold}" == "both"
+BuildRequires: bison, m4, gcc-c++
+%endif
 
 %if %{without bootstrap}
 BuildRequires: gettext, flex, zlib-devel
@@ -217,6 +226,7 @@ using libelf instead of BFD.
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -307,7 +317,9 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
   --enable-gold \
 %endif
 %endif
-%if !%{isnative}
+%if %{isnative}
+  --with-sysroot \
+%else
   --enable-targets=%{_host} \
   --with-sysroot=%{_prefix}/%{binutils_target}/sys-root \
   --program-prefix=%{cross} \
@@ -574,6 +586,14 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Sep 20 2016 Nick Clifton  <nickc@redhat.com> 2.27-6
+- Omit building GOLD when bootstrapping.
+- Add a generic build requirement on gcc.
+- Move bison and m4 build requirements to be conditional upon building GOLD.
+- Add --with-sysroot=/ configure option when building native targets.
+- Skip PR14918 linker test for ARM native targets.
+  (#1374889)
+
 * Fri Sep 16 2016 Nick Clifton  <nickc@redhat.com> 2.27-5
 - Add support for building the rpm with "--with bootstrap" enabled.
 - Retire: binutils-2.20.51.0.2-ia64-lib64.patch
