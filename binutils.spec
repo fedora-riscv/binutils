@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -318,7 +318,7 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %endif
 %endif
 %if %{isnative}
-  --with-sysroot \
+  --with-sysroot=/ \
 %else
   --enable-targets=%{_host} \
   --with-sysroot=%{_prefix}/%{binutils_target}/sys-root \
@@ -586,11 +586,20 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Sep 20 2016 Nick Clifton  <nickc@redhat.com> 2.27-7
+- Use --with-sysroot=/ for native targets.  This prevents the default
+  sysroot of /usr/local/<target>/sys-root from being used, which breaks 
+  locating needed shared libaries, but still allows the --sysroot
+  linker command line option to be effective.
+  (#1374889)
+  (#1377803)
+  (#1377949)
+
 * Tue Sep 20 2016 Nick Clifton  <nickc@redhat.com> 2.27-6
 - Omit building GOLD when bootstrapping.
 - Add a generic build requirement on gcc.
 - Move bison and m4 build requirements to be conditional upon building GOLD.
-- Add --with-sysroot=/ configure option when building native targets.
+- Add --with-sysroot configure option when building native targets.
 - Skip PR14918 linker test for ARM native targets.
   (#1374889)
 
