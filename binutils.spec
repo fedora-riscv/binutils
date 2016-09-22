@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -295,9 +295,14 @@ case %{binutils_target} in ppc64-*)
   ;;
 esac
 
-case %{binutils_target} in  ppc64le*)
+case %{binutils_target} in ppc64le*)
     CARGS="$CARGS --enable-targets=powerpc-linux"
     ;;
+esac
+
+case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*)
+  CARGS="$CARGS --enable-targets=x86_64-pep"
+  ;;
 esac
 
 %if 0%{?_with_debug:1}
@@ -586,7 +591,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Wed Sep 20 2016 Nick Clifton  <nickc@redhat.com> 2.27-7
+* Thu Sep 22 2016 Mark Pryor  <pryorm09@gmail.com> 2.27-8
+- Add i386pep emulation for all EFI capable CPU types.
+  (#1376870)
+
+* Wed Sep 21 2016 Nick Clifton  <nickc@redhat.com> 2.27-7
 - Use --with-sysroot=/ for native targets.  This prevents the default
   sysroot of /usr/local/<target>/sys-root from being used, which breaks 
   locating needed shared libaries, but still allows the --sysroot
