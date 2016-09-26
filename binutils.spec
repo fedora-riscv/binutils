@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -542,7 +542,8 @@ fi
 exit 0
 
 %if %{isnative}
-%postun -p /sbin/ldconfig
+%postun
+/sbin/ldconfig
   if [ -e %{_infodir}/binutils.info.gz ]
   then
     /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/as.info.gz
@@ -591,6 +592,12 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Sep 26 2016 Mark Pryor  <pryorm09@gmail.com> 2.27-9
+- Fix invocation of /sbin/ldconfig when reinstalling binutils
+  in order to prevent warnings from rpm.
+  (#1379030)
+  (#1379117)
+
 * Thu Sep 22 2016 Mark Pryor  <pryorm09@gmail.com> 2.27-8
 - Add i386pep emulation for all EFI capable CPU types.
   (#1376870)
