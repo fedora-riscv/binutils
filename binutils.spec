@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -84,6 +84,8 @@ Patch16: binutils-2.27-monotonic-section-offsets.patch
 Patch17: binutils-2.27-arm-aarch64-default-relro.patch
 # Skip PR14918 linker test for ARM native targets.
 Patch18: binutils-2.27-skip-rp14918-test-for-arm.patch
+# Fix GOLD for ARM/AARCh64.
+Patch19: binutils-2.28-gold.patch
 
 Provides: bundled(libiberty)
 
@@ -227,6 +229,7 @@ using libelf instead of BFD.
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p0
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -592,6 +595,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Oct 04 2016 Nick Clifton  <nickc@redhat.com> 2.27-10
+- Fix GOLD for ARM and AARCH64
+  (#1386126)
+
 * Mon Sep 26 2016 Mark Pryor  <pryorm09@gmail.com> 2.27-9
 - Fix invocation of /sbin/ldconfig when reinstalling binutils
   in order to prevent warnings from rpm.
