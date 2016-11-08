@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -86,6 +86,8 @@ Patch17: binutils-2.27-arm-aarch64-default-relro.patch
 Patch18: binutils-2.27-skip-rp14918-test-for-arm.patch
 # Fix GOLD for ARM/AARCh64.
 Patch19: binutils-2.28-gold.patch
+# Improve objdump's disassembly of dynamic executables.
+Patch20: binutils-2.27-objdump-improvements.patch
 
 Provides: bundled(libiberty)
 
@@ -230,6 +232,7 @@ using libelf instead of BFD.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p0
+%patch20 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -595,7 +598,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
-* Fri Oct 04 2016 Nick Clifton  <nickc@redhat.com> 2.27-10
+* Tue Nov 08 2016 Nick Clifton  <nickc@redhat.com> 2.27-11
+- Fix objdumps disassembly of dynamic executables.
+  (#1370275)
+
+* Fri Nov 04 2016 Nick Clifton  <nickc@redhat.com> 2.27-10
 - Fix GOLD for ARM and AARCH64
   (#1386126)
 
