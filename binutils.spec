@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -88,6 +88,8 @@ Patch18: binutils-2.27-skip-rp14918-test-for-arm.patch
 Patch19: binutils-2.28-gold.patch
 # Improve objdump's disassembly of dynamic executables.
 Patch20: binutils-2.27-objdump-improvements.patch
+# Improve objdump's speed when mixing disassembly with source code
+Patch21: binutils-2.27-dwarf-parse-speedup.patch
 
 Provides: bundled(libiberty)
 
@@ -233,6 +235,7 @@ using libelf instead of BFD.
 %patch18 -p1
 %patch19 -p0
 %patch20 -p1
+%patch21 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -598,6 +601,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Nov 22 2016 Nick Clifton  <nickc@redhat.com> 2.27-12
+- Speed up objdump when displaying source code alognside disassembly.
+  (#1397113)
+
 * Tue Nov 08 2016 Nick Clifton  <nickc@redhat.com> 2.27-11
 - Fix objdumps disassembly of dynamic executables.
   (#1370275)
