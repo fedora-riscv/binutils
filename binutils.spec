@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -92,6 +92,8 @@ Patch20: binutils-2.27-objdump-improvements.patch
 Patch21: binutils-2.27-dwarf-parse-speedup.patch
 # More objdump speed improvements
 Patch22: binutils-2.27-objdump-improvements.2.patch
+# Include the filename concerned in readelf error messages.
+Patch23: binutils-2.27-filename-in-error-messages.patch
 
 Provides: bundled(libiberty)
 
@@ -239,6 +241,7 @@ using libelf instead of BFD.
 %patch20 -p1
 %patch21 -p1
 %patch22 -p1
+%patch23 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -604,6 +607,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Jan 16 2017 Nick Clifton  <nickc@redhat.com> 2.27-14
+- Include the filename concerned in readelf error messages.
+  (#1412348)
+
 * Mon Jan 09 2017 Nick Clifton  <nickc@redhat.com> 2.27-13
 - Another speed up for objdump when displaying source code alognside disassembly.
   (#1397113)
