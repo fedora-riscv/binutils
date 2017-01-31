@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -94,6 +94,8 @@ Patch21: binutils-2.27-dwarf-parse-speedup.patch
 Patch22: binutils-2.27-objdump-improvements.2.patch
 # Include the filename concerned in readelf error messages.
 Patch23: binutils-2.27-filename-in-error-messages.patch
+# Fix a couple of buffer overflows when printing messages in translated strings.
+Patch24: binutils-2.27-ld-buffer-overflow.patch
 
 Provides: bundled(libiberty)
 
@@ -242,6 +244,7 @@ using libelf instead of BFD.
 %patch21 -p1
 %patch22 -p1
 %patch23 -p1
+%patch24 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -607,6 +610,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Jan 31 2017 Nick Clifton  <nickc@redhat.com> 2.27-15
+- Fix buffer overflows when printing translated messages.
+  (#1417411)
+
 * Mon Jan 16 2017 Nick Clifton  <nickc@redhat.com> 2.27-14
 - Include the filename concerned in readelf error messages.
   (#1412348)

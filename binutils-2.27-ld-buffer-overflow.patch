@@ -1,0 +1,35 @@
+diff -rup binutils.orig/ld/ldlang.c binutils-2.27/ld/ldlang.c
+--- binutils.orig/ld/ldlang.c	2017-01-31 11:08:03.711398839 +0000
++++ binutils-2.27/ld/ldlang.c	2017-01-31 11:09:31.411347584 +0000
+@@ -2034,14 +2034,11 @@ static void
+ lang_print_asneeded (void)
+ {
+   struct asneeded_minfo *m;
+-  char buf[100];
+ 
+   if (asneeded_list_head == NULL)
+     return;
+ 
+-  sprintf (buf, _("\nAs-needed library included "
+-		  "to satisfy reference by file (symbol)\n\n"));
+-  minfo ("%s", buf);
++  minfo (_("\nAs-needed library included to satisfy reference by file (symbol)\n\n"));
+ 
+   for (m = asneeded_list_head; m != NULL; m = m->next)
+     {
+diff -rup binutils.orig/ld/ldmain.c binutils-2.27/ld/ldmain.c
+--- binutils.orig/ld/ldmain.c	2017-01-31 11:08:03.874396886 +0000
++++ binutils-2.27/ld/ldmain.c	2017-01-31 11:09:01.393708155 +0000
+@@ -840,11 +840,7 @@ add_archive_element (struct bfd_link_inf
+ 
+       if (!header_printed)
+ 	{
+-	  char buf[100];
+-
+-	  sprintf (buf, _("Archive member included "
+-			  "to satisfy reference by file (symbol)\n\n"));
+-	  minfo ("%s", buf);
++	  minfo (_("Archive member included to satisfy reference by file (symbol)\n\n"));
+ 	  header_printed = TRUE;
+ 	}
+ 
