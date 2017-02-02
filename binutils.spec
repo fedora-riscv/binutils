@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -573,6 +573,7 @@ exit 0
 
 %files -f %{?cross}binutils.lang
 %defattr(-,root,root,-)
+%license COPYING COPYING3 COPYING3.LIB COPYING.LIB
 %doc README
 %{_bindir}/%{?cross}[!l]*
 %if "%{build_gold}" == "both"
@@ -610,6 +611,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Feb 02 2017 Stephen Gallagher  <sgallagh@redhat.com> 2.27-16
+- Install COPYING[*] files using the %license macro.
+  (#1418430)
+
 * Tue Jan 31 2017 Nick Clifton  <nickc@redhat.com> 2.27-15
 - Fix buffer overflows when printing translated messages.
   (#1417411)
