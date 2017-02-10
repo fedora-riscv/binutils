@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -611,6 +611,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Feb 10 2017 Fedora Release Engineering <releng@fedoraproject.org> - 2.27-17
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_Mass_Rebuild
+
 * Thu Feb 02 2017 Stephen Gallagher  <sgallagh@redhat.com> 2.27-16
 - Install COPYING[*] files using the %license macro.
   (#1418430)
