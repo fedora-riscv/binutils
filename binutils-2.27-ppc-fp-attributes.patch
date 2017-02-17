@@ -1,0 +1,627 @@
+diff -rup binutils.orig/bfd/elf32-ppc.c binutils-2.27/bfd/elf32-ppc.c
+--- binutils.orig/bfd/elf32-ppc.c	2017-02-17 12:43:45.252843756 +0000
++++ binutils-2.27/bfd/elf32-ppc.c	2017-02-17 14:06:39.341735795 +0000
+@@ -4646,68 +4646,87 @@ ppc_elf_check_relocs (bfd *abfd,
+   return TRUE;
+ }
+ 
+-
+-/* Merge object attributes from IBFD into OBFD.  Raise an error if
+-   there are conflicting attributes.  */
+-static bfd_boolean
+-ppc_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
++/* Warn for conflicting Tag_GNU_Power_ABI_FP attributes between IBFD
++   and OBFD, and merge non-conflicting ones.  */
++void
++_bfd_elf_ppc_merge_fp_attributes (bfd *ibfd, bfd *obfd)
+ {
+   obj_attribute *in_attr, *in_attrs;
+   obj_attribute *out_attr, *out_attrs;
+ 
+-  if (!elf_known_obj_attributes_proc (obfd)[0].i)
+-    {
+-      /* This is the first object.  Copy the attributes.  */
+-      _bfd_elf_copy_obj_attributes (ibfd, obfd);
+-
+-      /* Use the Tag_null value to indicate the attributes have been
+-	 initialized.  */
+-      elf_known_obj_attributes_proc (obfd)[0].i = 1;
+-
+-      return TRUE;
+-    }
+-
+   in_attrs = elf_known_obj_attributes (ibfd)[OBJ_ATTR_GNU];
+   out_attrs = elf_known_obj_attributes (obfd)[OBJ_ATTR_GNU];
+ 
+-  /* Check for conflicting Tag_GNU_Power_ABI_FP attributes and merge
+-     non-conflicting ones.  */
+   in_attr = &in_attrs[Tag_GNU_Power_ABI_FP];
+   out_attr = &out_attrs[Tag_GNU_Power_ABI_FP];
++
+   if (in_attr->i != out_attr->i)
+     {
+-      out_attr->type = 1;
+-      if (out_attr->i == 0)
+-	out_attr->i = in_attr->i;
+-      else if (in_attr->i == 0)
++      int in_fp = in_attr->i & 3;
++      int out_fp = out_attr->i & 3;
++
++      if (in_fp == 0)
+ 	;
+-      else if (out_attr->i == 1 && in_attr->i == 2)
++      else if (out_fp == 0)
++	{
++	  out_attr->type = 1;
++	  out_attr->i ^= in_fp;
++	}
++      else if (out_fp != 2 && in_fp == 2)
+ 	_bfd_error_handler
+ 	  (_("Warning: %B uses hard float, %B uses soft float"), obfd, ibfd);
+-      else if (out_attr->i == 1 && in_attr->i == 3)
+-	_bfd_error_handler
+-	  (_("Warning: %B uses double-precision hard float, %B uses single-precision hard float"),
+-	  obfd, ibfd);
+-      else if (out_attr->i == 3 && in_attr->i == 1)
+-	_bfd_error_handler
+-	  (_("Warning: %B uses double-precision hard float, %B uses single-precision hard float"),
+-	  ibfd, obfd);
+-      else if (out_attr->i == 3 && in_attr->i == 2)
+-	_bfd_error_handler
+-	  (_("Warning: %B uses soft float, %B uses single-precision hard float"),
+-	  ibfd, obfd);
+-      else if (out_attr->i == 2 && (in_attr->i == 1 || in_attr->i == 3))
++      else if (out_fp == 2 && in_fp != 2)
+ 	_bfd_error_handler
+ 	  (_("Warning: %B uses hard float, %B uses soft float"), ibfd, obfd);
+-      else if (in_attr->i > 3)
++      else if (out_fp == 1 && in_fp == 3)
+ 	_bfd_error_handler
+-	  (_("Warning: %B uses unknown floating point ABI %d"), ibfd,
+-	   in_attr->i);
+-      else
++	  (_("Warning: %B uses double-precision hard float, "
++	     "%B uses single-precision hard float"), obfd, ibfd);
++      else if (out_fp == 3 && in_fp == 1)
++	_bfd_error_handler
++	  (_("Warning: %B uses double-precision hard float, "
++	     "%B uses single-precision hard float"), ibfd, obfd);
++
++      in_fp = in_attr->i & 0xc;
++      out_fp = out_attr->i & 0xc;
++      if (in_fp == 0)
++	;
++      else if (out_fp == 0)
++	{
++	  out_attr->type = 1;
++	  out_attr->i ^= in_fp;
++	}
++      else if (out_fp != 2 * 4 && in_fp == 2 * 4)
+ 	_bfd_error_handler
+-	  (_("Warning: %B uses unknown floating point ABI %d"), obfd,
+-	   out_attr->i);
++	  (_("Warning: %B uses 64-bit long double, "
++	     "%B uses 128-bit long double"), ibfd, obfd);
++      else if (in_fp != 2 * 4 && out_fp == 2 * 4)
++	_bfd_error_handler
++	  (_("Warning: %B uses 64-bit long double, "
++	     "%B uses 128-bit long double"), obfd, ibfd);
++      else if (out_fp == 1 * 4 && in_fp == 3 * 4)
++	_bfd_error_handler
++	  (_("Warning: %B uses IBM long double, "
++	     "%B uses IEEE long double"), ibfd, obfd);
++      else if (out_fp == 3 * 4 && in_fp == 1 * 4)
++	_bfd_error_handler
++	  (_("Warning: %B uses IBM long double, "
++	     "%B uses IEEE long double"), obfd, ibfd);
+     }
++}
++
++/* Merge object attributes from IBFD into OBFD.  Warn if
++   there are conflicting attributes.  */
++static bfd_boolean
++ppc_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
++{
++  obj_attribute *in_attr, *in_attrs;
++  obj_attribute *out_attr, *out_attrs;
++
++  _bfd_elf_ppc_merge_fp_attributes (ibfd, obfd);
++
++  in_attrs = elf_known_obj_attributes (ibfd)[OBJ_ATTR_GNU];
++  out_attrs = elf_known_obj_attributes (obfd)[OBJ_ATTR_GNU];
+ 
+   /* Check for conflicting Tag_GNU_Power_ABI_Vector attributes and
+      merge non-conflicting ones.  */
+@@ -4715,48 +4734,36 @@ ppc_elf_merge_obj_attributes (bfd *ibfd,
+   out_attr = &out_attrs[Tag_GNU_Power_ABI_Vector];
+   if (in_attr->i != out_attr->i)
+     {
+-      const char *in_abi = NULL, *out_abi = NULL;
+-
+-      switch (in_attr->i)
+-	{
+-	case 1: in_abi = "generic"; break;
+-	case 2: in_abi = "AltiVec"; break;
+-	case 3: in_abi = "SPE"; break;
+-	}
++      int in_vec = in_attr->i & 3;
++      int out_vec = out_attr->i & 3;
+ 
+-      switch (out_attr->i)
++      if (in_vec == 0)
++	;
++      else if (out_vec == 0)
+ 	{
+-	case 1: out_abi = "generic"; break;
+-	case 2: out_abi = "AltiVec"; break;
+-	case 3: out_abi = "SPE"; break;
++	  out_attr->type = 1;
++	  out_attr->i = in_vec;
+ 	}
+-
+-      out_attr->type = 1;
+-      if (out_attr->i == 0)
+-	out_attr->i = in_attr->i;
+-      else if (in_attr->i == 0)
+-	;
+       /* For now, allow generic to transition to AltiVec or SPE
+ 	 without a warning.  If GCC marked files with their stack
+ 	 alignment and used don't-care markings for files which are
+ 	 not affected by the vector ABI, we could warn about this
+ 	 case too.  */
+-      else if (out_attr->i == 1)
+-	out_attr->i = in_attr->i;
+-      else if (in_attr->i == 1)
++      else if (in_vec == 1)
+ 	;
+-      else if (in_abi == NULL)
++      else if (out_vec == 1)
++	{
++	  out_attr->type = 1;
++	  out_attr->i = in_vec;
++	}
++      else if (out_vec < in_vec)
+ 	_bfd_error_handler
+-	  (_("Warning: %B uses unknown vector ABI %d"), ibfd,
+-	   in_attr->i);
+-      else if (out_abi == NULL)
+-	_bfd_error_handler
+-	  (_("Warning: %B uses unknown vector ABI %d"), obfd,
+-	   in_attr->i);
+-      else
++	  (_("Warning: %B uses AltiVec vector ABI, %B uses SPE vector ABI"),
++	   obfd, ibfd);
++      else if (out_vec > in_vec)
+ 	_bfd_error_handler
+-	  (_("Warning: %B uses vector ABI \"%s\", %B uses \"%s\""),
+-	   ibfd, obfd, in_abi, out_abi);
++	  (_("Warning: %B uses AltiVec vector ABI, %B uses SPE vector ABI"),
++	   ibfd, obfd);
+     }
+ 
+   /* Check for conflicting Tag_GNU_Power_ABI_Struct_Return attributes
+@@ -4765,25 +4772,24 @@ ppc_elf_merge_obj_attributes (bfd *ibfd,
+   out_attr = &out_attrs[Tag_GNU_Power_ABI_Struct_Return];
+   if (in_attr->i != out_attr->i)
+     {
+-      out_attr->type = 1;
+-      if (out_attr->i == 0)
+-       out_attr->i = in_attr->i;
+-      else if (in_attr->i == 0)
++      int in_struct = in_attr->i & 3;
++      int out_struct = out_attr->i & 3;
++
++      if (in_struct == 0 || in_struct == 3)
+        ;
+-      else if (out_attr->i == 1 && in_attr->i == 2)
+-       _bfd_error_handler
+-         (_("Warning: %B uses r3/r4 for small structure returns, %B uses memory"), obfd, ibfd);
+-      else if (out_attr->i == 2 && in_attr->i == 1)
+-       _bfd_error_handler
+-         (_("Warning: %B uses r3/r4 for small structure returns, %B uses memory"), ibfd, obfd);
+-      else if (in_attr->i > 2)
+-       _bfd_error_handler
+-         (_("Warning: %B uses unknown small structure return convention %d"), ibfd,
+-          in_attr->i);
+-      else
+-       _bfd_error_handler
+-         (_("Warning: %B uses unknown small structure return convention %d"), obfd,
+-          out_attr->i);
++      else if (out_struct == 0)
++	{
++	  out_attr->type = 1;
++	  out_attr->i = in_struct;
++	}
++      else if (out_struct < in_struct)
++	_bfd_error_handler
++	  (_("Warning: %B uses r3/r4 for small structure returns, "
++	     "%B uses memory"), obfd, ibfd);
++      else if (out_struct > in_struct)
++	_bfd_error_handler
++	  (_("Warning: %B uses r3/r4 for small structure returns, "
++	     "%B uses memory"), ibfd, obfd);
+     }
+ 
+   /* Merge Tag_compatibility attributes and any common GNU ones.  */
+Only in binutils-2.27/bfd: elf32-ppc.c.orig
+diff -rup binutils.orig/bfd/elf64-ppc.c binutils-2.27/bfd/elf64-ppc.c
+--- binutils.orig/bfd/elf64-ppc.c	2017-02-17 12:43:45.257843692 +0000
++++ binutils-2.27/bfd/elf64-ppc.c	2017-02-17 14:06:45.374655107 +0000
+@@ -5988,6 +5988,8 @@ ppc64_elf_merge_private_bfd_data (bfd *i
+       return FALSE;
+     }
+ 
++  _bfd_elf_ppc_merge_fp_attributes (ibfd, obfd);
++
+   /* Merge Tag_compatibility attributes and any common GNU ones.  */
+   _bfd_elf_merge_object_attributes (ibfd, obfd);
+ 
+Only in binutils-2.27/bfd: elf64-ppc.c.orig
+diff -rup binutils.orig/bfd/elf-bfd.h binutils-2.27/bfd/elf-bfd.h
+--- binutils.orig/bfd/elf-bfd.h	2017-02-17 12:43:45.224844113 +0000
++++ binutils-2.27/bfd/elf-bfd.h	2017-02-17 14:06:49.740596712 +0000
+@@ -2377,6 +2377,8 @@ extern unsigned int _bfd_elf_ppc_at_tpre
+   (unsigned int, unsigned int);
+ /* PowerPC elf_object_p tweak.  */
+ extern bfd_boolean _bfd_elf_ppc_set_arch (bfd *);
++/* PowerPC .gnu.attributes handling common to both 32-bit and 64-bit.  */
++extern void _bfd_elf_ppc_merge_fp_attributes (bfd *, bfd *);
+ 
+ /* Exported interface for writing elf corefile notes. */
+ extern char *elfcore_write_note
+Only in binutils-2.27/bfd: elf-bfd.h.orig
+diff -rup binutils.orig/binutils/readelf.c binutils-2.27/binutils/readelf.c
+--- binutils.orig/binutils/readelf.c	2017-02-17 12:43:45.289843284 +0000
++++ binutils-2.27/binutils/readelf.c	2017-02-17 14:06:54.752529678 +0000
+@@ -13243,47 +13243,77 @@ display_power_gnu_attribute (unsigned ch
+ 			     const unsigned char * const end)
+ {
+   unsigned int len;
+-  int val;
++  unsigned int val;
+ 
+   if (tag == Tag_GNU_Power_ABI_FP)
+     {
+       val = read_uleb128 (p, &len, end);
+       p += len;
+       printf ("  Tag_GNU_Power_ABI_FP: ");
++      if (len == 0)
++	{
++	  printf (_("<corrupt>\n"));
++	  return p;
++	}
+ 
+-      switch (val)
++      if (val > 15)
++	printf ("(%#x), ", val);
++
++      switch (val & 3)
+ 	{
+ 	case 0:
+-	  printf (_("Hard or soft float\n"));
++	  printf (_("unspecified hard/soft float, "));
+ 	  break;
+ 	case 1:
+-	  printf (_("Hard float\n"));
++	  printf (_("hard float, "));
+ 	  break;
+ 	case 2:
+-	  printf (_("Soft float\n"));
++	  printf (_("soft float, "));
+ 	  break;
+ 	case 3:
+-	  printf (_("Single-precision hard float\n"));
++	  printf (_("single-precision hard float, "));
++	  break;
++	}
++
++      switch (val & 0xC)
++	{
++	case 0:
++	  printf (_("unspecified long double\n"));
+ 	  break;
+-	default:
+-	  printf ("??? (%d)\n", val);
++	case 4:
++	  printf (_("128-bit IBM long double\n"));
++	  break;
++	case 8:
++	  printf (_("64-bit long double\n"));
++	  break;
++	case 12:
++	  printf (_("128-bit IEEE long double\n"));
+ 	  break;
+ 	}
+       return p;
+-   }
++    }
+ 
+   if (tag == Tag_GNU_Power_ABI_Vector)
+     {
+       val = read_uleb128 (p, &len, end);
+       p += len;
+       printf ("  Tag_GNU_Power_ABI_Vector: ");
+-      switch (val)
++      if (len == 0)
++	{
++	  printf (_("<corrupt>\n"));
++	  return p;
++	}
++
++      if (val > 3)
++	printf ("(%#x), ", val);
++
++      switch (val & 3)
+ 	{
+ 	case 0:
+-	  printf (_("Any\n"));
++	  printf (_("unspecified\n"));
+ 	  break;
+ 	case 1:
+-	  printf (_("Generic\n"));
++	  printf (_("generic\n"));
+ 	  break;
+ 	case 2:
+ 	  printf ("AltiVec\n");
+@@ -13291,39 +13321,39 @@ display_power_gnu_attribute (unsigned ch
+ 	case 3:
+ 	  printf ("SPE\n");
+ 	  break;
+-	default:
+-	  printf ("??? (%d)\n", val);
+-	  break;
+ 	}
+       return p;
+-   }
++    }
+ 
+   if (tag == Tag_GNU_Power_ABI_Struct_Return)
+     {
+-      if (p == end)
++      val = read_uleb128 (p, &len, end);
++      p += len;
++      printf ("  Tag_GNU_Power_ABI_Struct_Return: ");
++      if (len == 0)
+ 	{
+-	  warn (_("corrupt Tag_GNU_Power_ABI_Struct_Return\n"));
++	  printf (_("<corrupt>\n"));
+ 	  return p;
+ 	}
+ 
+-      val = read_uleb128 (p, &len, end);
+-      p += len;
+-      printf ("  Tag_GNU_Power_ABI_Struct_Return: ");
+-      switch (val)
+-       {
+-       case 0:
+-         printf (_("Any\n"));
+-         break;
+-       case 1:
+-         printf ("r3/r4\n");
+-         break;
+-       case 2:
+-         printf (_("Memory\n"));
+-         break;
+-       default:
+-         printf ("??? (%d)\n", val);
+-         break;
+-       }
++      if (val > 2)
++	printf ("(%#x), ", val);
++
++      switch (val & 3)
++	{
++	case 0:
++	  printf (_("unspecified\n"));
++	  break;
++	case 1:
++	  printf ("r3/r4\n");
++	  break;
++	case 2:
++	  printf (_("memory\n"));
++	  break;
++	case 3:
++	  printf ("???\n");
++	  break;
++	}
+       return p;
+     }
+ 
+Only in binutils-2.27/binutils: readelf.c.orig
+diff -rup binutils.orig/gas/config/tc-ppc.c binutils-2.27/gas/config/tc-ppc.c
+--- binutils.orig/gas/config/tc-ppc.c	2017-02-17 12:43:45.411841727 +0000
++++ binutils-2.27/gas/config/tc-ppc.c	2017-02-17 14:07:00.702450099 +0000
+@@ -133,6 +133,7 @@ static void ppc_elf_rdata (int);
+ static void ppc_elf_lcomm (int);
+ static void ppc_elf_localentry (int);
+ static void ppc_elf_abiversion (int);
++static void ppc_elf_gnu_attribute (int);
+ #endif
+ 
+ #ifdef TE_PE
+@@ -270,6 +271,7 @@ const pseudo_typeS md_pseudo_table[] =
+   { "lcomm",	ppc_elf_lcomm,	0 },
+   { "localentry", ppc_elf_localentry,	0 },
+   { "abiversion", ppc_elf_abiversion,	0 },
++  { "gnu_attribute", ppc_elf_gnu_attribute, 0},
+ #endif
+ 
+ #ifdef TE_PE
+@@ -2314,6 +2316,28 @@ ppc_elf_abiversion (int ignore ATTRIBUTE
+   demand_empty_rest_of_line ();
+ }
+ 
++/* Parse a .gnu_attribute directive.  */
++static void
++ppc_elf_gnu_attribute (int ignored ATTRIBUTE_UNUSED)
++{
++  int tag = obj_elf_vendor_attribute (OBJ_ATTR_GNU);
++
++  /* Check validity of defined powerpc tags.  */
++  if (tag == Tag_GNU_Power_ABI_FP
++      || tag == Tag_GNU_Power_ABI_Vector
++      || tag == Tag_GNU_Power_ABI_Struct_Return)
++    {
++      unsigned int val;
++
++      val = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU, tag);
++
++      if ((tag == Tag_GNU_Power_ABI_FP && val > 15)
++	  || (tag == Tag_GNU_Power_ABI_Vector && val > 3)
++	  || (tag == Tag_GNU_Power_ABI_Struct_Return && val > 2))
++	as_warn (_("unknown .gnu_attribute value"));
++    }
++}
++
+ /* Set ABI version in output file.  */
+ void
+ ppc_elf_end (void)
+diff -rup binutils.orig/include/elf/ppc.h binutils-2.27/include/elf/ppc.h
+--- binutils.orig/include/elf/ppc.h	2017-02-17 12:43:45.573839660 +0000
++++ binutils-2.27/include/elf/ppc.h	2017-02-17 14:07:05.868381007 +0000
+@@ -219,11 +219,18 @@ END_RELOC_NUMBERS (R_PPC_max)
+ enum
+ {
+   /* 0-3 are generic.  */
+-  Tag_GNU_Power_ABI_FP = 4, /* Value 1 for hard-float, 2 for
+-			       soft-float, 3 for single=precision 
+-			       hard-float; 0 for not tagged or not
+-			       using any ABIs affected by the
+-			       differences.  */
++
++  /* FP ABI, low 2 bits:
++     1 for double precision hard-float,
++     2 for soft-float,
++     3 for single precision hard-float.
++     0 for not tagged or not using any ABIs affected by the differences.
++     Next 2 bits:
++     1 for ibm long double
++     2 for 64-bit long double
++     3 for IEEE long double.
++     0 for not tagged or not using any ABIs affected by the differences.  */
++  Tag_GNU_Power_ABI_FP = 4,
+ 
+   /* Value 1 for general purpose registers only, 2 for AltiVec
+      registers, 3 for SPE registers; 0 for not tagged or not using any
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-01.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-01.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-01.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-01.d	2017-02-17 14:07:19.229202307 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_FP: Hard float
++  Tag_GNU_Power_ABI_FP: hard float, unspecified long double
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-02.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-02.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-02.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-02.d	2017-02-17 14:07:30.493051656 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_FP: Soft float
++  Tag_GNU_Power_ABI_FP: soft float, unspecified long double
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-03.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-03.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-03.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-03.d	2017-02-17 14:07:36.925965615 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_FP: Single-precision hard float
++  Tag_GNU_Power_ABI_FP: single-precision hard float, unspecified long double
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-10.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-10.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-10.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-10.d	2017-02-17 14:12:16.129231314 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_FP: Hard float
++  Tag_GNU_Power_ABI_FP: hard float, unspecified long double
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-11.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-11.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-11.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-11.d	2017-02-17 14:07:58.111682262 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_FP: Hard float
++  Tag_GNU_Power_ABI_FP: hard float, unspecified long double
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-20.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-20.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-20.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-20.d	2017-02-17 14:08:08.160547857 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_FP: Soft float
++  Tag_GNU_Power_ABI_FP: soft float, unspecified long double
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-22.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-22.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-22.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-22.d	2017-02-17 14:08:15.552448993 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_FP: Soft float
++  Tag_GNU_Power_ABI_FP: soft float, unspecified long double
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-32.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-32.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-32.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-32.d	2017-02-17 14:08:22.113361240 +0000
+@@ -2,5 +2,5 @@
+ #source: attr-gnu-4-2.s
+ #as: -a32
+ #ld: -r -melf32ppc
+-#warning: Warning: .* uses soft float, .* uses single-precision hard float
++#warning: Warning: .* uses hard float, .* uses soft float
+ #target: powerpc*-*-*
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-33.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-33.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-4-33.d	2017-02-17 12:43:45.370842251 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-4-33.d	2017-02-17 14:08:30.113254244 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_FP: Single-precision hard float
++  Tag_GNU_Power_ABI_FP: single-precision hard float, unspecified long double
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-8-11.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-8-11.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-8-11.d	2017-02-17 12:43:45.371842238 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-8-11.d	2017-02-17 14:08:38.258145308 +0000
+@@ -7,4 +7,4 @@
+ 
+ Attribute Section: gnu
+ File Attributes
+-  Tag_GNU_Power_ABI_Vector: Generic
++  Tag_GNU_Power_ABI_Vector: generic
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-8-23.d binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-8-23.d
+--- binutils.orig/ld/testsuite/ld-powerpc/attr-gnu-8-23.d	2017-02-17 12:43:45.371842238 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/attr-gnu-8-23.d	2017-02-17 14:08:46.755031663 +0000
+@@ -2,5 +2,5 @@
+ #source: attr-gnu-8-3.s
+ #as: -a32
+ #ld: -r -melf32ppc
+-#warning: Warning: .* uses vector ABI "SPE", .* uses "AltiVec"
++#warning: Warning: .* uses AltiVec vector ABI, .* uses SPE vector ABI
+ #target: powerpc*-*-*
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/powerpc.exp binutils-2.27/ld/testsuite/ld-powerpc/powerpc.exp
+--- binutils.orig/ld/testsuite/ld-powerpc/powerpc.exp	2017-02-17 12:43:45.371842238 +0000
++++ binutils-2.27/ld/testsuite/ld-powerpc/powerpc.exp	2017-02-17 14:08:54.354930015 +0000
+@@ -319,17 +319,13 @@ run_dump_test "attr-gnu-4-10"
+ run_dump_test "attr-gnu-4-11"
+ run_dump_test "attr-gnu-4-12"
+ run_dump_test "attr-gnu-4-13"
+-run_dump_test "attr-gnu-4-14"
+ run_dump_test "attr-gnu-4-20"
+ run_dump_test "attr-gnu-4-21"
+ run_dump_test "attr-gnu-4-22"
+ run_dump_test "attr-gnu-4-23"
+-run_dump_test "attr-gnu-4-24"
+ run_dump_test "attr-gnu-4-31"
+ run_dump_test "attr-gnu-4-32"
+ run_dump_test "attr-gnu-4-33"
+-run_dump_test "attr-gnu-4-34"
+-run_dump_test "attr-gnu-4-41"
+ 
+ run_dump_test "attr-gnu-8-11"
+ run_dump_test "attr-gnu-8-23"

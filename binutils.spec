@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -98,6 +98,8 @@ Patch23: binutils-2.27-filename-in-error-messages.patch
 Patch24: binutils-2.27-ld-buffer-overflow.patch
 # Fix running ARM linker on BINARY objects.
 Patch25: binutils-2.27-arm-binary-objects.patch
+# Add support for PowerPC FP attribute.
+Patch26: binutils-2.27-ppc-fp-attributes.patch
 
 Provides: bundled(libiberty)
 
@@ -248,6 +250,7 @@ using libelf instead of BFD.
 %patch23 -p1
 %patch24 -p1
 %patch25 -p1
+%patch26 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -614,6 +617,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Feb 17 2017 Nick Clifton  <nickc@redhat.com> 2.27-19
+- Add support for PowerPC FP attributes.
+  (#1422461)
+
 * Wed Feb 15 2017 Nick Clifton  <nickc@redhat.com> 2.27-18
 - Fix running the ARM port of the linker on BINARY objects.
   (#1422577)
