@@ -42,8 +42,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.27
-Release: 19%{?dist}
+Version: 2.28
+Release: 1%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -58,48 +58,29 @@ Source2: binutils-2.19.50.0.1-output-format.sed
 
 Patch01: binutils-2.20.51.0.2-libtool-lib64.patch
 Patch02: binutils-2.20.51.0.10-ppc64-pie.patch
-# Patch03: binutils-2.20.51.0.2-ia64-lib64.patch
-Patch04: binutils-2.25-version.patch
-Patch05: binutils-2.25-set-long-long.patch
-Patch06: binutils-2.20.51.0.10-sec-merge-emit.patch
+Patch03: binutils-2.25-version.patch
+Patch04: binutils-2.25-set-long-long.patch
+Patch05: binutils-2.20.51.0.10-sec-merge-emit.patch
 # Enable -zrelro by default: BZ #621983
-Patch07: binutils-2.22.52.0.1-relro-on-by-default.patch
+Patch06: binutils-2.22.52.0.1-relro-on-by-default.patch
 # Local patch - export demangle.h with the binutils-devel rpm.
-Patch08: binutils-2.22.52.0.1-export-demangle.h.patch
+Patch07: binutils-2.22.52.0.1-export-demangle.h.patch
 # Disable checks that config.h has been included before system headers.  BZ #845084
-Patch09: binutils-2.22.52.0.4-no-config-h-check.patch
-# Fix addr2line to use the dynamic symbol table if it could not find any ordinary symbols.
-Patch10: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
+Patch08: binutils-2.22.52.0.4-no-config-h-check.patch
 # Fix detections little endian PPC shared libraries
-Patch11: binutils-2.24-ldforcele.patch
-Patch12: binutils-2.25.1-cleansweep.patch
-Patch13: binutils-2.26-fix-compile-warnings.patch
+Patch09: binutils-2.24-ldforcele.patch
+Patch10: binutils-2.25.1-cleansweep.patch
+Patch11: binutils-2.26-fix-compile-warnings.patch
 # Import H.J.Lu's Kernel LTO patch.
-Patch14: binutils-2.26-lto.patch
-# Fix computation of sh_info field for .dynsym sections
-Patch15: binutils-2.27-local-dynsym-count.patch
-# Put sections in a monotonically increasing order of file offset.
-Patch16: binutils-2.27-monotonic-section-offsets.patch
-# Make ARM and AArch64 ports properly support relro on by default.
-Patch17: binutils-2.27-arm-aarch64-default-relro.patch
+Patch12: binutils-2.26-lto.patch
 # Skip PR14918 linker test for ARM native targets.
-Patch18: binutils-2.27-skip-rp14918-test-for-arm.patch
-# Fix GOLD for ARM/AARCh64.
-Patch19: binutils-2.28-gold.patch
-# Improve objdump's disassembly of dynamic executables.
-Patch20: binutils-2.27-objdump-improvements.patch
-# Improve objdump's speed when mixing disassembly with source code
-Patch21: binutils-2.27-dwarf-parse-speedup.patch
-# More objdump speed improvements
-Patch22: binutils-2.27-objdump-improvements.2.patch
+Patch13: binutils-2.27-skip-rp14918-test-for-arm.patch
 # Include the filename concerned in readelf error messages.
-Patch23: binutils-2.27-filename-in-error-messages.patch
+Patch14: binutils-2.27-filename-in-error-messages.patch
 # Fix a couple of buffer overflows when printing messages in translated strings.
-Patch24: binutils-2.27-ld-buffer-overflow.patch
-# Fix running ARM linker on BINARY objects.
-Patch25: binutils-2.27-arm-binary-objects.patch
-# Add support for PowerPC FP attribute.
-Patch26: binutils-2.27-ppc-fp-attributes.patch
+Patch15: binutils-2.27-ld-buffer-overflow.patch
+# Sync libiberty sources with FSF GCC mainline.
+Patch16: binutils-2.28-libiberty-bugfixes.patch
 
 Provides: bundled(libiberty)
 
@@ -219,38 +200,24 @@ using libelf instead of BFD.
 %setup -q -n binutils-%{version}
 %patch01 -p1 -b .libtool-lib64~
 %patch02 -p1 -b .ppc64-pie~
-# %ifarch ia64
-# %if "%{_lib}" == "lib64"
-# %patch03 -p1 -b .ia64-lib64~
-# %endif
-# %endif
-%patch04 -p1 -b .version~
-%patch05 -p1 -b .set-long-long~
-%patch06 -p1 -b .sec-merge-emit~
+%patch03 -p1 -b .version~
+%patch04 -p1 -b .set-long-long~
+%patch05 -p1 -b .sec-merge-emit~
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
-%patch07 -p1 -b .relro~
+%patch06 -p1 -b .relro~
 %endif
-%patch08 -p1 -b .export-demangle-h~
-%patch09 -p1 -b .no-config-h-check~
-%patch10 -p1 -b .addr2line~
+%patch07 -p1 -b .export-demangle-h~
+%patch08 -p1 -b .no-config-h-check~
 %ifarch ppc64le
-%patch11 -p1 -b .ldforcele~
+%patch09 -p1 -b .ldforcele~
 %endif
-%patch12 -p0
+%patch10 -p0
+%patch11 -p1
+%patch12 -p1
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
-%patch17 -p1
-%patch18 -p1
-%patch19 -p0
-%patch20 -p1
-%patch21 -p1
-%patch22 -p1
-%patch23 -p1
-%patch24 -p1
-%patch25 -p1
-%patch26 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -617,6 +584,21 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Mar 02 2017 Nick Clifton  <nickc@redhat.com> 2.28-1
+- Rebase on FSF binutils v2.28.
+- Retire: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
+- Retire: binutils-2.27-local-dynsym-count.patch
+- Retire: binutils-2.27-monotonic-section-offsets.patch
+- Retire: binutils-2.27-arm-aarch64-default-relro.patch
+- Retire: binutils-2.28-gold.patch
+- Retire: binutils-2.27-objdump-improvements.patch
+- Retire: binutils-2.27-dwarf-parse-speedup.patch
+- Retire: binutils-2.27-objdump-improvements.2.patch
+- Retire: binutils-2.27-arm-binary-objects.patch
+- Retire: binutils-2.27-ppc-fp-attributes.patch
+- Add patch to sync libiberty with FSF GCC mainline.
+  (#1428310)
+
 * Fri Feb 17 2017 Nick Clifton  <nickc@redhat.com> 2.27-19
 - Add support for PowerPC FP attributes.
   (#1422461)

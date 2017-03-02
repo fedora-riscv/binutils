@@ -1,0 +1,104 @@
+diff -rup binutils-2.28/libiberty/configure /work/sources/binutils/current/libiberty/configure
+--- binutils-2.28/libiberty/configure	2017-03-02 11:41:42.254309307 +0000
++++ /work/sources/binutils/current/libiberty/configure	2017-01-04 16:01:24.944939339 +0000
+@@ -5097,7 +5097,7 @@ case "${host}" in
+ 	  # If we are using a compiler supporting mdynamic-no-pic
+ 	  # and the option has been tested as safe to add, then cancel
+ 	  # it here, since the code generated is incompatible with shared
+-	  # libs.
++	  # libs.
+ 	  *-mdynamic-no-pic*) PICFLAG='-fno-common -mno-dynamic-no-pic' ;;
+ 	  *) PICFLAG=-fno-common ;;
+ 	esac
+diff -rup binutils-2.28/libiberty/cp-demangle.c /work/sources/binutils/current/libiberty/cp-demangle.c
+--- binutils-2.28/libiberty/cp-demangle.c	2017-03-02 08:28:19.000000000 +0000
++++ /work/sources/binutils/current/libiberty/cp-demangle.c	2017-03-01 14:37:20.557586479 +0000
+@@ -2595,7 +2594,11 @@ cplus_demangle_type (struct d_info *di)
+ 	  /* auto */
+ 	  ret = d_make_name (di, "auto", 4);
+ 	  break;
+-	  
++	case 'c':
++	  /* decltype(auto) */
++	  ret = d_make_name (di, "decltype(auto)", 14);
++	  break;
++
+ 	case 'f':
+ 	  /* 32-bit decimal floating point */
+ 	  ret = d_make_builtin_type (di, &cplus_demangle_builtin_types[26]);
+diff -rup binutils-2.28/libiberty/Makefile.in /work/sources/binutils/current/libiberty/Makefile.in
+--- binutils-2.28/libiberty/Makefile.in	2016-12-23 08:40:18.000000000 +0000
++++ /work/sources/binutils/current/libiberty/Makefile.in	2017-01-04 16:01:24.943939351 +0000
+@@ -1,9 +1,7 @@
+ # Makefile for the libiberty library.
+ # Originally written by K. Richard Pixley <rich@cygnus.com>.
+ #
+-# Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+-# 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011,
+-# 2012, 2014, 2015 Free Software Foundation
++# Copyright (C) 1990-2017 Free Software Foundation, Inc.
+ #
+ # This file is part of the libiberty library.
+ # Libiberty is free software; you can redistribute it and/or
+@@ -484,7 +482,8 @@ configure_deps = $(srcdir)/aclocal.m4 \
+ 	$(srcdir)/../config/acx.m4 \
+ 	$(srcdir)/../config/no-executables.m4 \
+ 	$(srcdir)/../config/override.m4 \
+-	$(srcdir)/../config/warnings.m4 \
++	$(srcdir)/../config/picflag.m4 \
++	$(srcdir)/../config/warnings.m4
+ 
+ $(srcdir)/configure: @MAINT@ $(srcdir)/configure.ac $(configure_deps)
+ 	cd $(srcdir) && $(AUTOCONF)
+diff -rup binutils-2.28/libiberty/strndup.c /work/sources/binutils/current/libiberty/strndup.c
+--- binutils-2.28/libiberty/strndup.c	2013-11-04 15:33:40.000000000 +0000
++++ /work/sources/binutils/current/libiberty/strndup.c	2017-01-04 16:01:24.950939263 +0000
+@@ -33,7 +33,7 @@ memory was available.  The result is alw
+ #include "ansidecl.h"
+ #include <stddef.h>
+ 
+-extern size_t	strlen (const char*);
++extern size_t	strnlen (const char *s, size_t maxlen);
+ extern PTR	malloc (size_t);
+ extern PTR	memcpy (PTR, const PTR, size_t);
+ 
+@@ -41,10 +41,7 @@ char *
+ strndup (const char *s, size_t n)
+ {
+   char *result;
+-  size_t len = strlen (s);
+-
+-  if (n < len)
+-    len = n;
++  size_t len = strnlen (s, n);
+ 
+   result = (char *) malloc (len + 1);
+   if (!result)
+diff -rup binutils-2.28/libiberty/testsuite/demangle-expected /work/sources/binutils/current/libiberty/testsuite/demangle-expected
+--- binutils-2.28/libiberty/testsuite/demangle-expected	2017-03-02 08:28:19.000000000 +0000
++++ /work/sources/binutils/current/libiberty/testsuite/demangle-expected	2017-03-01 14:37:55.295138174 +0000
+@@ -4200,6 +4200,9 @@ decltype (new auto({parm#1})) f<int>(int
+ _Z1fIiERDaRKT_S1_
+ auto& f<int>(int const&, int)
+ --format=gnu-v3
++_Z1gIiEDcRKT_S0_
++decltype(auto) g<int>(int const&, int)
++--format=gnu-v3
+ _Z1gILi1EEvR1AIXT_EER1BIXscbT_EE
+ void g<1>(A<1>&, B<static_cast<bool>(1)>&)
+ --format=gnu-v3
+diff -rup binutils-2.28/libiberty/xstrndup.c /work/sources/binutils/current/libiberty/xstrndup.c
+--- binutils-2.28/libiberty/xstrndup.c	2013-11-04 15:33:40.000000000 +0000
++++ /work/sources/binutils/current/libiberty/xstrndup.c	2017-01-04 16:01:24.951939251 +0000
+@@ -48,10 +48,7 @@ char *
+ xstrndup (const char *s, size_t n)
+ {
+   char *result;
+-  size_t len = strlen (s);
+-
+-  if (n < len)
+-    len = n;
++  size_t len = strnlen (s, n);
+ 
+   result = XNEWVEC (char, len + 1);
+ 

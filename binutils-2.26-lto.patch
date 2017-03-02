@@ -76,16 +76,6 @@ diff -rup binutils-2.26.orig/bfd/bfd.c binutils-2.26/bfd/bfd.c
 diff -rup binutils-2.26.orig/bfd/bfd-in2.h binutils-2.26/bfd/bfd-in2.h
 --- binutils-2.26.orig/bfd/bfd-in2.h	2016-02-19 09:35:36.280000903 +0000
 +++ binutils-2.26/bfd/bfd-in2.h	2016-02-19 09:35:54.900106492 +0000
-@@ -1089,6 +1089,9 @@ struct bfd_section *bfd_create_gnu_debug
- bfd_boolean bfd_fill_in_gnu_debuglink_section
-    (bfd *abfd, struct bfd_section *sect, const char *filename);
- 
-+const char *bfd_extract_object_only_section
-+   (bfd *abfd);
-+
- /* Extracted from libbfd.c.  */
- 
- /* Byte swapping macros for user section data.  */
 @@ -1654,6 +1657,9 @@ extern asection _bfd_std_section[4];
  #define BFD_COM_SECTION_NAME "*COM*"
  #define BFD_IND_SECTION_NAME "*IND*"
@@ -233,79 +223,6 @@ diff -rup binutils-2.26.orig/bfd/format.c binutils-2.26/bfd/format.c
        /* File position has moved, BTW.  */
        return TRUE;
      }
-diff -rup binutils-2.26.orig/bfd/opncls.c binutils-2.26/bfd/opncls.c
---- binutils-2.26.orig/bfd/opncls.c	2016-02-19 09:35:36.281000909 +0000
-+++ binutils-2.26/bfd/opncls.c	2016-02-19 09:35:54.905106520 +0000
-@@ -1717,3 +1717,69 @@ bfd_fill_in_gnu_debuglink_section (bfd *
- 
-   return TRUE;
- }
-+
-+/*
-+FUNCTION
-+	bfd_extract_object_only_section
-+
-+SYNOPSIS
-+	const char *bfd_extract_object_only_section
-+	  (bfd *abfd);
-+
-+DESCRIPTION
-+
-+	Takes a @var{ABFD} and extract the .gnu_object_only section into
-+	a temporary file.
-+
-+RETURNS
-+	The name of the temporary file is returned if all is ok.
-+	Otherwise <<NULL>> is returned and bfd_error is set.
-+*/
-+
-+const char *
-+bfd_extract_object_only_section (bfd *abfd)
-+{
-+  asection *sec = abfd->object_only_section;
-+  const char *name;
-+  FILE *file;
-+  bfd_byte *memhunk = NULL;
-+  size_t off, size;
-+  bfd_error_type err;
-+
-+  /* Get a temporary object-only file.  */
-+  name = make_temp_file (".obj-only.o");
-+
-+  /* Open the object-only file.  */
-+  file = real_fopen (name, FOPEN_WB);
-+  if (!bfd_get_full_section_contents (abfd, sec, &memhunk))
-+    {
-+      err = bfd_get_error ();
-+
-+loser:
-+      free (memhunk);
-+      fclose (file);
-+      unlink (name);
-+      bfd_set_error (err);
-+      return NULL;
-+    }
-+
-+  off = 0;
-+  size = sec->size;
-+  while (off != size)
-+    {
-+      size_t written, nwrite = size - off;
-+
-+      written = fwrite (memhunk + off, 1, nwrite, file);
-+      if (written < nwrite && ferror (file))
-+	{
-+	  err = bfd_error_system_call;
-+	  goto loser;
-+	}
-+
-+      off += written;
-+    }
-+
-+  free (memhunk);
-+  fclose (file);
-+  return name;
-+}
 diff -rup binutils-2.26.orig/bfd/plugin.c binutils-2.26/bfd/plugin.c
 --- binutils-2.26.orig/bfd/plugin.c	2016-02-19 09:35:36.271000852 +0000
 +++ binutils-2.26/bfd/plugin.c	2016-02-19 09:35:54.905106520 +0000
@@ -651,34 +568,6 @@ diff -rup binutils-2.26.orig/ld/emultempl/alphaelf.em binutils-2.26/ld/emultempl
  }
  EOF
  
-diff -rup binutils-2.26.orig/ld/emultempl/armelf.em binutils-2.26/ld/emultempl/armelf.em
---- binutils-2.26.orig/ld/emultempl/armelf.em	2016-02-19 09:35:36.698003274 +0000
-+++ binutils-2.26/ld/emultempl/armelf.em	2016-02-19 09:35:54.914106571 +0000
-@@ -377,7 +377,7 @@ gld${EMULATION_NAME}_after_allocation (v
- }
- 
- static void
--gld${EMULATION_NAME}_finish (void)
-+arm_finish (void)
- {
-   struct bfd_link_hash_entry * h;
- 
-@@ -404,7 +404,7 @@ gld${EMULATION_NAME}_finish (void)
- 	}
-     }
- 
--  finish_default ();
-+  gld${EMULATION_NAME}_finish ();
- 
-   if (thumb_entry_symbol)
-     {
-@@ -730,5 +730,5 @@ LDEMUL_CREATE_OUTPUT_SECTION_STATEMENTS=
- LDEMUL_BEFORE_PARSE=gld"${EMULATION_NAME}"_before_parse
- LDEMUL_SET_SYMBOLS=gld"${EMULATION_NAME}"_set_symbols
- 
- # Call the extra arm-elf function
--LDEMUL_FINISH=gld${EMULATION_NAME}_finish
-+LDEMUL_FINISH=arm_finish
 diff -rup binutils-2.26.orig/ld/emultempl/avrelf.em binutils-2.26/ld/emultempl/avrelf.em
 --- binutils-2.26.orig/ld/emultempl/avrelf.em	2016-02-19 09:35:36.698003274 +0000
 +++ binutils-2.26/ld/emultempl/avrelf.em	2016-02-19 09:35:54.915106577 +0000
@@ -809,33 +698,6 @@ diff -rup binutils-2.26.orig/ld/emultempl/ppc32elf.em binutils-2.26/ld/emultempl
  }
  
  EOF
-diff -rup binutils-2.26.orig/ld/emultempl/ppc64elf.em binutils-2.26/ld/emultempl/ppc64elf.em
---- binutils-2.26.orig/ld/emultempl/ppc64elf.em	2016-02-19 09:35:36.699003279 +0000
-+++ binutils-2.26/ld/emultempl/ppc64elf.em	2016-02-19 09:35:54.916106583 +0000
-@@ -562,7 +562,7 @@ gld${EMULATION_NAME}_after_allocation (v
- /* Final emulation specific call.  */
- 
- static void
--gld${EMULATION_NAME}_finish (void)
-+ppc_finish (void)
- {
-   char *msg = NULL;
-   char *line, *endline;
-@@ -594,7 +594,7 @@ gld${EMULATION_NAME}_finish (void)
-     free (msg);
- 
-   ppc64_elf_restore_symbols (&link_info);
--  finish_default ();
-+  gld${EMULATION_NAME}_finish ();
- }
- 
- 
-@@ -928,4 +928,4 @@ LDEMUL_CREATE_OUTPUT_SECTION_STATEMENTS=
- LDEMUL_AFTER_OPEN=ppc_after_open
- LDEMUL_BEFORE_ALLOCATION=ppc_before_allocation
- LDEMUL_AFTER_ALLOCATION=gld${EMULATION_NAME}_after_allocation
--LDEMUL_FINISH=gld${EMULATION_NAME}_finish
-+LDEMUL_FINISH=ppc_finish
 diff -rup binutils-2.26.orig/ld/emultempl/spuelf.em binutils-2.26/ld/emultempl/spuelf.em
 --- binutils-2.26.orig/ld/emultempl/spuelf.em	2016-02-19 09:35:36.699003279 +0000
 +++ binutils-2.26/ld/emultempl/spuelf.em	2016-02-19 09:35:54.916106583 +0000
@@ -2554,3 +2416,155 @@ diff -rup binutils-2.26.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.26/ld/tes
 +  printf ("hello\n");
 +  return 0;
 +}
+--- binutils.orig/bfd/bfd-in2.h	2017-03-02 11:14:48.572979573 +0000
++++ binutils-2.28/bfd/bfd-in2.h	2017-03-02 11:21:39.828458555 +0000
+@@ -1118,6 +1118,9 @@ bfd_boolean bfd_fill_in_gnu_debuglink_se
+ 
+ char *bfd_follow_build_id_debuglink (bfd *abfd, const char *dir);
+ 
++const char *bfd_extract_object_only_section
++   (bfd *abfd);
++
+ /* Extracted from libbfd.c.  */
+ 
+ /* Byte swapping macros for user section data.  */
+--- binutils.orig/bfd/opncls.c	2017-03-02 11:14:48.586979385 +0000
++++ binutils-2.28/bfd/opncls.c	2017-03-02 11:23:23.546065945 +0000
+@@ -1990,3 +1990,69 @@ bfd_follow_build_id_debuglink (bfd *abfd
+ 				   get_build_id_name,
+ 				   check_build_id_file);
+ }
++
++/*
++FUNCTION
++	bfd_extract_object_only_section
++
++SYNOPSIS
++	const char *bfd_extract_object_only_section
++	  (bfd *abfd);
++
++DESCRIPTION
++
++	Takes a @var{ABFD} and extract the .gnu_object_only section into
++	a temporary file.
++
++RETURNS
++	The name of the temporary file is returned if all is ok.
++	Otherwise <<NULL>> is returned and bfd_error is set.
++*/
++
++const char *
++bfd_extract_object_only_section (bfd *abfd)
++{
++  asection *sec = abfd->object_only_section;
++  const char *name;
++  FILE *file;
++  bfd_byte *memhunk = NULL;
++  size_t off, size;
++  bfd_error_type err;
++
++  /* Get a temporary object-only file.  */
++  name = make_temp_file (".obj-only.o");
++
++  /* Open the object-only file.  */
++  file = real_fopen (name, FOPEN_WB);
++  if (!bfd_get_full_section_contents (abfd, sec, &memhunk))
++    {
++      err = bfd_get_error ();
++
++loser:
++      free (memhunk);
++      fclose (file);
++      unlink (name);
++      bfd_set_error (err);
++      return NULL;
++    }
++
++  off = 0;
++  size = sec->size;
++  while (off != size)
++    {
++      size_t written, nwrite = size - off;
++
++      written = fwrite (memhunk + off, 1, nwrite, file);
++      if (written < nwrite && ferror (file))
++	{
++	  err = bfd_error_system_call;
++	  goto loser;
++	}
++
++      off += written;
++    }
++
++  free (memhunk);
++  fclose (file);
++  return name;
++}
+--- binutils.orig/bfd/plugin.c	2017-03-02 11:37:31.572677260 +0000
++++ binutils-2.28/bfd/plugin.c	2017-03-02 11:40:35.246209573 +0000
+@@ -132,10 +132,10 @@ register_claim_file (ld_plugin_claim_fil
+ }
+ 
+ static asection bfd_plugin_fake_text_section
+-  = BFD_FAKE_SECTION (bfd_plugin_fake_text_section, 0, 0, ".text", 0);
++= BFD_FAKE_SECTION (bfd_plugin_fake_text_section, 0, ".text", 0, 0);
+ static asection bfd_plugin_fake_common_section
+-  = BFD_FAKE_SECTION (bfd_plugin_fake_common_section, SEC_IS_COMMON, 0,
+-		      NULL, 0);
++  = BFD_FAKE_SECTION (bfd_plugin_fake_common_section, 0,
++		      NULL, 0, SEC_IS_COMMON);
+ 
+ /* Get symbols from object only section.  */
+ 
+--- binutils.orig/ld/emultempl/armelf.em	2017-03-02 11:58:14.632981042 +0000
++++ binutils-2.28/ld/emultempl/armelf.em	2017-03-02 12:00:55.663819055 +0000
+@@ -414,7 +414,7 @@ gld${EMULATION_NAME}_after_allocation (v
+ }
+ 
+ static void
+-gld${EMULATION_NAME}_finish (void)
++arm_finish (void)
+ {
+   struct bfd_link_hash_entry * h;
+ 
+@@ -441,7 +441,7 @@ gld${EMULATION_NAME}_finish (void)
+ 	}
+     }
+ 
+-  finish_default ();
++  gld${EMULATION_NAME}_finish ();
+ 
+   if (params.thumb_entry_symbol)
+     {
+@@ -790,4 +790,4 @@ LDEMUL_BEFORE_PARSE=gld"${EMULATION_NAME
+ LDEMUL_SET_SYMBOLS=gld"${EMULATION_NAME}"_set_symbols
+ 
+ # Call the extra arm-elf function
+-LDEMUL_FINISH=gld${EMULATION_NAME}_finish
++LDEMUL_FINISH=arm_finish
+--- binutils.orig/ld/emultempl/ppc64elf.em	2017-03-02 11:58:14.632981042 +0000
++++ binutils-2.28/ld/emultempl/ppc64elf.em	2017-03-02 12:01:40.961210895 +0000
+@@ -561,7 +561,7 @@ gld${EMULATION_NAME}_after_allocation (v
+ /* Final emulation specific call.  */
+ 
+ static void
+-gld${EMULATION_NAME}_finish (void)
++ppc_finish (void)
+ {
+   char *msg = NULL;
+   char *line, *endline;
+@@ -592,7 +592,7 @@ gld${EMULATION_NAME}_finish (void)
+   if (msg != NULL)
+     free (msg);
+ 
+-  finish_default ();
++  gld${EMULATION_NAME}_finish ();
+ }
+ 
+ 
+@@ -926,4 +926,4 @@ LDEMUL_CREATE_OUTPUT_SECTION_STATEMENTS=
+ LDEMUL_AFTER_OPEN=ppc_after_open
+ LDEMUL_BEFORE_ALLOCATION=ppc_before_allocation
+ LDEMUL_AFTER_ALLOCATION=gld${EMULATION_NAME}_after_allocation
+-LDEMUL_FINISH=gld${EMULATION_NAME}_finish
++LDEMUL_FINISH=ppc_finish
