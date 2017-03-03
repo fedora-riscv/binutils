@@ -1,0 +1,1328 @@
+diff -rup binutils.orig/binutils/doc/binutils.texi binutils-2.28/binutils/doc/binutils.texi
+--- binutils.orig/binutils/doc/binutils.texi	2017-03-03 10:36:54.749752520 +0000
++++ binutils-2.28/binutils/doc/binutils.texi	2017-03-03 10:55:09.843757253 +0000
+@@ -1140,6 +1140,7 @@ objcopy [@option{-F} @var{bfdname}|@opti
+         [@option{--compress-debug-sections}]
+         [@option{--decompress-debug-sections}]
+         [@option{--elf-stt-common=@var{val}}]
++        [@option{--merge-notes}]
+         [@option{-v}|@option{--verbose}]
+         [@option{-V}|@option{--version}]
+         [@option{--help}] [@option{--info}]
+@@ -1956,6 +1957,10 @@ converted to the @code{STT_COMMON} or @c
+ @code{STT_COMMON}. @option{--elf-stt-common=no} converts common symbol
+ type to @code{STT_OBJECT}.
+ 
++@item --merge-notes
++For ELF files, attempt to reduce the size of any SHT_NOTE type
++sections by removing duplicate notes.
++
+ @item -V
+ @itemx --version
+ Show the version number of @command{objcopy}.
+diff -rup binutils.orig/binutils/NEWS binutils-2.28/binutils/NEWS
+--- binutils.orig/binutils/NEWS	2017-03-03 10:36:54.777751983 +0000
++++ binutils-2.28/binutils/NEWS	2017-03-03 10:49:43.114021660 +0000
+@@ -1,5 +1,8 @@
+ -*- text -*-
+ 
++* Add --merge-notes options to objcopy to reduce the size of notes in
++  a binary file by merging and deleting redundant notes.
++
+ Changes in 2.28:
+ 
+ * Add support for locating separate debug info files using the build-id
+diff -rup binutils.orig/binutils/objcopy.c binutils-2.28/binutils/objcopy.c
+--- binutils.orig/binutils/objcopy.c	2017-03-03 10:36:54.780751925 +0000
++++ binutils-2.28/binutils/objcopy.c	2017-03-03 10:54:00.510086591 +0000
+@@ -30,6 +30,7 @@
+ #include "elf-bfd.h"
+ #include "coff/internal.h"
+ #include "libcoff.h"
++#include "safe-ctype.h"
+ 
+ /* FIXME: See bfd/peXXigen.c for why we include an architecture specific
+    header in generic PE code.  */
+@@ -96,6 +97,10 @@ static bfd_boolean preserve_dates;	/* Pr
+ static int deterministic = -1;		/* Enable deterministic archives.  */
+ static int status = 0;		/* Exit status.  */
+ 
++static bfd_boolean    merge_notes = FALSE;	/* Merge note sections.  */
++static bfd_byte *     merged_notes = NULL;	/* Contents on note section undergoing a merge.  */
++static bfd_size_type  merged_size = 0;		/* New, smaller size of the merged note section.  */
++
+ enum strip_action
+ {
+   STRIP_UNDEF,
+@@ -315,6 +320,7 @@ enum command_line_switch
+   OPTION_LOCALIZE_HIDDEN,
+   OPTION_LOCALIZE_SYMBOLS,
+   OPTION_LONG_SECTION_NAMES,
++  OPTION_MERGE_NOTES,
+   OPTION_NO_CHANGE_WARNINGS,
+   OPTION_ONLY_KEEP_DEBUG,
+   OPTION_PAD_TO,
+@@ -436,6 +442,7 @@ static struct option copy_options[] =
+   {"localize-symbol", required_argument, 0, 'L'},
+   {"localize-symbols", required_argument, 0, OPTION_LOCALIZE_SYMBOLS},
+   {"long-section-names", required_argument, 0, OPTION_LONG_SECTION_NAMES},
++  {"merge-notes", no_argument, 0, 'M'},
+   {"no-adjust-warnings", no_argument, 0, OPTION_NO_CHANGE_WARNINGS},
+   {"no-change-warnings", no_argument, 0, OPTION_NO_CHANGE_WARNINGS},
+   {"only-keep-debug", no_argument, 0, OPTION_ONLY_KEEP_DEBUG},
+@@ -634,6 +641,7 @@ copy_usage (FILE *stream, int exit_statu
+      --decompress-debug-sections   Decompress DWARF debug sections using zlib\n\
+      --elf-stt-common=[yes|no]     Generate ELF common symbols with STT_COMMON\n\
+                                      type\n\
++  -M  --merge-notes                Remove redundant entries in note sections\n\
+   -v --verbose                     List all object files modified\n\
+   @<file>                          Read options from <file>\n\
+   -V --version                     Display this program's version number\n\
+@@ -1201,6 +1209,24 @@ is_update_section (bfd *abfd ATTRIBUTE_U
+   return FALSE;
+ }
+ 
++static bfd_boolean
++is_merged_note_section (bfd * abfd, asection * sec)
++{
++  if (merge_notes
++      && bfd_get_flavour (abfd) == bfd_target_elf_flavour
++      && elf_section_data (sec)->this_hdr.sh_type == SHT_NOTE
++      /* FIXME: We currently only support merging GNU_BUILD_NOTEs.
++	 We should add support for more note types.  */
++      && ((elf_section_data (sec)->this_hdr.sh_flags & SHF_GNU_BUILD_NOTE) != 0
++	  /* Old versions of GAS (prior to 2.27) could not set the section
++	     flags to OS-specific values, so we also accept sections with the
++	     expected name.  */
++	  || (strcmp (sec->name, GNU_BUILD_ATTRS_SECTION_NAME) == 0)))
++    return TRUE;
++
++  return FALSE;
++}
++
+ /* See if a non-group section is being removed.  */
+ 
+ static bfd_boolean
+@@ -1818,6 +1844,255 @@ copy_unknown_object (bfd *ibfd, bfd *obf
+   return TRUE;
+ }
+ 
++/* Merge the notes on SEC, removing redundant entries.
++   Returns the new, smaller size of the section upon success.  */
++
++static bfd_size_type
++merge_gnu_build_notes (bfd * abfd, asection * sec, bfd_size_type size, bfd_byte * contents)
++{
++  Elf_Internal_Note * pnotes_end;
++  Elf_Internal_Note * pnotes;
++  Elf_Internal_Note * pnote;
++  bfd_size_type       remain = size;
++  unsigned            version_notes_seen = 0;
++  bfd_boolean         duplicate_found = FALSE;
++  const char *        err = NULL;
++  bfd_byte *          in = contents;
++
++  /* Make a copy of the notes.
++     Minimum size of a note is 12 bytes.  */
++  pnote = pnotes = (Elf_Internal_Note *) xmalloc ((size / 12) * sizeof (Elf_Internal_Note));
++  while (remain >= 12)
++    {
++      pnote->namesz = (bfd_get_32 (abfd, in    ) + 3) & ~3;
++      pnote->descsz = (bfd_get_32 (abfd, in + 4) + 3) & ~3;
++      pnote->type   =  bfd_get_32 (abfd, in + 8);
++
++      if (pnote->type    != NT_GNU_BUILD_ATTRIBUTE_OPEN
++	  && pnote->type != NT_GNU_BUILD_ATTRIBUTE_FUNC)
++	{
++	  err = _("corrupt GNU build attribute note: wrong note type");
++	  goto done;
++	}
++
++      if (pnote->namesz + pnote->descsz + 12 > remain)
++	{
++	  err = _("corrupt GNU build attribute note: note too big");
++	  goto done;
++	}
++
++      if (pnote->namesz < 2)
++	{
++	  err = _("corrupt GNU build attribute note: name too small");
++	  goto done;
++	}
++
++      if (pnote->descsz != 0
++	  && pnote->descsz != 4
++	  && pnote->descsz != 8)
++	{
++	  err = _("corrupt GNU build attribute note: bad description size");
++	  goto done;
++	}
++
++      pnote->namedata = (char *)(in + 12);
++      pnote->descdata = (char *)(in + 12 + pnote->namesz);
++
++      remain -= 12 + pnote->namesz + pnote->descsz;
++      in     += 12 + pnote->namesz + pnote->descsz;
++
++      if (pnote->namesz > 1 && pnote->namedata[1] == GNU_BUILD_ATTRIBUTE_VERSION)
++	++ version_notes_seen;
++      pnote ++;
++    }
++
++  pnotes_end = pnote;
++
++  /* Check that the notes are valid.  */
++  if (remain != 0)
++    {
++      err = _("corrupt GNU build attribute notes: data at end");
++      goto done;
++    }
++
++  if (version_notes_seen == 0)
++    {
++      err = _("bad GNU build attribute notes: no version note");
++      goto done;
++    }
++
++  /* Merging is only needed if there is more than one version note...  */
++  if (version_notes_seen == 1)
++    goto done;
++
++  /* The first note should be the first version note.  */
++  if (pnotes[0].namedata[1] != GNU_BUILD_ATTRIBUTE_VERSION)
++    {
++      err = _("bad GNU build attribute notes: first note not version note");
++      goto done;
++    }
++
++  if (pnotes[0].namedata[0] != GNU_BUILD_ATTRIBUTE_TYPE_STRING
++      || strcmp (pnotes[0].namedata + 2, "1") != 0)
++    {
++      err = _("bad GNU build attribute notes: version note not v1");
++      goto done;
++    }
++
++  /* Now merge the notes.  The rules are:
++     1. Preserve the ordering of the notes.
++     2. Preserve any NT_GNU_BUILD_ATTRIBUTE_FUNC notes.
++     3. Eliminate any NT_GNU_BUILD_ATTRIBUTE_OPEN notes that have the same
++        full name field as the immediately preceeding note with the same type
++	of name.
++     4. If an NT_GNU_BUILD_ATTRIBUTE_OPEN note is going to be preserved and
++        its description field is empty then the nearest preceeding OPEN note
++	with a non-empty description field must also be preserved *OR* the
++	description field of the note must be changed to contain the starting
++	address to which it refers.  */
++  for (pnote = pnotes + 1; pnote < pnotes_end; pnote ++)
++    {
++      Elf_Internal_Note * back;
++      Elf_Internal_Note * prev_open = NULL;
++
++      if (pnote->type == NT_GNU_BUILD_ATTRIBUTE_FUNC)
++	continue;
++
++      /* Scan for duplicates.  Clear the type field of any found - but do not
++	 delete them just yet.  */
++      for (back = pnote - 1; back >= pnotes; back --)
++	{
++	  if (back->descsz > 0
++	      && back->type != NT_GNU_BUILD_ATTRIBUTE_FUNC
++	      && prev_open == NULL)
++	    prev_open = back;
++
++	  if (back->type == pnote->type
++	      && back->namedata[1] == pnote->namedata[1])
++	    {
++	      if (back->namesz == pnote->namesz
++		  && memcmp (back->namedata, pnote->namedata, back->namesz) == 0)
++		{
++		  duplicate_found = TRUE;
++		  pnote->type = 0;
++		  break;
++		}
++
++	      /* If we have found an attribute match then stop searching backwards.  */
++	      if (! ISPRINT (back->namedata[1])
++		  || strcmp (back->namedata + 2, pnote->namedata + 2) == 0)
++		{
++		  /* Since we are keeping this note we must check to see if its
++		     description refers back to an earlier OPEN note.  If so
++		     then we must make sure that version note is also preserved.  */
++		  if (pnote->descsz == 0
++		      && prev_open != NULL
++		      && prev_open->type == 0)
++		    prev_open->type = NT_GNU_BUILD_ATTRIBUTE_FUNC;
++
++		  break;
++		}
++	    }
++	}
++    }
++
++  if (duplicate_found)
++    {
++      bfd_byte *     new_contents;
++      bfd_byte *     old;
++      bfd_byte *     new;
++      bfd_size_type  new_size;
++      arelent **     relpp = NULL;
++      long           relsize;
++      long           relcount = 0;
++
++      relsize = bfd_get_reloc_upper_bound (abfd, sec);
++      if (relsize > 0)
++	{
++	  /* If there are relocs associated with this section then we may
++	     have to adjust them as well, as we remove notes.  */
++	  relpp = (arelent **) xmalloc (relsize);
++	  relcount = bfd_canonicalize_reloc (abfd, sec, relpp, isympp);
++	  if (relcount < 0)
++	    /* Do not bother complaining here - copy_relocations_in_section
++	       will do that for us.  */
++	    relcount = 0;
++	}
++
++      /* Eliminate the duplicates.  */
++      new = new_contents = xmalloc (size);
++      for (pnote = pnotes, old = contents;
++	   pnote < pnotes_end;
++	   pnote ++)
++	{
++	  bfd_size_type note_size = 12 + pnote->namesz + pnote->descsz;
++
++	  if (pnote->type == 0)
++	    {
++	      if (relcount > 0)
++		{
++		  arelent ** rel;
++
++		  /* If there is a reloc at the current offset, delete it.
++		     Adjust the location of any relocs above the current
++		     location downwards by the size of the note being deleted.
++		     FIXME: We could optimize this loop by retaining a pointer to
++		     the last reloc below the current note.  */
++		  for (rel = relpp; rel < relpp + relcount; rel ++)
++		    {
++		      if ((* rel)->howto == NULL)
++			continue;
++		      if ((* rel)->address < (bfd_vma) (new - new_contents))
++			continue;
++		      if ((* rel)->address >= (bfd_vma) ((new + note_size) - new_contents))
++			  (* rel)->address -= note_size;
++		      else
++			(* rel)->howto = NULL;
++		    }
++		}
++	    }
++	  else
++	    {
++	      memcpy (new, old, note_size);
++	      new += note_size;
++	    }
++
++	  old += note_size;
++	}
++
++      new_size = new - new_contents;
++      memcpy (contents, new_contents, new_size);
++      size = new_size;
++      free (new_contents);
++
++      if (relcount > 0)
++	{
++	  arelent ** rel;
++
++	  for (rel = relpp; rel < relpp + relcount; rel ++)
++	    if ((* rel)->howto == NULL)
++	      {
++		/* Delete eliminated relocs.
++		   FIXME: There are better ways to do this.  */
++		memmove (rel, rel + 1, ((relcount - (rel - relpp)) - 1) * sizeof (* rel));
++		relcount --;
++	      }
++	  bfd_set_reloc (abfd, sec, relpp, relcount);
++	}
++    }
++
++ done:
++  if (err)
++    {
++      bfd_set_error (bfd_error_bad_value);
++      bfd_nonfatal_message (NULL, abfd, sec, err);
++      status = 1;
++    }
++
++  free (pnotes);
++  return size;
++}
++
+ /* Copy object file IBFD onto OBFD.
+    Returns TRUE upon success, FALSE otherwise.  */
+ 
+@@ -2145,6 +2420,57 @@ copy_object (bfd *ibfd, bfd *obfd, const
+ 	}
+     }
+ 
++  if (merge_notes)
++    {
++      asection *osec;
++
++      /* This palaver is necessary because we must set the output
++	 section size first, before its contents are ready.  */
++      osec = bfd_get_section_by_name (ibfd, GNU_BUILD_ATTRS_SECTION_NAME);
++      if (osec && is_merged_note_section (ibfd, osec))
++	{
++	  bfd_size_type size;
++	  
++	  size = bfd_get_section_size (osec);
++	  if (size == 0)
++	    {
++	      bfd_nonfatal_message (NULL, ibfd, osec, _("warning: note section is empty"));
++	      merge_notes = FALSE;
++	    }
++	  else if (! bfd_get_full_section_contents (ibfd, osec, & merged_notes))
++	    {
++	      bfd_nonfatal_message (NULL, ibfd, osec, _("warning: could not load note section"));
++	      free (merged_notes);
++	      merged_notes = NULL;
++	      merge_notes = FALSE;
++	    }
++	  else
++	    {
++	      merged_size = merge_gnu_build_notes (ibfd, osec, size, merged_notes);
++	      if (merged_size == size)
++		{
++		  /* Merging achieves nothing.  */
++		  free (merged_notes);
++		  merged_notes = NULL;
++		  merge_notes = FALSE;
++		  merged_size = 0;
++		}
++	      else
++		{
++		  if (osec->output_section == NULL
++		      || ! bfd_set_section_size (obfd, osec->output_section, merged_size))
++		    {
++		      bfd_nonfatal_message (NULL, obfd, osec, _("warning: failed to set merged notes size"));
++		      free (merged_notes);
++		      merged_notes = NULL;
++		      merge_notes = FALSE;
++		      merged_size = 0;
++		    }
++		}
++	    }
++	}
++    }
++
+   if (dump_sections != NULL)
+     {
+       struct section_add * pdump;
+@@ -2454,6 +2780,24 @@ copy_object (bfd *ibfd, bfd *obfd, const
+ 	}
+     }
+ 
++  if (merge_notes)
++    {
++      asection * osec = bfd_get_section_by_name (obfd, GNU_BUILD_ATTRS_SECTION_NAME);
++      if (osec && is_merged_note_section (obfd, osec))
++	{
++	  if (! bfd_set_section_contents (obfd, osec, merged_notes, 0, merged_size))
++	    {
++	      bfd_nonfatal_message (NULL, obfd, osec, _("error: failed to copy merged notes into output"));
++	      return FALSE;
++	    }
++	}
++      else
++	bfd_nonfatal_message (NULL, obfd, osec, _("ICE: lost merged note section"));
++      free (merged_notes);
++      merged_notes = NULL;
++      merge_notes = FALSE;
++    }
++
+   if (gnu_debuglink_filename != NULL)
+     {
+       if (! bfd_fill_in_gnu_debuglink_section
+@@ -3179,7 +3523,7 @@ setup_section (bfd *ibfd, sec_ptr isecti
+ /* Return TRUE if input section ISECTION should be skipped.  */
+ 
+ static bfd_boolean
+-skip_section (bfd *ibfd, sec_ptr isection)
++skip_section (bfd *ibfd, sec_ptr isection, bfd_boolean skip_copy)
+ {
+   sec_ptr osection;
+   bfd_size_type size;
+@@ -3199,6 +3543,11 @@ skip_section (bfd *ibfd, sec_ptr isectio
+   if (is_update_section (ibfd, isection))
+     return TRUE;
+ 
++  /* When merging a note section we skip the copying of the contents,
++     but not the copying of the relocs associated with the contents.  */
++  if (skip_copy && is_merged_note_section (ibfd, isection))
++    return TRUE;
++
+   flags = bfd_get_section_flags (ibfd, isection);
+   if ((flags & SEC_GROUP) != 0)
+     return TRUE;
+@@ -3265,7 +3614,7 @@ copy_relocations_in_section (bfd *ibfd,
+   long relcount;
+   sec_ptr osection;
+ 
+-  if (skip_section (ibfd, isection))
++  if (skip_section (ibfd, isection, FALSE))
+     return;
+ 
+   osection = isection->output_section;
+@@ -3354,7 +3703,7 @@ copy_section (bfd *ibfd, sec_ptr isectio
+   sec_ptr osection;
+   bfd_size_type size;
+ 
+-  if (skip_section (ibfd, isection))
++  if (skip_section (ibfd, isection, TRUE))
+     return;
+ 
+   osection = isection->output_section;
+@@ -4010,7 +4359,7 @@ copy_main (int argc, char *argv[])
+   struct stat statbuf;
+   const bfd_arch_info_type *input_arch = NULL;
+ 
+-  while ((c = getopt_long (argc, argv, "b:B:i:I:j:K:N:s:O:d:F:L:G:R:SpgxXHhVvW:wDU",
++  while ((c = getopt_long (argc, argv, "b:B:i:I:j:K:MN:s:O:d:F:L:G:R:SpgxXHhVvW:wDU",
+ 			   copy_options, (int *) 0)) != EOF)
+     {
+       switch (c)
+@@ -4104,6 +4453,10 @@ copy_main (int argc, char *argv[])
+ 	  add_specific_symbol (optarg, keep_specific_htab);
+ 	  break;
+ 
++	case 'M':
++	  merge_notes = TRUE;
++	  break;
++
+ 	case 'N':
+ 	  add_specific_symbol (optarg, strip_specific_htab);
+ 	  break;
+diff -rup binutils.orig/binutils/readelf.c binutils-2.28/binutils/readelf.c
+--- binutils.orig/binutils/readelf.c	2017-03-03 10:36:54.907749491 +0000
++++ binutils-2.28/binutils/readelf.c	2017-03-03 10:49:10.247651809 +0000
+@@ -15557,6 +15557,10 @@ get_note_type (unsigned e_type)
+ 	return _("NT_VERSION (version)");
+       case NT_ARCH:
+ 	return _("NT_ARCH (architecture)");
++      case NT_GNU_BUILD_ATTRIBUTE_OPEN:
++	return _("NT_GNU_BUILD_ATTRIBUTE_OPEN");
++      case NT_GNU_BUILD_ATTRIBUTE_FUNC:
++	return _("NT_GNU_BUILD_ATTRIBUTE_FUNC");
+       default:
+ 	break;
+       }
+@@ -15665,6 +15669,12 @@ get_gnu_elf_note_type (unsigned e_type)
+       return _("NT_GNU_BUILD_ID (unique build ID bitstring)");
+     case NT_GNU_GOLD_VERSION:
+       return _("NT_GNU_GOLD_VERSION (gold version)");
++    case NT_GNU_PROPERTY_TYPE_0:
++      return _("NT_GNU_PROPERTY_TYPE_0");
++    case NT_GNU_BUILD_ATTRIBUTE_OPEN:
++      return _("NT_GNU_BUILD_ATTRIBUTE_OPEN");
++    case NT_GNU_BUILD_ATTRIBUTE_FUNC:
++      return _("NT_GNU_BUILD_ATTRIBUTE_FUNC");
+     default:
+       {
+ 	static char buff[64];
+@@ -15675,6 +15685,122 @@ get_gnu_elf_note_type (unsigned e_type)
+     }
+ }
+ 
++static void
++decode_x86_isa (unsigned long bitmask)
++{
++  while (bitmask)
++    {
++      unsigned long bit = bitmask & (- bitmask);
++
++      bitmask &= ~ bit;
++      switch (bit)
++	{
++	case GNU_PROPERTY_X86_ISA_1_486: printf ("i486"); break;
++	case GNU_PROPERTY_X86_ISA_1_586: printf ("586"); break;
++	case GNU_PROPERTY_X86_ISA_1_686: printf ("686"); break;
++	case GNU_PROPERTY_X86_ISA_1_SSE: printf ("SSE"); break;
++	case GNU_PROPERTY_X86_ISA_1_SSE2: printf ("SSE2"); break;
++	case GNU_PROPERTY_X86_ISA_1_SSE3: printf ("SSE3"); break;
++	case GNU_PROPERTY_X86_ISA_1_SSSE3: printf ("SSSE3"); break;
++	case GNU_PROPERTY_X86_ISA_1_SSE4_1: printf ("SSE4_1"); break;
++	case GNU_PROPERTY_X86_ISA_1_SSE4_2: printf ("SSE4_2"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX: printf ("AVX"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX2: printf ("AVX2"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX512F: printf ("AVX512F"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX512CD: printf ("AVX512CD"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX512ER: printf ("AVX512ER"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX512PF: printf ("AVX512PF"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX512VL: printf ("AVX512VL"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX512DQ: printf ("AVX512DQ"); break;
++	case GNU_PROPERTY_X86_ISA_1_AVX512BW: printf ("AVX512BW"); break;
++	default: printf (_("<unknown: %lx>"), bit); break;
++	}
++      if (bitmask)
++	printf (", ");
++    }
++}
++
++static void
++print_gnu_property_note (Elf_Internal_Note * pnote)
++{
++  unsigned char * ptr = (unsigned char *) pnote->descdata;
++  unsigned char * ptr_end = ptr + pnote->descsz;
++  unsigned int    size = is_32bit_elf ? 4 : 8;
++
++  printf (_("      Properties: "));
++
++  if (pnote->descsz % size)
++    {
++      printf (_("<corrupt GNU_PROPERTY_TYPE, size = %#lx>\n"), pnote->descsz);
++      return;
++    }
++
++  while (ptr < (ptr_end - (size * 2)))
++    {
++      unsigned long j;
++      unsigned long type = byte_get (ptr, size);
++      unsigned long datasz = byte_get (ptr + size, size);
++
++      ptr += 2 * size;
++
++      switch (type)
++	{
++	case GNU_PROPERTY_STACK_SIZE:
++	  printf (_("stack size: "));
++	  if (datasz != size || (ptr + size  > ptr_end))
++	    printf (_("<corrupt length: %#lx> "), datasz);
++	  else
++	    printf ("%#lx", (unsigned long) byte_get (ptr, size));
++	  break;
++
++	case GNU_PROPERTY_NO_COPY_ON_PROTECTED:
++	  printf ("no copy on protected ");
++	  if (datasz)
++	    printf (_("<corrupt length: %#lx> "), datasz);
++	  break;
++
++	case GNU_PROPERTY_X86_ISA_1_USED:
++	  printf ("x86 ISA used: ");
++	  if (datasz != size  || (ptr + size > ptr_end))
++	    printf (_("<corrupt length: %#lx> "), datasz);
++	  else
++	    decode_x86_isa (byte_get (ptr, size));
++	  break;
++
++	case GNU_PROPERTY_X86_ISA_1_NEEDED:
++	  printf ("x86 ISA needed: ");
++	  if (datasz != size  || (ptr + size > ptr_end))
++	    printf (_("<corrupt length: %#lx> "), datasz);
++	  else
++	    decode_x86_isa (byte_get (ptr, size));
++	  break;
++
++	default:
++	  printf (_("<unknown type %#lx data: "), type);
++	  if (ptr + datasz > ptr_end)
++	    {
++	      printf (_("corrupt datasz: %#lx>\n"), datasz);
++	      break;
++	    }
++	  for (j = 0; j < datasz; ++j)
++	    printf ("%02x ", ptr[j] & 0xff);
++	  printf (">");
++	  break;
++	}
++
++      ptr += ((datasz + (size - 1)) & ~ (size - 1));
++      if (ptr < (ptr_end - (size * 2)))
++	{
++	  if (do_wide)
++	    printf (", ");
++	  else
++	    printf ("\n\t");
++	}
++    }
++
++  printf ("\n");
++}
++
+ static int
+ print_gnu_note (Elf_Internal_Note *pnote)
+ {
+@@ -15775,6 +15901,10 @@ print_gnu_note (Elf_Internal_Note *pnote
+       }
+       break;
+ 
++    case NT_GNU_PROPERTY_TYPE_0:
++      print_gnu_property_note (pnote);
++      break;
++      
+     default:
+       /* Handle unrecognised types.  An error message should have already been
+ 	 created by get_gnu_elf_note_type(), so all that we need to do is to
+@@ -16164,15 +16294,300 @@ print_ia64_vms_note (Elf_Internal_Note *
+   return 1;
+ }
+ 
++static bfd_boolean
++print_gnu_build_attribute_description (Elf_Internal_Note * pnote,
++				       FILE *              file,
++				       Elf_Internal_Shdr * section ATTRIBUTE_UNUSED)
++{
++  static unsigned long global_offset = 0;
++  unsigned long       i;
++  unsigned long       strtab_size = 0;
++  char *              strtab = NULL;
++  Elf_Internal_Sym *  symtab = NULL;
++  unsigned long       nsyms = 0;
++  Elf_Internal_Shdr * symsec = NULL;
++  unsigned int        desc_size = is_32bit_elf ? 4 : 8;
++
++  if (pnote->descsz  == 0)
++    {
++      printf (_("    Applies from offset %#lx\n"), global_offset);
++      return TRUE;
++    }
++
++  if (pnote->descsz != desc_size)
++    {
++      error (_("    <invalid description size: %lx>\n"), pnote->descsz);
++      printf (_("    <invalid descsz>"));
++      return FALSE;
++    }
++
++  /* Load the symbols.  */
++  for (symsec = section_headers;
++       symsec < section_headers + elf_header.e_shnum;
++       symsec ++)
++    {
++      if (symsec->sh_type == SHT_SYMTAB)
++	{
++	  symtab = GET_ELF_SYMBOLS (file, symsec, & nsyms);
++
++	  if (symsec->sh_link < elf_header.e_shnum)
++	    {
++	      Elf_Internal_Shdr * strtab_sec = section_headers + symsec->sh_link;
++
++	      strtab = (char *) get_data (NULL, file, strtab_sec->sh_offset,
++					  1, strtab_sec->sh_size,
++					  _("string table"));
++	      strtab_size = strtab != NULL ? strtab_sec->sh_size : 0;
++	    }
++	}
++    }
++
++  printf (_("    Applies from offset"));
++
++  for (i = 0; i < pnote->descsz; i += desc_size)
++    {
++      Elf_Internal_Sym * saved_sym = NULL;
++      Elf_Internal_Sym * sym;
++      unsigned long offset;
++
++      offset = byte_get ((unsigned char *) pnote->descdata + i, desc_size);
++
++      if (i + desc_size == pnote->descsz)
++	printf (_(" %#lx"), offset);
++      else
++	printf (_(" %#lx, "), offset);
++
++      if (pnote->type == NT_GNU_BUILD_ATTRIBUTE_OPEN)
++	global_offset = offset;
++
++      if (symtab == NULL || strtab == NULL)
++	continue;
++
++      /* Find a symbol whose value matches offset.  */
++      for (sym = symtab; sym < symtab + nsyms; sym ++)
++	if (sym->st_value == offset)
++	  {
++	    if (sym->st_name < strtab_size)
++	      {
++		if (strtab[sym->st_name] == 0)
++		  continue;
++
++		if (pnote->type == NT_GNU_BUILD_ATTRIBUTE_OPEN)
++		  {
++		    /* For OPEN attributes we prefer GLOBAL symbols, if there
++		       is one that matches.  But keep a record of a matching
++		       LOCAL symbol, just in case that is all that we can find.  */
++		    if (ELF_ST_BIND (sym->st_info) == STB_LOCAL)
++		      {
++			saved_sym = sym;
++			continue;
++		      }
++		    printf (_(" (file: %s)"), strtab + sym->st_name);
++		  }
++		else if (ELF_ST_TYPE (sym->st_info) != STT_FUNC)
++		  continue;
++		else
++		  printf (_(" (function: %s)"), strtab + sym->st_name);
++		break;
++	      }
++	  }
++
++      if (sym == symtab + nsyms)
++	{
++	  if (saved_sym)
++	    printf (_(" (file: %s)"), strtab + saved_sym->st_name);
++	  else
++	    printf (_(" (<symbol name unknown>)"));
++	}
++    }
++
++  printf ("\n");
++  return TRUE;
++}
++
++static bfd_boolean
++print_gnu_build_attribute_name (Elf_Internal_Note * pnote)
++{
++  char         name_type;
++  char         name_attribute;
++  char *       expected_types;
++  const char * name = pnote->namedata;
++  const char * text;
++  int          left;
++
++  if (name == NULL || pnote->namesz < 2)
++    {
++      error (_("corrupt name field in GNU build attribute note: size = %ld\n"), pnote->namesz);
++      print_symbol (-20, _("  <corrupt name field>"));
++      return FALSE;
++    }
++
++  switch ((name_type = * name))
++    {
++    case GNU_BUILD_ATTRIBUTE_TYPE_NUMERIC:
++    case GNU_BUILD_ATTRIBUTE_TYPE_STRING:
++    case GNU_BUILD_ATTRIBUTE_TYPE_BOOL_TRUE:
++    case GNU_BUILD_ATTRIBUTE_TYPE_BOOL_FALSE:
++      printf ("%c", * name);
++      break;
++    default:
++      error (_("unrecognised attribute type in name field: %d\n"), name_type);
++      print_symbol (-20, _("<unknown name type>"));
++      return FALSE;
++    }
++
++  left = 19;
++  ++ name;
++  text = NULL;
++
++  switch ((name_attribute = * name))
++    {
++    case GNU_BUILD_ATTRIBUTE_VERSION:
++      text = _("<version>");
++      expected_types = "$";
++      ++ name;
++      break;
++    case GNU_BUILD_ATTRIBUTE_STACK_PROT:
++      text = _("<stack prot>");
++      expected_types = "!+";
++      ++ name;
++      break;
++    case GNU_BUILD_ATTRIBUTE_RELRO:
++      text = _("<relro>");
++      expected_types = "!+";
++      ++ name;
++      break;
++    case GNU_BUILD_ATTRIBUTE_STACK_SIZE:
++      text = _("<stack size>");
++      expected_types = "*";
++      ++ name;
++      break;
++    case GNU_BUILD_ATTRIBUTE_TOOL:
++      text = _("<tool>");
++      expected_types = "$";
++      ++ name;
++      break;
++    case GNU_BUILD_ATTRIBUTE_ABI:
++      text = _("<ABI>");
++      expected_types = "$*";
++      ++ name;
++      break;
++    case GNU_BUILD_ATTRIBUTE_PIC:
++      text = _("<PIC>");
++      expected_types = "*";
++      ++ name;
++      break;
++
++    default:
++      if (ISPRINT (* name))
++	{
++	  int len = strnlen (name, pnote->namesz - (name - pnote->namedata)) + 1;
++
++	  if (len > left && ! do_wide)
++	    len = left;
++	  printf ("%.*s ", len, name);
++	  left -= len;
++	  name += len + 1;
++	}
++      else
++	{
++	  error (_("unexpected character in name field\n"));
++	  print_symbol (- left, _("<unknown attribute>"));
++	  return 0;
++	}
++      expected_types = "*$!+";
++      break;
++    }
++
++  if (text)
++    {
++      printf ("%s", text);
++      left -= strlen (text);
++    }
++
++  if (strchr (expected_types, name_type) == NULL)
++    warn (_("attribute does not have the expected type\n"));
++
++  if ((unsigned long)(name - pnote->namedata) > pnote->namesz)
++    {
++      error (_("corrupt name field: namesz: %lu but parsing gets to %ld\n"),
++	     (unsigned long) pnote->namesz,
++	     (long) (name - pnote->namedata));
++      return FALSE;
++    }
++
++  if (left < 1 && ! do_wide)
++    return TRUE;
++
++  switch (name_type)
++    {
++    case GNU_BUILD_ATTRIBUTE_TYPE_NUMERIC:
++      {
++	unsigned int bytes = pnote->namesz - (name - pnote->namedata);
++	unsigned long val = 0;
++	unsigned int shift = 0;
++
++	while (bytes --)
++	  {
++	    val |= ((* name ++) << shift);
++	    shift += 8;
++	  }
++
++	if (name_attribute == GNU_BUILD_ATTRIBUTE_PIC)
++	  {
++	    char * pic_type = NULL;
++
++	    switch (val)
++	      {
++	      case 0: pic_type = "static"; break;
++	      case 1: pic_type = "pic"; break;
++	      case 2: pic_type = "PIC"; break;
++	      case 3: pic_type = "pie"; break;
++	      case 4: pic_type = "PIE"; break;
++	      }
++
++	    if (pic_type != NULL)
++	      {
++		if (do_wide)
++		  left -= printf ("%s", pic_type);
++		else
++		  left -= printf ("%-.*s", left, pic_type);
++		break;
++	      }
++	  }
++
++	if (do_wide)
++	  left -= printf ("0x%lx", val);
++	else
++	  left -= printf ("0x%-.*lx", left, val);
++      }
++      break;
++    case GNU_BUILD_ATTRIBUTE_TYPE_STRING:
++      left -= print_symbol (- left, name);
++      break;
++    case GNU_BUILD_ATTRIBUTE_TYPE_BOOL_TRUE:
++      left -= print_symbol (- left, "true");
++      break;
++    case GNU_BUILD_ATTRIBUTE_TYPE_BOOL_FALSE:
++      left -= print_symbol (- left, "false");
++      break;
++    }
++
++  if (do_wide && left > 0)
++    printf ("%-*s", left, " ");
++    
++  return TRUE;
++}
++
+ /* Note that by the ELF standard, the name field is already null byte
+    terminated, and namesz includes the terminating null byte.
+    I.E. the value of namesz for the name "FSF" is 4.
+ 
+    If the value of namesz is zero, there is no name present.  */
+ static int
+-process_note (Elf_Internal_Note * pnote,
+-	      FILE * file ATTRIBUTE_UNUSED,
+-	      Elf_Internal_Shdr * section ATTRIBUTE_UNUSED)
++process_note (Elf_Internal_Note *  pnote,
++	      FILE *               file,
++	      Elf_Internal_Shdr *  section)
+ {
+   const char * name = pnote->namesz ? pnote->namedata : "(NONE)";
+   const char * nt;
+@@ -16218,8 +16633,17 @@ process_note (Elf_Internal_Note * pnote,
+     nt = get_note_type (pnote->type);
+ 
+   printf ("  ");
+-  print_symbol (-20, name);
+-  printf (" 0x%08lx\t%s\n", pnote->descsz, nt);
++
++  if (pnote->type == NT_GNU_BUILD_ATTRIBUTE_OPEN
++      || pnote->type == NT_GNU_BUILD_ATTRIBUTE_FUNC)
++    print_gnu_build_attribute_name (pnote);
++  else
++    print_symbol (-20, name);
++
++  if (do_wide)
++    printf (" 0x%08lx\t%s\t", pnote->descsz, nt);
++  else
++    printf (" 0x%08lx\t%s\n", pnote->descsz, nt);
+ 
+   if (const_strneq (pnote->namedata, "IPF/VMS"))
+     return print_ia64_vms_note (pnote);
+@@ -16229,17 +16653,22 @@ process_note (Elf_Internal_Note * pnote,
+     return print_stapsdt_note (pnote);
+   else if (const_strneq (pnote->namedata, "CORE"))
+     return print_core_note (pnote);
++  else if (pnote->type == NT_GNU_BUILD_ATTRIBUTE_OPEN
++	   || pnote->type == NT_GNU_BUILD_ATTRIBUTE_FUNC)
++    return print_gnu_build_attribute_description (pnote, file, section);
+ 
+-  else if (pnote->descsz)
++  if (pnote->descsz)
+     {
+       unsigned long i;
+ 
+       printf (_("   description data: "));
+       for (i = 0; i < pnote->descsz; i++)
+ 	printf ("%02x ", pnote->descdata[i]);
+-      printf ("\n");
+     }
+ 
++  if (do_wide)
++    printf ("\n");
++
+   return 1;
+ }
+ 
+Only in binutils-2.28/binutils/testsuite/binutils-all: note-2-32.d
+Only in binutils-2.28/binutils/testsuite/binutils-all: note-2-32.s
+Only in binutils-2.28/binutils/testsuite/binutils-all: note-2-64.d
+Only in binutils-2.28/binutils/testsuite/binutils-all: note-2-64.s
+diff -rup binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.28/binutils/testsuite/binutils-all/objcopy.exp
+--- binutils.orig/binutils/testsuite/binutils-all/objcopy.exp	2017-03-03 10:36:54.973748226 +0000
++++ binutils-2.28/binutils/testsuite/binutils-all/objcopy.exp	2017-03-03 10:56:08.251637396 +0000
+@@ -1053,6 +1053,11 @@ if [is_elf_format] {
+     run_dump_test "group-6"
+     run_dump_test "copy-1"
+     run_dump_test "note-1"
++    if [is_elf64 tmpdir/bintest.o] {
++	run_dump_test "note-2-64"
++    } else {
++	run_dump_test "note-2-32"
++    }
+ }
+ 
+ run_dump_test "copy-2"
+diff -rup binutils.orig/include/elf/common.h binutils-2.28/include/elf/common.h
+--- binutils.orig/include/elf/common.h	2017-03-03 10:36:57.673696476 +0000
++++ binutils-2.28/include/elf/common.h	2017-03-03 10:38:21.515089483 +0000
+@@ -538,6 +538,7 @@
+ 
+ /* #define SHF_MASKOS	0x0F000000    *//* OS-specific semantics */
+ #define SHF_MASKOS	0x0FF00000	/* New value, Oct 4, 1999 Draft */
++#define SHF_GNU_BUILD_NOTE    (1 << 20)	/* Section contains GNU BUILD ATTRIBUTE notes.  */
+ #define SHF_MASKPROC	0xF0000000	/* Processor-specific semantics */
+ 
+ /* This used to be implemented as a processor specific section flag.
+@@ -669,6 +670,51 @@
+ #define NT_GNU_HWCAP		2	/* Used by ld.so and kernel vDSO.  */
+ #define NT_GNU_BUILD_ID		3	/* Generated by ld --build-id.  */
+ #define NT_GNU_GOLD_VERSION	4	/* Generated by gold.  */
++#define NT_GNU_PROPERTY_TYPE_0  5	/* Generated by gcc.  */
++
++#define NT_GNU_BUILD_ATTRIBUTE_OPEN	0x100
++#define NT_GNU_BUILD_ATTRIBUTE_FUNC	0x101
++
++#define GNU_BUILD_ATTRIBUTE_TYPE_NUMERIC	'*'
++#define GNU_BUILD_ATTRIBUTE_TYPE_STRING		'$'
++#define GNU_BUILD_ATTRIBUTE_TYPE_BOOL_TRUE	'+'
++#define GNU_BUILD_ATTRIBUTE_TYPE_BOOL_FALSE	'!'
++
++#define GNU_BUILD_ATTRIBUTE_VERSION	1
++#define GNU_BUILD_ATTRIBUTE_STACK_PROT	2
++#define GNU_BUILD_ATTRIBUTE_RELRO	3
++#define GNU_BUILD_ATTRIBUTE_STACK_SIZE	4
++#define GNU_BUILD_ATTRIBUTE_TOOL	5
++#define GNU_BUILD_ATTRIBUTE_ABI		6
++#define GNU_BUILD_ATTRIBUTE_PIC		7
++
++#define NOTE_GNU_PROPERTY_SECTION_NAME	".note.gnu.property"
++#define GNU_BUILD_ATTRS_SECTION_NAME	".gnu.build.attributes"
++
++/* Values used in GNU .note.gnu.property notes (NT_GNU_PROPERTY_TYPE_0).  */
++#define GNU_PROPERTY_STACK_SIZE			1
++#define GNU_PROPERTY_NO_COPY_ON_PROTECTED	2
++#define GNU_PROPERTY_X86_ISA_1_USED		0xc0000000
++#define GNU_PROPERTY_X86_ISA_1_NEEDED		0xc0000001
++
++#define GNU_PROPERTY_X86_ISA_1_486           (1U << 0)
++#define GNU_PROPERTY_X86_ISA_1_586           (1U << 1)
++#define GNU_PROPERTY_X86_ISA_1_686           (1U << 2)
++#define GNU_PROPERTY_X86_ISA_1_SSE           (1U << 3)
++#define GNU_PROPERTY_X86_ISA_1_SSE2          (1U << 4)
++#define GNU_PROPERTY_X86_ISA_1_SSE3          (1U << 5)
++#define GNU_PROPERTY_X86_ISA_1_SSSE3         (1U << 6)
++#define GNU_PROPERTY_X86_ISA_1_SSE4_1        (1U << 7)
++#define GNU_PROPERTY_X86_ISA_1_SSE4_2        (1U << 8)
++#define GNU_PROPERTY_X86_ISA_1_AVX           (1U << 9)
++#define GNU_PROPERTY_X86_ISA_1_AVX2          (1U << 10)
++#define GNU_PROPERTY_X86_ISA_1_AVX512F       (1U << 11)
++#define GNU_PROPERTY_X86_ISA_1_AVX512CD      (1U << 12)
++#define GNU_PROPERTY_X86_ISA_1_AVX512ER      (1U << 13)
++#define GNU_PROPERTY_X86_ISA_1_AVX512PF      (1U << 14)
++#define GNU_PROPERTY_X86_ISA_1_AVX512VL      (1U << 15)
++#define GNU_PROPERTY_X86_ISA_1_AVX512DQ      (1U << 16)
++#define GNU_PROPERTY_X86_ISA_1_AVX512BW      (1U << 17)
+ 
+ /* Values used in GNU .note.ABI-tag notes (NT_GNU_ABI_TAG).  */
+ #define GNU_ABI_TAG_LINUX	0
+--- /dev/null	2017-03-03 08:02:17.248891465 +0000
++++ binutils-2.28/binutils/testsuite/binutils-all/note-2-32.s	2017-03-03 10:56:46.811898078 +0000
+@@ -0,0 +1,93 @@
++	.text
++	.org 0x100
++	.global note1.s
++note1.s:
++	.word 0
++	
++	.pushsection .gnu.build.attributes, "0x100000", %note
++	.balign 4
++	.dc.l 4
++	.dc.l 4
++	.dc.l 0x100
++	.asciz "$1"
++	.dc.l note1.s
++
++	.dc.l 12
++	.dc.l 0
++	.dc.l 0x100
++	.asciz "$gcc 7.0.1"
++
++	.dc.l 2
++	.dc.l 0
++	.dc.l 0x100
++	.dc.b 0x2b, 0x2
++	.dc.b  0, 0
++
++	.dc.l 3
++	.dc.l 0
++	.dc.l 0x100
++	.dc.b 0x2a, 0x7, 0
++	.dc.b  0
++
++	.dc.l 3
++	.dc.l 0
++	.dc.l 0x100
++	.dc.b 0x2a, 0x6, 0
++	.dc.b  0
++	.popsection
++
++
++	.global note2.s
++note2.s:
++	.word 0x100
++	
++	.pushsection .gnu.build.attributes, "0x100000", %note
++	.dc.l 4 	
++	.dc.l 4		
++	.dc.l 0x100	
++	.asciz "$1"	
++	.dc.l note2.s	
++
++	.dc.l 12 	
++	.dc.l 0		
++	.dc.l 0x100	
++	.asciz "$gcc 7.0.1"	
++
++	.dc.l 2		
++	.dc.l 0		
++	.dc.l 0x100	
++	.dc.b 0x21, 0x2	
++	.dc.b  0, 0 	
++
++	.dc.l 3		
++	.dc.l 0		
++	.dc.l 0x101	
++	.dc.b 0x2a, 0x7, 1 	
++	.dc.b  0 	
++
++	.dc.l 3		
++	.dc.l 0		
++	.dc.l 0x100	
++	.dc.b 0x2a, 0x6, 0 	
++	.dc.b  0 	
++	.popsection
++
++	.global note3.s
++note3.s:
++	.word 0x100
++	
++	.pushsection .gnu.build.attributes, "0x100000", %note
++	.dc.l 4 	
++	.dc.l 4		
++	.dc.l 0x100	
++	.asciz "$1"	
++	.dc.l note3.s
++
++	.dc.l 12 	
++	.dc.l 0		
++	.dc.l 0x100	
++	.asciz "$gcc 7.0.1"	
++
++	.popsection
++	
++	
+--- /dev/null	2017-03-03 08:02:17.248891465 +0000
++++ binutils-2.28/binutils/testsuite/binutils-all/note-2-32.d	2017-03-03 10:56:46.811898078 +0000
+@@ -0,0 +1,17 @@
++#PROG: objcopy
++#readelf: --notes --wide
++#objcopy: --merge-notes
++#name: merge notes section (32-bits)
++#source: note-2-32.s
++
++#...
++  Owner                 Data size	Description
++[ 	]+\$<version>1[ 	]+0x00000004[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100 \(file: note1.s\)
++[ 	]+\$<tool>gcc 7.0.1[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100
++[ 	]+\+<stack prot>true[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100
++[ 	]+\*<PIC>static[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100
++[ 	]+\*<ABI>0x0[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100
++[ 	]+\$<version>1[ 	]+0x00000004[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x10. \(file: note2.s\)
++[ 	]+!<stack prot>false[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x10.
++[ 	]+\*<PIC>pic[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_FUNC[ 	]+Applies from offset 0x10.
++#...
+--- /dev/null	2017-03-03 08:02:17.248891465 +0000
++++ binutils-2.28/binutils/testsuite/binutils-all/note-2-64.d	2017-03-03 10:56:52.235794085 +0000
+@@ -0,0 +1,17 @@
++#PROG: objcopy
++#readelf: --notes --wide
++#objcopy: --merge-notes
++#name: merge notes section (64-bits)
++#source: note-2-64.s
++
++#...
++  Owner                 Data size	Description
++[ 	]+\$<version>1[ 	]+0x00000008[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100 \(file: note1.s\)
++[ 	]+\$<tool>gcc 7.0.1[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100
++[ 	]+\+<stack prot>true[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100
++[ 	]+\*<PIC>static[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100
++[ 	]+\*<ABI>0x0[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x100
++[ 	]+\$<version>1[ 	]+0x00000008[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x10. \(file: note2.s\)
++[ 	]+!<stack prot>false[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_OPEN[ 	]+Applies from offset 0x10.
++[ 	]+\*<PIC>pic[ 	]+0x00000000[ 	]+NT_GNU_BUILD_ATTRIBUTE_FUNC[ 	]+Applies from offset 0x10.
++#...
+--- /dev/null	2017-03-03 08:02:17.248891465 +0000
++++ binutils-2.28/binutils/testsuite/binutils-all/note-2-64.s	2017-03-03 10:56:52.235794085 +0000
+@@ -0,0 +1,94 @@
++	.text
++	.org 0x100
++	.global note1.s
++note1.s:
++	.word 0
++	
++	.pushsection .gnu.build.attributes, "0x100000", %note
++	.balign 4
++	.dc.l 4
++	.dc.l 8
++	.dc.l 0x100
++	.asciz "$1"
++	.8byte note1.s
++
++	.dc.l 12
++	.dc.l 0
++	.dc.l 0x100
++	.asciz "$gcc 7.0.1"
++
++	.dc.l 2
++	.dc.l 0
++	.dc.l 0x100
++	.dc.b 0x2b, 0x2
++	.dc.b  0, 0
++
++	.dc.l 3
++	.dc.l 0
++	.dc.l 0x100
++	.dc.b 0x2a, 0x7, 0
++	.dc.b  0
++
++	.dc.l 3
++	.dc.l 0
++	.dc.l 0x100
++	.dc.b 0x2a, 0x6, 0
++	.dc.b  0
++	.popsection
++
++
++	.global note2.s
++note2.s:
++	.word 0x100
++	
++	.pushsection .gnu.build.attributes, "0x100000", %note
++	.dc.l 4 	
++	.dc.l 8		
++	.dc.l 0x100	
++	.asciz "$1"	
++	.8byte note2.s	
++
++	.dc.l 12 	
++	.dc.l 0		
++	.dc.l 0x100	
++	.asciz "$gcc 7.0.1"	
++
++	.dc.l 2		
++	.dc.l 0		
++	.dc.l 0x100	
++	.dc.b 0x21, 0x2	
++	.dc.b  0, 0 	
++
++	.dc.l 3		
++	.dc.l 0		
++	.dc.l 0x101	
++	.dc.b 0x2a, 0x7, 1 	
++	.dc.b  0 	
++
++	.dc.l 3		
++	.dc.l 0		
++	.dc.l 0x100	
++	.dc.b 0x2a, 0x6, 0 	
++	.dc.b  0 	
++	.popsection
++	
++
++	.global note3.s
++note3.s:
++	.word 0x100
++	
++	.pushsection .gnu.build.attributes, "0x100000", %note
++	.dc.l 4 	
++	.dc.l 8		
++	.dc.l 0x100	
++	.asciz "$1"	
++	.8byte note3.s
++
++	.dc.l 12 	
++	.dc.l 0		
++	.dc.l 0x100	
++	.asciz "$gcc 7.0.1"	
++
++	.popsection
++	
++	

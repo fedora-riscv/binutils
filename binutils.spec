@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -81,6 +81,8 @@ Patch14: binutils-2.27-filename-in-error-messages.patch
 Patch15: binutils-2.27-ld-buffer-overflow.patch
 # Sync libiberty sources with FSF GCC mainline.
 Patch16: binutils-2.28-libiberty-bugfixes.patch
+# Add support for GNU BUILD NOTEs.
+Patch17: binutils-gnu-build-notes.patch
 
 Provides: bundled(libiberty)
 
@@ -218,6 +220,7 @@ using libelf instead of BFD.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -584,6 +587,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Mar 03 2017 Nick Clifton  <nickc@redhat.com> 2.28-2
+- Add support for GNU BUILD NOTEs.
+
 * Thu Mar 02 2017 Nick Clifton  <nickc@redhat.com> 2.28-1
 - Rebase on FSF binutils v2.28.
 - Retire: binutils-2.23.52.0.1-addr2line-dynsymtab.patch
