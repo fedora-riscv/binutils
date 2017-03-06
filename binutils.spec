@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -83,6 +83,8 @@ Patch15: binutils-2.27-ld-buffer-overflow.patch
 Patch16: binutils-2.28-libiberty-bugfixes.patch
 # Add support for GNU BUILD NOTEs.
 Patch17: binutils-gnu-build-notes.patch
+# GAS: Emit name, comp_dir and producer strings in .debug_str.
+Patch18: binutils-2.28-gas-comp_dir.patch
 
 Provides: bundled(libiberty)
 
@@ -221,6 +223,7 @@ using libelf instead of BFD.
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -587,6 +590,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Mar 06 2017 Mark Wielaard  <mjw@redhat.com> 2.28-3
+- Backport patch to add support for putting name, comp_dir and
+  producer strings into the .debug_str section. 
+  (#1429389)
+
 * Fri Mar 03 2017 Nick Clifton  <nickc@redhat.com> 2.28-2
 - Add support for GNU BUILD NOTEs.
 
