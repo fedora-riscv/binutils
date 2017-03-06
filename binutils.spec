@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -100,6 +100,8 @@ Patch24: binutils-2.27-ld-buffer-overflow.patch
 Patch25: binutils-2.27-arm-binary-objects.patch
 # Add support for PowerPC FP attribute.
 Patch26: binutils-2.27-ppc-fp-attributes.patch
+# GAS: Emit name, comp_dir and producer strings in .debug_str.
+Patch27: binutils-2.28-gas-comp_dir.patch
 
 Provides: bundled(libiberty)
 
@@ -251,6 +253,7 @@ using libelf instead of BFD.
 %patch24 -p1
 %patch25 -p1
 %patch26 -p1
+%patch27 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -617,6 +620,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Mar 06 2017 Mark Wielaard  <mjw@redhat.com> 2.27-20
+- Backport patch to add support for putting name, comp_dir and
+  producer strings into the .debug_str section. 
+  (#1429389)
+
 * Fri Feb 17 2017 Nick Clifton  <nickc@redhat.com> 2.27-19
 - Add support for PowerPC FP attributes.
   (#1422461)
