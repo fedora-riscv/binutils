@@ -1,0 +1,15 @@
+--- binutils.orig/bfd/elf64-ppc.c	2017-03-08 15:44:25.132804697 +0000
++++ binutils-2.28/bfd/elf64-ppc.c	2017-03-08 15:44:54.596440794 +0000
+@@ -14798,8 +14798,10 @@ ppc64_elf_relocate_section (bfd *output_
+ 	    break;
+ 
+ 	  if (bfd_link_pic (info)
+-	      ? ((h != NULL && pc_dynrelocs (h))
+-		 || must_be_dyn_reloc (info, r_type))
++	      ? ((h == NULL
++		  || h->dyn_relocs != NULL)
++		 && ((h != NULL && pc_dynrelocs (h))
++		     || must_be_dyn_reloc (info, r_type)))
+ 	      : (h != NULL
+ 		 ? h->dyn_relocs != NULL
+ 		 : ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC))

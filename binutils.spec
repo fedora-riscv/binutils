@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -85,6 +85,8 @@ Patch16: binutils-2.28-libiberty-bugfixes.patch
 Patch17: binutils-gnu-build-notes.patch
 # GAS: Emit name, comp_dir and producer strings in .debug_str.
 Patch18: binutils-2.28-gas-comp_dir.patch
+# Import fix for PR 21124 and 20519
+Patch19: binutils-2.28-ppc-dynamic-relocs.patch
 
 Provides: bundled(libiberty)
 
@@ -224,6 +226,7 @@ using libelf instead of BFD.
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -590,6 +593,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Mar 08 2017 Nick Clifton  <nickc@redhat.com> 2.28-4
+- Update GNU BUILD NOTES patch.
+- Import FSF binutils patch to fix an abort with PowerPC dynamic relocs.
+
 * Mon Mar 06 2017 Mark Wielaard  <mjw@redhat.com> 2.28-3
 - Backport patch to add support for putting name, comp_dir and
   producer strings into the .debug_str section. 
