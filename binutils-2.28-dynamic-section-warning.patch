@@ -1,0 +1,33 @@
+diff -rup binutils.orig/binutils/readelf.c binutils-2.28/binutils/readelf.c
+--- binutils.orig/binutils/readelf.c	2017-03-20 17:06:41.260789454 +0000
++++ binutils-2.28/binutils/readelf.c	2017-03-20 17:08:09.181289807 +0000
+@@ -4965,12 +4965,6 @@ process_program_headers (FILE * file)
+ 	     section in the DYNAMIC segment.  */
+ 	  dynamic_addr = segment->p_offset;
+ 	  dynamic_size = segment->p_filesz;
+-	  /* PR binutils/17512: Avoid corrupt dynamic section info in the segment.  */
+-	  if (dynamic_addr + dynamic_size >= current_file_size)
+-	    {
+-	      error (_("the dynamic segment offset + size exceeds the size of the file\n"));
+-	      dynamic_addr = dynamic_size = 0;
+-	    }
+ 
+ 	  /* Try to locate the .dynamic section. If there is
+ 	     a section header table, we can easily locate it.  */
+@@ -5005,6 +4999,16 @@ process_program_headers (FILE * file)
+ 		warn (_("the .dynamic section is not the first section"
+ 			" in the dynamic segment.\n"));
+ 	    }
++
++	  /* PR binutils/17512: Avoid corrupt dynamic section info in the
++	     segment.  Check this after matching against the section headers
++	     so we don't warn on debuginfo file (which have NOBITS .dynamic
++	     sections).  */
++	  if (dynamic_addr + dynamic_size >= current_file_size)
++	    {
++	      error (_("the dynamic segment offset + size exceeds the size of the file\n"));
++	      dynamic_addr = dynamic_size = 0;
++	    }
+ 	  break;
+ 
+ 	case PT_INTERP:

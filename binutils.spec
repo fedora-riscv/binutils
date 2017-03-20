@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -87,6 +87,8 @@ Patch17: binutils-gnu-build-notes.patch
 Patch18: binutils-2.28-gas-comp_dir.patch
 # Import fix for PR 21124 and 20519
 Patch19: binutils-2.28-ppc-dynamic-relocs.patch
+# Have readelf skip checks of the dynamic section when its type is SHT_NOBITS.
+Patch20: binutils-2.28-dynamic-section-warning.patch
 
 Provides: bundled(libiberty)
 
@@ -227,6 +229,7 @@ using libelf instead of BFD.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -593,6 +596,11 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Mar 20 2017 Nick Clifton  <nickc@redhat.com> 2.28-5
+- Update GNU BUILD NOTES patch.
+- Import FSF binutils patch to fix running readelf on debug info binaries.
+  (#1434050)
+
 * Wed Mar 08 2017 Nick Clifton  <nickc@redhat.com> 2.28-4
 - Update GNU BUILD NOTES patch.
 - Import FSF binutils patch to fix an abort with PowerPC dynamic relocs.
