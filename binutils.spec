@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -102,6 +102,8 @@ Patch25: binutils-2.27-arm-binary-objects.patch
 Patch26: binutils-2.27-ppc-fp-attributes.patch
 # GAS: Emit name, comp_dir and producer strings in .debug_str.
 Patch27: binutils-2.28-gas-comp_dir.patch
+# Have readelf skip checks of the dynamic section when its type is SHT_NOBITS.
+Patch28: binutils-2.28-dynamic-section-warning.patch
 
 Provides: bundled(libiberty)
 
@@ -254,6 +256,7 @@ using libelf instead of BFD.
 %patch25 -p1
 %patch26 -p1
 %patch27 -p1
+%patch28 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -620,6 +623,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Mar 21 2017 Nick Clifton  <nickc@redhat.com> 2.27-21
+- Import FSF binutils patch to fix running readelf on debug info binaries.
+  (#1434050)
+
 * Mon Mar 06 2017 Mark Wielaard  <mjw@redhat.com> 2.27-20
 - Backport patch to add support for putting name, comp_dir and
   producer strings into the .debug_str section. 
