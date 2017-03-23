@@ -1,0 +1,11 @@
+--- binutils.orig/gas/app.c	2017-03-23 13:03:54.762088334 +0000
++++ binutils-2.27/gas/app.c	2017-03-23 13:05:22.553922269 +0000
+@@ -1187,7 +1187,7 @@ do_scrub_chars (size_t (*get) (char *, s
+ 		  state = -2;
+ 		  break;
+ 		}
+-	      else
++	      else if (ch2 != EOF)
+ 		{
+ 		  UNGET (ch2);
+ 		}

@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -104,6 +104,8 @@ Patch26: binutils-2.27-ppc-fp-attributes.patch
 Patch27: binutils-2.28-gas-comp_dir.patch
 # Have readelf skip checks of the dynamic section when its type is SHT_NOBITS.
 Patch28: binutils-2.28-dynamic-section-warning.patch
+# Fix buffer overflow bug in gas.
+Patch29: binutils-2.27-gas-buffer-overflow.patch
 
 Provides: bundled(libiberty)
 
@@ -257,6 +259,7 @@ using libelf instead of BFD.
 %patch26 -p1
 %patch27 -p1
 %patch28 -p1
+%patch29 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -623,6 +626,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Mar 23 2017 Nick Clifton  <nickc@redhat.com> 2.27-22
+- Import FSF binutils patch to fix a buffer overflow in GAS.
+  (#1435244)
+
 * Tue Mar 21 2017 Nick Clifton  <nickc@redhat.com> 2.27-21
 - Import FSF binutils patch to fix running readelf on debug info binaries.
   (#1434050)
