@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -626,6 +626,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon May 15 2017 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.27-23
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild
+
 * Thu Mar 23 2017 Nick Clifton  <nickc@redhat.com> 2.27-22
 - Import FSF binutils patch to fix a buffer overflow in GAS.
   (#1435244)
