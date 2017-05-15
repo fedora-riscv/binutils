@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -596,6 +596,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon May 15 2017 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.28-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild
+
 * Mon Mar 20 2017 Nick Clifton  <nickc@redhat.com> 2.28-5
 - Update GNU BUILD NOTES patch.
 - Import FSF binutils patch to fix running readelf on debug info binaries.
