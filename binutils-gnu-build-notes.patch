@@ -1462,3 +1462,187 @@ diff -rup binutils.orig/include/elf/common.h binutils-2.28/include/elf/common.h
 +	.popsection
 +	
 +	
+diff -rup binutils.orig/binutils/readelf.c binutils-2.28/binutils/readelf.c
+--- binutils.orig/binutils/readelf.c	2017-05-15 17:12:12.760814593 +0100
++++ binutils-2.28/binutils/readelf.c	2017-05-15 17:26:46.142293641 +0100
+@@ -4130,7 +4130,18 @@ get_section_type_name (unsigned int sh_t
+ 	      if (elf_header.e_ident[EI_OSABI] == ELFOSABI_SOLARIS)
+ 		result = get_solaris_section_type (sh_type);
+ 	      else
+-		result = NULL;
++		{
++		  switch (sh_type)
++		    {
++		    case SHT_GNU_INCREMENTAL_INPUTS: result = "GNU_INCREMENTAL_INPUTS"; break;
++		    case SHT_GNU_ATTRIBUTES: result = "GNU_ATTRIBUTES"; break;
++		    case SHT_GNU_HASH: result = "GNU_HASH"; break;
++		    case SHT_GNU_LIBLIST: result = "GNU_LIBLIST"; break;
++		    default:
++		      result = NULL;
++		      break;
++		    }
++		}
+ 	      break;
+ 	    }
+ 
+@@ -15928,8 +15939,8 @@ print_gnu_note (Elf_Internal_Note *pnote
+ 	printf (_("      Hardware Capabilities: "));
+ 	if (pnote->descsz < 8)
+ 	  {
+-	    printf (_("<corrupt GNU_HWCAP>\n"));
+-	    break;
++	    error (_("<corrupt GNU_HWCAP>\n"));
++	    return 0;
+ 	  }
+ 	num_entries = byte_get ((unsigned char *) pnote->descdata, 4);
+ 	mask = byte_get ((unsigned char *) pnote->descdata + 4, 4);
+@@ -16347,7 +16358,8 @@ print_symbol_for_build_attribute (FILE *
+   Elf_Internal_Sym *  saved_sym = NULL;
+   Elf_Internal_Sym *  sym;
+ 
+-  if (saved_file == NULL || file != saved_file)
++  if (section_headers != NULL
++      && (saved_file == NULL || file != saved_file))
+     {
+       Elf_Internal_Shdr * symsec;
+ 
+@@ -16497,9 +16509,12 @@ print_gnu_build_attribute_description (E
+ static bfd_boolean
+ print_gnu_build_attribute_name (Elf_Internal_Note * pnote)
+ {
++  static const char string_expected [2] = { GNU_BUILD_ATTRIBUTE_TYPE_STRING, 0 };
++  static const char number_expected [2] = { GNU_BUILD_ATTRIBUTE_TYPE_NUMERIC, 0 };
++  static const char bool_expected [3] = { GNU_BUILD_ATTRIBUTE_TYPE_BOOL_TRUE, GNU_BUILD_ATTRIBUTE_TYPE_BOOL_FALSE, 0 };
+   char         name_type;
+   char         name_attribute;
+-  char *       expected_types;
++  const char * expected_types;
+   const char * name = pnote->namedata;
+   const char * text;
+   int          left;
+@@ -16507,7 +16522,7 @@ print_gnu_build_attribute_name (Elf_Inte
+   if (name == NULL || pnote->namesz < 2)
+     {
+       error (_("corrupt name field in GNU build attribute note: size = %ld\n"), pnote->namesz);
+-      print_symbol (-20, _("  <corrupt name field>"));
++      print_symbol (-20, _("  <corrupt name>"));
+       return FALSE;
+     }
+ 
+@@ -16533,7 +16548,7 @@ print_gnu_build_attribute_name (Elf_Inte
+     {
+     case GNU_BUILD_ATTRIBUTE_VERSION:
+       text = _("<version>");
+-      expected_types = "$";
++      expected_types = string_expected;
+       ++ name;
+       break;
+     case GNU_BUILD_ATTRIBUTE_STACK_PROT:
+@@ -16543,17 +16558,17 @@ print_gnu_build_attribute_name (Elf_Inte
+       break;
+     case GNU_BUILD_ATTRIBUTE_RELRO:
+       text = _("<relro>");
+-      expected_types = "!+";
++      expected_types = bool_expected;
+       ++ name;
+       break;
+     case GNU_BUILD_ATTRIBUTE_STACK_SIZE:
+       text = _("<stack size>");
+-      expected_types = "*";
++      expected_types = number_expected;
+       ++ name;
+       break;
+     case GNU_BUILD_ATTRIBUTE_TOOL:
+       text = _("<tool>");
+-      expected_types = "$";
++      expected_types = string_expected;
+       ++ name;
+       break;
+     case GNU_BUILD_ATTRIBUTE_ABI:
+@@ -16563,12 +16578,12 @@ print_gnu_build_attribute_name (Elf_Inte
+       break;
+     case GNU_BUILD_ATTRIBUTE_PIC:
+       text = _("<PIC>");
+-      expected_types = "*";
++      expected_types = number_expected;
+       ++ name;
+       break;
+     case GNU_BUILD_ATTRIBUTE_SHORT_ENUM:
+       text = _("<short enum>");
+-      expected_types = "!+";
++      expected_types = bool_expected;
+       ++ name;
+       break;
+ 
+@@ -16585,9 +16600,11 @@ print_gnu_build_attribute_name (Elf_Inte
+ 	}
+       else
+ 	{
+-	  error (_("unexpected character in name field\n"));
+-	  print_symbol (- left, _("<unknown attribute>"));
+-	  return 0;
++	  static char tmpbuf [128];
++	  error (_("unrecognised byte in name field: %d\n"), * name);
++	  sprintf (tmpbuf, _("<unknown:_%d>"), * name);
++	  text = tmpbuf;
++	  name ++;
+ 	}
+       expected_types = "*$!+";
+       break;
+@@ -16617,11 +16634,29 @@ print_gnu_build_attribute_name (Elf_Inte
+     {
+     case GNU_BUILD_ATTRIBUTE_TYPE_NUMERIC:
+       {
+-	unsigned int   bytes = pnote->namesz - (name - pnote->namedata);
+-	unsigned long  val = 0;
++	unsigned int   bytes;
++	unsigned long long val = 0;
+ 	unsigned int   shift = 0;
+ 	char *         decoded = NULL;
+ 
++	bytes = pnote->namesz - (name - pnote->namedata);
++	if (bytes > 0)
++	  /* The -1 is because the name field is always 0 terminated, and we
++	     want to be able to ensure that the shift in the while loop below
++	     will not overflow.  */
++	  -- bytes;
++
++	if (bytes > sizeof (val))
++	  {
++	    fprintf (stderr, "namesz %lx name %p namedata %p\n",
++		     pnote->namesz, name, pnote->namedata);
++	    error (_("corrupt numeric name field: too many bytes in the value: %x\n"),
++		   bytes);
++	    bytes = sizeof (val);
++	  }
++	/* We do not bother to warn if bytes == 0 as this can
++	   happen with some early versions of the gcc plugin.  */
++
+ 	while (bytes --)
+ 	  {
+ 	    unsigned long byte = (* name ++) & 0xff;
+@@ -16660,13 +16695,21 @@ print_gnu_build_attribute_name (Elf_Inte
+ 	  }
+ 
+ 	if (decoded != NULL)
+-	  print_symbol (-left, decoded);
++	  {
++	    print_symbol (-left, decoded);
++	    left = 0;
++	  }
++	else if (val == 0)
++	  {
++	    printf ("0x0");
++	    left -= 3;
++	  }
+ 	else
+ 	  {
+ 	    if (do_wide)
+-	      left -= printf ("0x%lx", val);
++	      left -= printf ("0x%llx", val);
+ 	    else
+-	      left -= printf ("0x%-.*lx", left, val);
++	      left -= printf ("0x%-.*llx", left, val);
+ 	  }
+       }
+       break;

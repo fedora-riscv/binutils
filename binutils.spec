@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -89,6 +89,8 @@ Patch18: binutils-2.28-gas-comp_dir.patch
 Patch19: binutils-2.28-ppc-dynamic-relocs.patch
 # Have readelf skip checks of the dynamic section when its type is SHT_NOBITS.
 Patch20: binutils-2.28-dynamic-section-warning.patch
+# Fix incorrect generation of copy relocs on AArch64.
+Patch21: binutils-2.28-aarch64-copy-relocs.patch
 
 Provides: bundled(libiberty)
 
@@ -230,6 +232,7 @@ using libelf instead of BFD.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
+%patch21 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -596,6 +599,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Jun 08 2017 Nick Clifton  <nickc@redhat.com> 2.28-7
+- Eliminate the generation of incorrect dynamic copy relocations on AArch64.
+  (#1452170)
+
 * Mon May 15 2017 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.28-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild
 

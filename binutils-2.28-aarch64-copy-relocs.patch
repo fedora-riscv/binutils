@@ -1,0 +1,139 @@
+diff -rupN binutils.orig/bfd/elfnn-aarch64.c binutils-2.28/bfd/elfnn-aarch64.c
+--- binutils.orig/bfd/elfnn-aarch64.c	2017-06-08 09:11:46.364977859 +0100
++++ binutils-2.28/bfd/elfnn-aarch64.c	2017-06-08 09:15:46.901961364 +0100
+@@ -246,7 +246,7 @@
+    || (R_TYPE) == BFD_RELOC_AARCH64_TLSDESC_OFF_G0_NC		\
+    || (R_TYPE) == BFD_RELOC_AARCH64_TLSDESC_OFF_G1)
+ 
+-#define ELIMINATE_COPY_RELOCS 0
++#define ELIMINATE_COPY_RELOCS 1
+ 
+ /* Return size of a relocation entry.  HTAB is the bfd's
+    elf_aarch64_link_hash_entry.  */
+@@ -5152,12 +5152,25 @@ elfNN_aarch64_final_link_relocate (reloc
+       /* When generating a shared object or relocatable executable, these
+          relocations are copied into the output file to be resolved at
+          run time.  */
+-      if (((bfd_link_pic (info) == TRUE)
+-	   || globals->root.is_relocatable_executable)
+-	  && (input_section->flags & SEC_ALLOC)
+-	  && (h == NULL
+-	      || ELF_ST_VISIBILITY (h->other) == STV_DEFAULT
+-	      || h->root.type != bfd_link_hash_undefweak))
++      if (((bfd_link_pic (info)
++	    || globals->root.is_relocatable_executable)
++	   && (input_section->flags & SEC_ALLOC)
++	   && (h == NULL
++	       || ELF_ST_VISIBILITY (h->other) == STV_DEFAULT
++	       || h->root.type != bfd_link_hash_undefweak))
++	  /* Or we are creating an executable, we may need to keep relocations
++	     for symbols satisfied by a dynamic library if we manage to avoid
++	     copy relocs for the symbol.  */
++	  || (ELIMINATE_COPY_RELOCS
++	      && !bfd_link_pic (info)
++	      && h != NULL
++	      && (input_section->flags & SEC_ALLOC)
++	      && h->dynindx != -1
++	      && !h->non_got_ref
++	      && ((h->def_dynamic
++		   && !h->def_regular)
++		  || h->root.type == bfd_link_hash_undefweak
++		  || h->root.type == bfd_link_hash_undefined)))
+ 	{
+ 	  Elf_Internal_Rela outrel;
+ 	  bfd_byte *loc;
+@@ -6822,6 +6835,25 @@ elfNN_aarch64_gc_sweep_hook (bfd *abfd,
+   return TRUE;
+ }
+ 
++/* Return true if we have dynamic relocs against EH or any of its weak
++   aliases, that apply to read-only sections.  */
++
++static bfd_boolean
++alias_readonly_dynrelocs (struct elf_aarch64_link_hash_entry *eh)
++{
++  struct elf_dyn_relocs *p;
++  asection *s;
++
++  for (p = eh->dyn_relocs; p != NULL; p = p->next)
++    {
++      s = p->sec->output_section;
++      if (s != NULL && (s->flags & SEC_READONLY) != 0)
++	return TRUE;
++    }
++
++  return FALSE;
++}
++
+ /* Adjust a symbol defined by a dynamic object and referenced by a
+    regular object.  The current definition is in some section of the
+    dynamic object, but we're not including those sections.  We have to
+@@ -6895,6 +6927,19 @@ elfNN_aarch64_adjust_dynamic_symbol (str
+       return TRUE;
+     }
+ 
++  if (ELIMINATE_COPY_RELOCS)
++    {
++      struct elf_aarch64_link_hash_entry *eh;
++      /* If we didn't find any dynamic relocs in read-only sections, then
++	 we'll be keeping the dynamic relocs and avoiding the copy reloc.  */
++      eh = (struct elf_aarch64_link_hash_entry *) h;
++      if (eh->dyn_relocs && !alias_readonly_dynrelocs (eh))
++	{
++	  h->non_got_ref = 0;
++	  return TRUE;
++	}
++    }
++
+   /* We must allocate the symbol in our .dynbss section, which will
+      become part of the .bss section of the executable.  There will be
+      an entry for this symbol in the .dynsym section.  The dynamic
+@@ -7167,7 +7212,16 @@ elfNN_aarch64_check_relocs (bfd *abfd, s
+ 
+ 	  /* No need to do anything if we're not creating a shared
+ 	     object.  */
+-	  if (! bfd_link_pic (info))
++	  if (!(bfd_link_pic (info)
++		/* If on the other hand, we are creating an executable, we
++		   may need to keep relocations for symbols satisfied by a
++		   dynamic library if we manage to avoid copy relocs for the
++		   symbol.  */
++		|| (ELIMINATE_COPY_RELOCS
++		    && !bfd_link_pic (info)
++		    && h != NULL
++		    && (h->root.type == bfd_link_hash_defweak
++			|| !h->def_regular))))
+ 	    break;
+ 
+ 	  {
+diff -rupN binutils.orig/ld/testsuite/ld-aarch64/aarch64-elf.exp binutils-2.28/ld/testsuite/ld-aarch64/aarch64-elf.exp
+--- binutils.orig/ld/testsuite/ld-aarch64/aarch64-elf.exp	2017-06-08 09:11:54.845871503 +0100
++++ binutils-2.28/ld/testsuite/ld-aarch64/aarch64-elf.exp	2017-06-08 09:16:34.984358379 +0100
+@@ -323,6 +323,8 @@ set aarch64elflinktests {
+     {} "copy-reloc-so.so"}
+   {"ld-aarch64/exe with copy relocation" "-e0 tmpdir/copy-reloc-so.so" "" ""
+     {copy-reloc-exe.s} {{objdump -R copy-reloc.d}} "copy-reloc"}
++  {"ld-aarch64/exe with copy relocation elimination" "-e0 tmpdir/copy-reloc-so.so" "" ""
++    {copy-reloc-exe-eliminate.s} {{objdump -R copy-reloc-eliminate.d}} "copy-reloc-elimination"}
+ }
+ 
+ run_ld_link_tests $aarch64elflinktests
+diff -rupN binutils.orig/ld/testsuite/ld-aarch64/copy-reloc-eliminate.d binutils-2.28/ld/testsuite/ld-aarch64/copy-reloc-eliminate.d
+--- binutils.orig/ld/testsuite/ld-aarch64/copy-reloc-eliminate.d	1970-01-01 01:00:00.000000000 +0100
++++ binutils-2.28/ld/testsuite/ld-aarch64/copy-reloc-eliminate.d	2017-06-08 09:12:10.191679056 +0100
+@@ -0,0 +1,4 @@
++.*
++DYNAMIC RELOCATION RECORDS
++OFFSET.*TYPE.*VALUE.*
++.*R_AARCH64_ABS64.*global_a
+diff -rupN binutils.orig/ld/testsuite/ld-aarch64/copy-reloc-exe-eliminate.s binutils-2.28/ld/testsuite/ld-aarch64/copy-reloc-exe-eliminate.s
+--- binutils.orig/ld/testsuite/ld-aarch64/copy-reloc-exe-eliminate.s	1970-01-01 01:00:00.000000000 +0100
++++ binutils-2.28/ld/testsuite/ld-aarch64/copy-reloc-exe-eliminate.s	2017-06-08 09:12:10.191679056 +0100
+@@ -0,0 +1,7 @@
++	.global	p
++	.section	.data.rel.ro,"aw",%progbits
++	.align	3
++	.type	p, %object
++	.size	p, 8
++p:
++	.xword	global_a
