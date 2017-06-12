@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -106,6 +106,8 @@ Patch27: binutils-2.28-gas-comp_dir.patch
 Patch28: binutils-2.28-dynamic-section-warning.patch
 # Fix buffer overflow bug in gas.
 Patch29: binutils-2.27-gas-buffer-overflow.patch
+# Fix the mapping state when aligning AArch64 code fragments.
+Patch30: binutils-2.27-aarch64-frag-alignment-filling.patch
 
 Provides: bundled(libiberty)
 
@@ -260,6 +262,7 @@ using libelf instead of BFD.
 %patch27 -p1
 %patch28 -p1
 %patch29 -p1
+%patch30 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -626,6 +629,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Jun 12 2017 Nick Clifton  <nickc@redhat.com> 2.27-24
+- Import FSF binutils patch to fix aligning code fragments in AArch64 assembler.
+  (#1460420)
+
 * Mon May 15 2017 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.27-23
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_26_27_Mass_Rebuild
 

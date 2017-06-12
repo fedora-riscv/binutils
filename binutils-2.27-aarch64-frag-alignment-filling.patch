@@ -1,0 +1,35 @@
+--- binutils.orig/gas/config/tc-aarch64.c	2017-06-12 11:34:40.150362276 +0100
++++ binutils-2.27/gas/config/tc-aarch64.c	2017-06-12 11:36:06.709352650 +0100
+@@ -1736,13 +1736,13 @@ s_ltorg (int ignored ATTRIBUTE_UNUSED)
+       if (pool == NULL || pool->symbol == NULL || pool->next_free_entry == 0)
+ 	continue;
+ 
+-      mapping_state (MAP_DATA);
+-
+       /* Align pool as you have word accesses.
+          Only make a frag if we have to.  */
+       if (!need_pass_2)
+ 	frag_align (align, 0, 0);
+ 
++      mapping_state (MAP_DATA);
++
+       record_alignment (now_seg, align);
+ 
+       sprintf (sym_name, "$$lit_\002%x", pool->id);
+@@ -6373,11 +6373,15 @@ aarch64_init_frag (fragS * fragP, int ma
+ 
+   switch (fragP->fr_type)
+     {
+-    case rs_align:
+     case rs_align_test:
+     case rs_fill:
+       mapping_state_2 (MAP_DATA, max_chars);
+       break;
++    case rs_align:
++      /* PR 20364: We can get alignment frags in code sections,
++	 so do not just assume that we should use the MAP_DATA state.  */
++      mapping_state_2 (subseg_text_p (now_seg) ? MAP_INSN : MAP_DATA, max_chars);
++      break;
+     case rs_align_code:
+       mapping_state_2 (MAP_INSN, max_chars);
+       break;
