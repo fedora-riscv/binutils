@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -602,6 +602,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Jun 28 2017 Nick Clifton  <nickc@redhat.com> 2.28-10
+- Update support for GNU Build Attribute notes to include version 2 notes.
+
 * Thu Jun 15 2017 Nick Clifton  <nickc@redhat.com> 2.28-9
 - Update patch to fix AArch64 copy reloc generation.
   (#1452170)
