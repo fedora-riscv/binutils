@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -602,6 +602,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Jul 17 2017 Nick Clifton  <nickc@redhat.com> 2.28-11
+- Fix s390 assembler so that it remove fake local symbols from its output.
+  (#1460254)
+
 * Wed Jun 28 2017 Nick Clifton  <nickc@redhat.com> 2.28-10
 - Update support for GNU Build Attribute notes to include version 2 notes.
 
