@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -629,6 +629,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Tue Jul 18 2017 Nick Clifton  <nickc@redhat.com> 2.28-25
+- Fix s390 assembler so that it remove fake local symbols from its output.
+  (#1460254)
+
 * Mon Jun 12 2017 Nick Clifton  <nickc@redhat.com> 2.27-24
 - Import FSF binutils patch to fix aligning code fragments in AArch64 assembler.
   (#1460420)
