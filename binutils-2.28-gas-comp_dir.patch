@@ -193,15 +193,17 @@ index 005f1d5..2a75e0b 100644
  Contents of the .debug_aranges section:
  
    Length:                   (44|28)
---- binutils.orig/gas/config/tc-s390.c	2017-07-17 16:58:31.919195528 +0100
-+++ binutils-2.28/gas/config/tc-s390.c	2017-07-17 17:26:11.233142088 +0100
-@@ -2135,6 +2135,9 @@ md_pcrel_from_section (fixS *fixp, segT
+--- binutils.orig/gas/config/tc-s390.c	2017-07-19 15:24:06.295642817 +0100
++++ binutils-2.28/gas/config/tc-s390.c	2017-07-19 15:24:39.085277066 +0100
+@@ -2135,8 +2135,9 @@ md_pcrel_from_section (fixS *fixp, segT
  int
  tc_s390_fix_adjustable (fixS *fixP)
  {
-+  /* Always convert local symbols - they should never be retained in the output.  */
-+  if (S_IS_LOCAL (fixP->fx_addsy))
-+    return 1;
-   /* Don't adjust references to merge sections.  */
-   if ((S_GET_SEGMENT (fixP->fx_addsy)->flags & SEC_MERGE) != 0)
+-  /* Don't adjust references to merge sections.  */
+-  if ((S_GET_SEGMENT (fixP->fx_addsy)->flags & SEC_MERGE) != 0)
++  /* Don't adjust pc-relative references to merge sections.  */
++  if (fixP->fx_pcrel
++      && (S_GET_SEGMENT (fixP->fx_addsy)->flags & SEC_MERGE) != 0)
      return 0;
+   /* adjust_reloc_syms doesn't know about the GOT.  */
+   if (   fixP->fx_r_type == BFD_RELOC_16_GOTOFF
