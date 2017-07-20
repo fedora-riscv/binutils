@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.28
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -321,7 +321,6 @@ esac
 CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %define enable_shared 0
 %endif
-CFLAGS="$CFLAGS -flto"
 
 # We could optimize the cross builds size by --enable-shared but the produced
 # binaries may be less convenient in the embedded environment.
@@ -606,6 +605,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Jul 20 2017 Nick Clifton  <nickc@redhat.com> 2.28-14
+- Remove -flto compile time option accidentally added to CFLAGS.
+
 * Thu Jul 20 2017 Nick Clifton  <nickc@redhat.com> 2.28-13
 - Add support for displaying new DWARF5 tags.
   (#1472966)
