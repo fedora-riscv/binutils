@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 26%{?dist}
+Release: 27%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -108,6 +108,8 @@ Patch28: binutils-2.28-dynamic-section-warning.patch
 Patch29: binutils-2.27-gas-buffer-overflow.patch
 # Fix the mapping state when aligning AArch64 code fragments.
 Patch30: binutils-2.27-aarch64-frag-alignment-filling.patch
+# Add support for displaying new DWARF5 tags including DW_AT_export_symbols.
+Patch31: binutils-2.28-DW_AT_export_symbols.patch
 
 Provides: bundled(libiberty)
 
@@ -263,6 +265,7 @@ using libelf instead of BFD.
 %patch28 -p1
 %patch29 -p1
 %patch30 -p1
+%patch31 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -629,6 +632,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Thu Jul 20 2017 Nick Clifton  <nickc@redhat.com> 2.27-27
+- Add support for displaying new DWARF5 tags.
+  (#1472966)
+
 * Wed Jul 19 2017 Nick Clifton  <nickc@redhat.com> 2.27-26
 - Correct snafu in previous delta that broke building s390 binaries.
   (#1472486)
