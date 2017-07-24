@@ -2432,7 +2432,7 @@ diff -rup binutils-2.26.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.26/ld/tes
 +++ binutils-2.28/bfd/opncls.c	2017-03-02 11:23:23.546065945 +0000
 @@ -1990,3 +1990,69 @@ bfd_follow_build_id_debuglink (bfd *abfd
  				   get_build_id_name,
- 				   check_build_id_file);
+ 				   check_build_id_file, &build_id);
  }
 +
 +/*
@@ -2467,7 +2467,7 @@ diff -rup binutils-2.26.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.26/ld/tes
 +  name = make_temp_file (".obj-only.o");
 +
 +  /* Open the object-only file.  */
-+  file = real_fopen (name, FOPEN_WB);
++  file = _bfd_real_fopen (name, FOPEN_WB);
 +  if (!bfd_get_full_section_contents (abfd, sec, &memhunk))
 +    {
 +      err = bfd_get_error ();
