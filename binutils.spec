@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -577,6 +577,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 2.29-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
 * Mon Jul 24 2017 Nick Clifton  <nickc@redhat.com> 2.29-1
 - Rebase on FSF binutils 2.29.
 - Retire: binutils-2.20.51.0.10-ppc64-pie.patch
