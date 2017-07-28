@@ -1,0 +1,13 @@
+--- binutils.orig/bfd/elf64-ppc.c	2017-07-28 14:39:40.690343665 +0100
++++ binutils-2.29/bfd/elf64-ppc.c	2017-07-28 14:40:08.685021561 +0100
+@@ -8347,9 +8347,7 @@ ppc64_elf_tls_setup (struct bfd_link_inf
+     htab->params->no_multi_toc = 1;
+ 
+   if (htab->params->plt_localentry0 < 0)
+-    htab->params->plt_localentry0
+-      = elf_link_hash_lookup (&htab->elf, "GLIBC_2.26",
+-			      FALSE, FALSE, FALSE) != NULL;
++    htab->params->plt_localentry0 = 0;
+ 
+   htab->tls_get_addr = ((struct ppc_link_hash_entry *)
+ 			elf_link_hash_lookup (&htab->elf, ".__tls_get_addr",
