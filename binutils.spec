@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -580,6 +580,9 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Sun Jul 30 2017 Florian Weimer <fweimer@redhat.com> - 2.29-4
+- Rebuild with binutils fix for ppc64le, bootstrapping (#1475636)
+
 * Fri Jul 28 2017 Nick Clifton  <nickc@redhat.com> 2.29-3
 - Do not enable the PPC64 plt-localentry0 linker optimization by default.
   (#1475636)
