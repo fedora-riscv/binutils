@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -580,6 +580,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Mon Jul 31 2017 Nick Clifton  <nickc@redhat.com> 2.29-5
+- Update ppc64 localentry0 patch with changes made by Alan Modra to the FSF binutils sources.
+  (#1475636)
+
 * Sun Jul 30 2017 Florian Weimer <fweimer@redhat.com> - 2.29-4
 - Rebuild with binutils fix for ppc64le, bootstrapping (#1475636)
 
