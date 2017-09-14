@@ -54,13 +54,13 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
 
-# Note - the Linux Kernel binutils releases are too unstable and contain too
-# many controversial patches so we stick with the official FSF version
+# Note - the Linux Kernel binutils releases are too unstable and contain
+# too many controversial patches so we stick with the official FSF version
 # instead.
 
 Source: http://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
@@ -101,7 +101,8 @@ Patch06: binutils-2.22.52.0.1-export-demangle.h.patch
 Patch07: binutils-2.22.52.0.4-no-config-h-check.patch
 
 # Purpose:  Import H.J.Lu's Kernel LTO patch.
-# Lifetime: Permanent, but needs continual updating. 
+# Lifetime: Permanent, but needs continual updating.
+#   FIXME:  Try removing....
 Patch11: binutils-2.26-lto.patch
 
 # Purpose:  Skip PR14918 linker test for ARM native targets.
@@ -118,6 +119,11 @@ Patch13: binutils-2.29-filename-in-error-messages.patch
 # Purpose:  Do not enable the PPC64 plt-localentry0 linker optimization by default.
 # Lifetime: Fixed in 2.29.1.
 Patch15: binutils-2.29-ppc64-plt-localentry0-disable.patch
+
+# Purpose:  Prevent a seg-fault in the linker by not attempting to place orphan ELF
+#           sections into a non-ELF output section.
+# Lifetime: Fixed in 2.29.1.
+Patch16: binutils-2.29-non-elf-orphan-skip.patch
 
 #---------------------------------------------------------------------------------
 
@@ -242,7 +248,7 @@ using libelf instead of BFD.
 
 %prep
 %setup -q -n binutils-%{version}
-%patch01 -p1 
+%patch01 -p1
 %patch02 -p1 
 %patch04 -p1 
 %patch06 -p1 
@@ -251,6 +257,7 @@ using libelf instead of BFD.
 %patch12 -p1
 %patch13 -p1
 %patch15 -p1
+%patch16 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -648,6 +655,10 @@ exit 0
 #---------------------------------------------------------------------------------
 
 %changelog
+* Thu Sep 14 2017 Nick Clifton  <nickc@redhat.com> 2.29-8
+- Import fix for PR 21884 which stops a seg-fault in the linker when changing output format to binary during a final link.
+  (#1491023)
+
 * Sun Sep 10 2017 Nick Clifton  <nickc@redhat.com> - 2.29-7
 - Annotate patches with reason and lifetime expectances.
 - Retire: binutils-2.24-ldforcele.patch
