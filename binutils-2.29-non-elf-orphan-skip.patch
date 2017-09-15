@@ -115,3 +115,33 @@
  	   && (flags & SEC_LOAD) != 0)
      place = &hold[orphan_rel];
    else if ((flags & SEC_CODE) == 0)
+diff -rup binutils.orig/bfd/elf32-i386.c binutils-2.29/bfd/elf32-i386.c
+--- binutils.orig/bfd/elf32-i386.c	2017-09-15 10:27:16.828950825 +0100
++++ binutils-2.29/bfd/elf32-i386.c	2017-09-15 10:27:38.962692771 +0100
+@@ -6921,8 +6921,9 @@ elf_i386_link_setup_gnu_properties (stru
+       for (abfd = info->input_bfds;
+ 	   abfd != NULL;
+ 	   abfd = abfd->link.next)
+-	if ((abfd->flags
+-	     & (DYNAMIC | BFD_LINKER_CREATED | BFD_PLUGIN)) == 0)
++	if (bfd_get_flavour (abfd) == bfd_target_elf_flavour
++	    && (abfd->flags
++		 & (DYNAMIC | BFD_LINKER_CREATED | BFD_PLUGIN)) == 0)
+ 	  {
+ 	    htab->elf.dynobj = abfd;
+ 	    dynobj = abfd;
+diff -rup binutils.orig/bfd/elf64-x86-64.c binutils-2.29/bfd/elf64-x86-64.c
+--- binutils.orig/bfd/elf64-x86-64.c	2017-09-15 10:27:16.820950918 +0100
++++ binutils-2.29/bfd/elf64-x86-64.c	2017-09-15 10:28:02.621416935 +0100
+@@ -7466,8 +7466,9 @@ error_alignment:
+ 	  for (abfd = info->input_bfds;
+ 	       abfd != NULL;
+ 	       abfd = abfd->link.next)
+-	    if ((abfd->flags
+-		 & (DYNAMIC | BFD_LINKER_CREATED | BFD_PLUGIN)) == 0)
++	    if (bfd_get_flavour (abfd) == bfd_target_elf_flavour
++		&& (abfd->flags
++		    & (DYNAMIC | BFD_LINKER_CREATED | BFD_PLUGIN)) == 0)
+ 	      {
+ 		htab->elf.dynobj = abfd;
+ 		dynobj = abfd;

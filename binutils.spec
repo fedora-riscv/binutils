@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -655,6 +655,10 @@ exit 0
 #---------------------------------------------------------------------------------
 
 %changelog
+* Thu Sep 14 2017 Nick Clifton  <nickc@redhat.com> 2.29-10
+- Extend fix for PR 21884.
+  (#1491023)
+
 * Thu Sep 14 2017 Nick Clifton  <nickc@redhat.com> 2.29-8
 - Import fix for PR 21884 which stops a seg-fault in the linker when changing output format to binary during a final link.
   (#1491023)
