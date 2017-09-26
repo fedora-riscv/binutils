@@ -7,7 +7,7 @@
 # --without=testsuite: Do not run the testsuite.  Default is to run it.
 # --with=testsuite: Run the testsuite.  Default when --with=debug is not to run it.
 
-#---Start of Configure Options-----------------------------------------------------------------------
+#---Start of Configure Options-----------------------------------------------
 
 # BZ 1124342: Provide a way to enable deterministic archives.
 # BZ 1195883: But do not do this by default.
@@ -37,7 +37,7 @@
 %undefine with_testsuite
 %endif
 
-#----End of Configure Options-----------------------------------------------------------------------
+#----End of Configure Options------------------------------------------------
 
 %if 0%{!?binutils_target:1}
 %define binutils_target %{_target_platform}
@@ -49,12 +49,12 @@
 %define enable_shared 0
 %endif
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.29
-Release: 9%{?dist}
+Version: 2.29.1
+Release: 1%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -67,65 +67,62 @@ Source: http://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
 
 Source2: binutils-2.19.50.0.1-output-format.sed
 
-# Purpose: Use /lib64 and /usr/lib64 instead of /lib and /usr/lib in the
-#          default library search path of 64-bit targets.
+# Purpose:  Use /lib64 and /usr/lib64 instead of /lib and /usr/lib in the
+#           default library search path of 64-bit targets.
 # Lifetime: Permanent, but it should not be.  This is a bug in the libtool
-#          sources used in both binutils and gcc, (specifically the libtool.m4
-#          file).  These are based on a version released in 2009 (2.2.6?) rather
-#          than the latest version.  (Definitely fixed in libtool version 2.4.6).
+#           sources used in both binutils and gcc, (specifically the
+#           libtool.m4 file).  These are based on a version released in 2009
+#           (2.2.6?) rather than the latest version.  (Definitely fixed in
+#           libtool version 2.4.6).
 Patch01: binutils-2.20.51.0.2-libtool-lib64.patch
 
-# Purpose:  Appends a RHEL or Fedora release string to the generic binutils version string.
+# Purpose:  Appends a RHEL or Fedora release string to the generic binutils
+#           version string.
 # Lifetime: Permanent.  This is a RHEL/Fedora specific patch.
 Patch02: binutils-2.25-version.patch
 
-# Purpose:  Prevent a seg-fault when attempting to pad a section with a NULL padding pointer.
+# Purpose:  Prevent a seg-fault when attempting to pad a section with a NULL
+#           padding pointer.
 # Lifetime: Permanent - but should be contributed upstream and fixed.
-#           FIXME: Need a test case to reproduce the potential bug so
+# FIXME:    Need a test case to reproduce the potential bug so
 #           that the patch can be contributes.
-Patch04: binutils-2.20.51.0.10-sec-merge-emit.patch
+Patch03: binutils-2.20.51.0.10-sec-merge-emit.patch
 
-# Purpose:  Exports the demangle.h header file (associated with the libiberty sources) with
-#           the binutils-devel rpm.
+# Purpose:  Exports the demangle.h header file (associated with the libiberty
+#           sources) with the binutils-devel rpm.
 # Lifetime: Permanent.  This is a RHEL/Fedora specific patch.
-Patch06: binutils-2.22.52.0.1-export-demangle.h.patch
+Patch04: binutils-2.22.52.0.1-export-demangle.h.patch
 
-# Purpose:  Disables the check in the BFD library's header file that config.h has been
-#           included before the bfd.h header.  See BZ #845084 for more details.
-# Lifetime: Permanent - but it should not be.  The bfd.h header defines various types that
-#           are dependent upon configuration options, so he order of inclusion is important.
-#           FIXME: It would be better if the packages using the BFD header were fixed so
-#           that they do include the header files in the correct order.  It may also be
-#           necessary to add a way for a package to tell the bfd.h header that this check
-#           is not necessary.
-Patch07: binutils-2.22.52.0.4-no-config-h-check.patch
+# Purpose:  Disables the check in the BFD library's header file that config.h
+#           has been included before the bfd.h header.  See BZ #845084 for
+#           more details.
+# Lifetime: Permanent - but it should not be.  The bfd.h header defines
+#           various types that are dependent upon configuration options, so
+#           the order of inclusion is important.
+# FIXME:    It would be better if the packages using the BFD header were
+#           fixed so that they do include the header files in the correct
+#           order.  It may also be necessary to add a way for a package to
+#           tell the bfd.h header that this check is not necessary.
+Patch05: binutils-2.22.52.0.4-no-config-h-check.patch
 
 # Purpose:  Import H.J.Lu's Kernel LTO patch.
 # Lifetime: Permanent, but needs continual updating.
-#   FIXME:  Try removing....
-Patch11: binutils-2.26-lto.patch
+# FIXME:    Try removing....
+Patch06: binutils-2.26-lto.patch
 
 # Purpose:  Skip PR14918 linker test for ARM native targets.
 # Lifetime: Permanent - but it should not be.
-#           FIXME: This patch should be contributed upstream.
-Patch12: binutils-2.29-skip-rp14918-test-for-arm.patch
+# FIXME:    This patch should be contributed upstream.
+Patch07: binutils-2.29-skip-rp14918-test-for-arm.patch
 
 # Purpose:  Include the filename concerned in readelf error messages.
-# Lifetime: Permanent.  This patch changes the format of readelf's output, making it
-#           better (IMHO) but also potentially breaking tools that depend upon readelf's
-#           current format.  Hence it remains a local patch.
-Patch13: binutils-2.29-filename-in-error-messages.patch
+# Lifetime: Permanent.  This patch changes the format of readelf's output,
+#           making it better (IMHO) but also potentially breaking tools that
+#           depend upon readelf's current format.  Hence it remains a local
+#           patch.
+Patch08: binutils-2.29-filename-in-error-messages.patch
 
-# Purpose:  Do not enable the PPC64 plt-localentry0 linker optimization by default.
-# Lifetime: Fixed in 2.29.1.
-Patch15: binutils-2.29-ppc64-plt-localentry0-disable.patch
-
-# Purpose:  Prevent a seg-fault in the linker by not attempting to place orphan ELF
-#           sections into a non-ELF output section.
-# Lifetime: Fixed in 2.29.1.
-Patch16: binutils-2.29-non-elf-orphan-skip.patch
-
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
 
@@ -200,7 +197,7 @@ Requires(preun): %{_sbindir}/alternatives
 %define _gnu %{nil}
 %endif
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %description
 Binutils is a collection of binary utilities, including ar (for
@@ -215,7 +212,7 @@ of an object or archive file), strings (for listing printable strings
 from files), strip (for discarding symbols), and addr2line (for
 converting addresses to file and line).
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %package devel
 Summary: BFD and opcodes static and dynamic libraries and header files
@@ -244,20 +241,18 @@ dynamic libraries.
 Developers starting new projects are strongly encouraged to consider
 using libelf instead of BFD.
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %prep
 %setup -q -n binutils-%{version}
 %patch01 -p1
 %patch02 -p1 
+%patch03 -p1 
 %patch04 -p1 
-%patch06 -p1 
-%patch07 -p1 
-%patch11 -p1
-%patch12 -p1
-%patch13 -p1
-%patch15 -p1
-%patch16 -p1
+%patch05 -p1 
+%patch06 -p1
+%patch07 -p1
+%patch08 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -295,7 +290,7 @@ touch */configure
 %define _target_platform %{_arch}-%{_vendor}-%{_host_os}
 %endif
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %build
 echo target is %{binutils_target}
@@ -415,7 +410,7 @@ uuencode binutils-%{_target_platform}.tar.bz2 binutils-%{_target_platform}.tar.b
 rm -f binutils-%{_target_platform}.tar.bz2 binutils-%{_target_platform}-*.{sum,log}
 %endif
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %install
 rm -rf %{buildroot}
@@ -539,12 +534,12 @@ if [ -x gold/ld-new ]; then
   cat %{?cross}gold.lang >> %{?cross}binutils.lang
 fi
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %clean
 rm -rf %{buildroot}
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %post
 %if "%{build_gold}" == "both"
@@ -568,7 +563,7 @@ rm -rf %{buildroot}
 
 exit 0
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %preun
 %if "%{build_gold}" == "both"
@@ -592,7 +587,7 @@ fi
 
 exit 0
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %if %{isnative}
 %postun
@@ -606,7 +601,7 @@ exit 0
   fi
 %endif # isnative
 
-#---------------------------------------------------------------------------------
+#----------------------------------------------------------------------------
 
 %files -f %{?cross}binutils.lang
 %defattr(-,root,root,-)
@@ -636,10 +631,11 @@ exit 0
 %endif # enable_shared
 
 %if %{isnative}
+
 %if %{with docs}
 %{_infodir}/[^b]*info*
 %{_infodir}/binutils*info*
-%endif
+%endif # with docs
 
 %files devel
 %defattr(-,root,root,-)
@@ -647,14 +643,20 @@ exit 0
 %{_libdir}/lib*.a
 %{_libdir}/libbfd.so
 %{_libdir}/libopcodes.so
+
 %if %{with docs}
 %{_infodir}/bfd*info*
 %endif # with docs
+
 %endif # isnative
 
-#---------------------------------------------------------------------------------
-
+#----------------------------------------------------------------------------
 %changelog
+* Tue Sep 26 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-1
+- Rebase on FSF binutils 2.29.1 release.
+- Retire: binutils-2.29-ppc64-plt-localentry0-disable.patch
+- Retire: binutils-2.29-non-elf-orphan-skip.patch
+
 * Thu Sep 14 2017 Nick Clifton  <nickc@redhat.com> 2.29-10
 - Extend fix for PR 21884.
   (#1491023)
