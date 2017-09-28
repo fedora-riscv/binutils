@@ -19,6 +19,8 @@
 # Default to read-only-relocations (relro) in shared binaries.
 %define default_relro 1
 
+#----End of Configure Options------------------------------------------------
+
 # Default: Not bootstrapping.
 %bcond_with bootstrap
 # Default: Not debug
@@ -37,8 +39,6 @@
 %undefine with_testsuite
 %endif
 
-#----End of Configure Options------------------------------------------------
-
 %if 0%{!?binutils_target:1}
 %define binutils_target %{_target_platform}
 %define isnative 1
@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -81,17 +81,10 @@ Patch01: binutils-2.20.51.0.2-libtool-lib64.patch
 # Lifetime: Permanent.  This is a RHEL/Fedora specific patch.
 Patch02: binutils-2.25-version.patch
 
-# Purpose:  Prevent a seg-fault when attempting to pad a section with a NULL
-#           padding pointer.
-# Lifetime: Permanent - but should be contributed upstream and fixed.
-# FIXME:    Need a test case to reproduce the potential bug so
-#           that the patch can be contributes.
-Patch03: binutils-2.20.51.0.10-sec-merge-emit.patch
-
 # Purpose:  Exports the demangle.h header file (associated with the libiberty
 #           sources) with the binutils-devel rpm.
 # Lifetime: Permanent.  This is a RHEL/Fedora specific patch.
-Patch04: binutils-2.22.52.0.1-export-demangle.h.patch
+Patch03: binutils-2.22.52.0.1-export-demangle.h.patch
 
 # Purpose:  Disables the check in the BFD library's header file that config.h
 #           has been included before the bfd.h header.  See BZ #845084 for
@@ -101,33 +94,32 @@ Patch04: binutils-2.22.52.0.1-export-demangle.h.patch
 #           the order of inclusion is important.
 # FIXME:    It would be better if the packages using the BFD header were
 #           fixed so that they do include the header files in the correct
-#           order.  It may also be necessary to add a way for a package to
-#           tell the bfd.h header that this check is not necessary.
-Patch05: binutils-2.22.52.0.4-no-config-h-check.patch
+#           order.
+Patch04: binutils-2.22.52.0.4-no-config-h-check.patch
 
 # Purpose:  Import H.J.Lu's Kernel LTO patch.
 # Lifetime: Permanent, but needs continual updating.
 # FIXME:    Try removing....
-Patch06: binutils-2.26-lto.patch
+Patch05: binutils-2.26-lto.patch
 
 # Purpose:  Skip PR14918 linker test for ARM native targets.
-# Lifetime: Permanent - but it should not be.
-# FIXME:    This patch should be contributed upstream.
-Patch07: binutils-2.29-skip-rp14918-test-for-arm.patch
+# Lifetime: Fixed in 2.30.
+Patch06: binutils-2.29-skip-rp14918-test-for-arm.patch
 
-# Purpose:  Include the filename concerned in readelf error messages.
+# Purpose:  Include the filename concerned in readelf error messages.  This
+#           makes readelf's output more helpful when it is run on multiple
+#           input files.
 # Lifetime: Permanent.  This patch changes the format of readelf's output,
 #           making it better (IMHO) but also potentially breaking tools that
 #           depend upon readelf's current format.  Hence it remains a local
 #           patch.
-Patch08: binutils-2.29-filename-in-error-messages.patch
+Patch07: binutils-2.29-filename-in-error-messages.patch
 
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
 
-# BZ 1173780: Building GOLD for PPC is not working at the moment.
-%define gold_arches %ix86 x86_64 %arm aarch64
+%define gold_arches %ix86 x86_64 %arm aarch64 %{power64} s390x
 
 %if %{with bootstrap}
 %define build_gold	no
@@ -252,7 +244,6 @@ using libelf instead of BFD.
 %patch05 -p1 
 %patch06 -p1
 %patch07 -p1
-%patch08 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -652,6 +643,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Sep 26 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-2
+- Enable GOLD for PPC64 and s390x. (#1173780)
+- Retire: binutils-2.20.51.0.10-sec-merge-emit.patch.
+  (It has been redundant for a long time now...)
+
 * Tue Sep 26 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-1
 - Rebase on FSF binutils 2.29.1 release.
 - Retire: binutils-2.29-ppc64-plt-localentry0-disable.patch
@@ -2697,4 +2693,3 @@ exit 0
 * Wed Oct 22 1997 Erik Troan <ewt@redhat.com>
 - added 2.8.1.0.1 patch from hj
 - added patch for alpha palcode form rth
-
