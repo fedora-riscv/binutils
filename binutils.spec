@@ -43,7 +43,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.27
-Release: 27%{?dist}
+Release: 28%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -110,6 +110,8 @@ Patch29: binutils-2.27-gas-buffer-overflow.patch
 Patch30: binutils-2.27-aarch64-frag-alignment-filling.patch
 # Add support for displaying new DWARF5 tags including DW_AT_export_symbols.
 Patch31: binutils-2.28-DW_AT_export_symbols.patch
+# Remove the minmax part of objdump speed improvements patch.
+Patch32: binutils-2.27-remove-dwarf2-minmax.patch
 
 Provides: bundled(libiberty)
 
@@ -266,6 +268,7 @@ using libelf instead of BFD.
 %patch29 -p1
 %patch30 -p1
 %patch31 -p1
+%patch32 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -632,6 +635,10 @@ exit 0
 %endif # %{isnative}
 
 %changelog
+* Fri Oct 13 2017 Nick Clifton   <nickc@redhat.com> 2.27-28
+- Fix bug in objdump speedup patch.
+  (#1501014)
+
 * Thu Jul 20 2017 Nick Clifton  <nickc@redhat.com> 2.27-27
 - Add support for displaying new DWARF5 tags.
   (#1472966)
