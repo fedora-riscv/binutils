@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -114,6 +114,12 @@ Patch06: binutils-2.29-skip-rp14918-test-for-arm.patch
 #           depend upon readelf's current format.  Hence it remains a local
 #           patch.
 Patch07: binutils-2.29-filename-in-error-messages.patch
+
+# Purpose:  Fix the generation of relocations to handle locating the start
+#           and stop symbols of orphan sections when using the GOLD linker.
+#           See: BZ 1500898 and PR 22291.
+# Lifetime: Fixed in 2.30.
+Patch08: binutils-2.29.1-gold-start-stop.patch
 
 #----------------------------------------------------------------------------
 
@@ -244,6 +250,7 @@ using libelf instead of BFD.
 %patch05 -p1 
 %patch06 -p1
 %patch07 -p1
+%patch08 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -643,7 +650,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Tue Sep 26 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-2
+* Wed Oct 18 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-3
+- Fix the GOLD linker's generation of relocations for start and stop symbols.  (#1500898)
+
+* Thu Sep 28 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-2
 - Enable GOLD for PPC64 and s390x. (#1173780)
 - Retire: binutils-2.20.51.0.10-sec-merge-emit.patch.
   (It has been redundant for a long time now...)
