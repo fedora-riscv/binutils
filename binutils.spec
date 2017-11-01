@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -120,6 +120,14 @@ Patch07: binutils-2.29-filename-in-error-messages.patch
 #           See: BZ 1500898 and PR 22291.
 # Lifetime: Fixed in 2.30.
 Patch08: binutils-2.29.1-gold-start-stop.patch
+
+# Purpose:  Update readelf so that if it is run with the --relocs option and
+#           there are no static relocs to be displayed, but there are dynamic
+#           relocs that could have been displayed, it will now issue a
+#           message suggesting the addition of the --use-dynamic option.
+#           See: BZ 1507694
+# Lifetime: Fixed in 2.30.
+Patch09: binutils-2.29.1-readelf-use-dynamic.patch
 
 #----------------------------------------------------------------------------
 
@@ -251,6 +259,7 @@ using libelf instead of BFD.
 %patch06 -p1
 %patch07 -p1
 %patch08 -p1
+%patch09 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -650,6 +659,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Nov 01 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-4
+- Have readelf suggest the use of --use-dynamic when there are dynamic relocs that could have been displayed.  (#1507694)
+
 * Wed Oct 18 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-3
 - Fix the GOLD linker's generation of relocations for start and stop symbols.  (#1500898)
 
