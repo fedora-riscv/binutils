@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -128,6 +128,14 @@ Patch08: binutils-2.29.1-gold-start-stop.patch
 #           See: BZ 1507694
 # Lifetime: Fixed in 2.30.
 Patch09: binutils-2.29.1-readelf-use-dynamic.patch
+
+# Purpose:  Disable an x86/x86_64 optimization that moves functions from the
+#           PLT into the GOTPLT for faster access.  This optimization is
+#           problematic for tools that want to intercept PLT entries, such
+#           as ltrace and LD_AUDIT.  See BZs 1452111 and 1333481.
+# Lifetime: Permanent.  But it should not be.
+# FIXME:    Replace with a configure time option.
+Patch10: binutils-2.29-revert-PLT-elision.patch
 
 #----------------------------------------------------------------------------
 
@@ -260,6 +268,7 @@ using libelf instead of BFD.
 %patch07 -p1
 %patch08 -p1
 %patch09 -p1
+%patch10 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -659,6 +668,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Nov 28 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-5
+- Disable PLT elision for x86/x86_64.  (#1452111 and #1333481)
+
 * Wed Nov 01 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-4
 - Have readelf suggest the use of --use-dynamic when there are dynamic relocs that could have been displayed.  (#1507694)
 
