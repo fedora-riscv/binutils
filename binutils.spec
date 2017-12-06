@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -667,6 +667,9 @@ exit 0
 %endif # isnative
 
 #----------------------------------------------------------------------------
+* Wed Dec 06 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-6
+- Have readelf return an exit failure status when attempting to process an empty file. (#1522732)
+
 %changelog
 * Tue Nov 28 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-5
 - Disable PLT elision for x86/x86_64.  (#1452111 and #1333481)
