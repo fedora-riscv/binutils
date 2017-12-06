@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -661,6 +661,9 @@ exit 0
 #---------------------------------------------------------------------------------
 
 %changelog
+* Wed Dec 06 2017 Nick Clifton  <nickc@redhat.com> 2.29-8
+- Have readelf return an exit failure status when attempting to process an empty file. (#1522732)
+
 * Fri Nov 17 2017 Nick Clifton  <nickc@redhat.com> 2.29-7
 - Import fix for PR 21884 which stops a seg-fault in the linker when changing output format to binary during a final link.
   (#1491023)
