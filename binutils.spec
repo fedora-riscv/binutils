@@ -667,10 +667,10 @@ exit 0
 %endif # isnative
 
 #----------------------------------------------------------------------------
+%changelog
 * Wed Dec 06 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-6
 - Have readelf return an exit failure status when attempting to process an empty file. (#1522732)
 
-%changelog
 * Tue Nov 28 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-5
 - Disable PLT elision for x86/x86_64.  (#1452111 and #1333481)
 
