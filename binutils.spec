@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -129,6 +129,11 @@ Patch10: binutils-2.29-non-elf-orphan-skip.patch
 #           sections into a non-ELF output section.
 # Lifetime: Fixed in 2.29.1.
 Patch11: binutils-2.28-ignore-gold-duplicates.patch
+
+# Purpose:  Fixes a bug in strip/objcopy which could cause it to crash when
+#           deleting relocs in a file which also contains mergeable notes.
+# Lifetime: Fixed in 2.30.
+Patch12: binutils-strip-delete-relocs.patch
 
 #---------------------------------------------------------------------------------
 
@@ -264,6 +269,7 @@ using libelf instead of BFD.
 %patch09 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -661,6 +667,9 @@ exit 0
 #---------------------------------------------------------------------------------
 
 %changelog
+* Fri Dec 08 2017 Nick Clifton  <nickc@redhat.com> 2.29-9
+- Stop strip from crashing when deleteing relocs in a file with annobin notes.  (#1520805)
+
 * Wed Dec 06 2017 Nick Clifton  <nickc@redhat.com> 2.29-8
 - Have readelf return an exit failure status when attempting to process an empty file. (#1522732)
 
