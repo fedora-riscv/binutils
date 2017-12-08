@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -136,6 +136,11 @@ Patch09: binutils-2.29.1-readelf-use-dynamic.patch
 # Lifetime: Permanent.  But it should not be.
 # FIXME:    Replace with a configure time option.
 Patch10: binutils-2.29-revert-PLT-elision.patch
+
+# Purpose:  Fixes a bug in strip/objcopy which could cause it to crash when
+#           deleting relocs in a file which also contains mergeable notes.
+# Lifetime: Fixed in 2.30.
+Patch11: binutils-strip-delete-relocs.patch
 
 #----------------------------------------------------------------------------
 
@@ -668,6 +673,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Dec 07 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-7
+- Stop strip from crashing when deleteing relocs in a file with annobin notes.  (#1520805)
+
 * Wed Dec 06 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-6
 - Have readelf return an exit failure status when attempting to process an empty file. (#1522732)
 
