@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -149,12 +149,12 @@ Provides: bundled(libiberty)
 %define gold_arches %ix86 x86_64 %arm aarch64 %{power64} s390x
 
 %if %{with bootstrap}
-%define build_gold	no
+%define build_gold      no
 %else
 %ifarch %gold_arches
-%define build_gold	both
+%define build_gold      both
 %else
-%define build_gold	no
+%define build_gold      no
 %endif
 %endif
 
@@ -201,8 +201,8 @@ BuildRequires: libstdc++-static
 Conflicts: gcc-c++ < 4.0.0
 
 # The higher of these two numbers determines the default ld.
-%{!?ld_bfd_priority: %global ld_bfd_priority	50}
-%{!?ld_gold_priority:%global ld_gold_priority	30}
+%{!?ld_bfd_priority: %global ld_bfd_priority    50}
+%{!?ld_gold_priority:%global ld_gold_priority   30}
 
 %if "%{build_gold}" == "both"
 Requires(post): coreutils
@@ -274,6 +274,7 @@ using libelf instead of BFD.
 %patch08 -p1
 %patch09 -p1
 %patch10 -p1
+%patch11 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -354,6 +355,20 @@ case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*)
   ;;
 esac
 
+%if %{default_relro}
+# BZ 1523946: PowerPC64 is not ready for relro.
+case %{binutils_target} in
+    ppc64*)
+        CARGS="$CARGS --enable-relro=no"
+        ;;
+    *)
+        CARGS="$CARGS --enable-relro=yes"
+        ;;
+esac
+%else
+        CARGS="$CARGS --enable-relro=no"
+%endif
+
 %if 0%{?_with_debug:1}
 CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %define enable_shared 0
@@ -396,11 +411,6 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
   --enable-compressed-debug-sections=all \
 %else
   --enable-compressed-debug-sections=none \
-%endif
-%if %{default_relro}
-  --enable-relro=yes \
-%else
-  --enable-relro=no \
 %endif
   $CARGS \
   --enable-plugins \
@@ -673,6 +683,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Dec 11 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-8
+- Do not enable relro by default for the PowerPC64 architecture.  (#1523946)
+
 * Thu Dec 07 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-7
 - Stop strip from crashing when deleteing relocs in a file with annobin notes.  (#1520805)
 
