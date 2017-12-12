@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -141,6 +141,14 @@ Patch10: binutils-2.29-revert-PLT-elision.patch
 #           deleting relocs in a file which also contains mergeable notes.
 # Lifetime: Fixed in 2.30.
 Patch11: binutils-strip-delete-relocs.patch
+
+# Purpose:  Changes readelf so that when it displays extra information about
+#           a symbol, this information is placed at the end of the line.
+# Lifetime: Permanent.
+# FIXME:    The proper fix would be to update the scripts that are expecting
+#           a fixed output from readelf.  But it seems that some of them are
+#           no longer being maintained.
+Patch12: binutils-readelf-other-sym-info.patch
 
 #----------------------------------------------------------------------------
 
@@ -275,6 +283,7 @@ using libelf instead of BFD.
 %patch09 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -683,6 +692,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Dec 12 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-9
+- Have readelf display extra symbol information at the end of the line.  (#1479302)
+
 * Mon Dec 11 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-8
 - Do not enable relro by default for the PowerPC64 architecture.  (#1523946)
 
