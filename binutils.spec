@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -154,8 +154,7 @@ Patch13: binutils-readelf-other-sym-info.patch
 
 Provides: bundled(libiberty)
 
-# BZ 1173780: Building GOLD for PPC is not working at the moment.
-%define gold_arches %ix86 x86_64 %arm aarch64
+%define gold_arches %ix86 x86_64 %arm aarch64 %{power64} s390x
 
 %if %{with bootstrap}
 %define build_gold      no
@@ -694,6 +693,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Dec 18 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-12
+- Re-enable gold for PowerPC64 and s390x.  (#1173780)
+
 * Fri Dec 15 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-11
 - Have readelf display extra symbol information at the end of the line.  (#1479302)
 
