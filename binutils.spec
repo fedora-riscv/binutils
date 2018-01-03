@@ -54,10 +54,10 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 Group: Development/Tools
-URL: http://sources.redhat.com/binutils
+URL: https://sourceware.org/binutils
 
 # Note - the Linux Kernel binutils releases are too unstable and contain
 # too many controversial patches so we stick with the official FSF version
@@ -149,6 +149,10 @@ Patch11: binutils-strip-delete-relocs.patch
 #           a fixed output from readelf.  But it seems that some of them are
 #           no longer being maintained.
 Patch12: binutils-readelf-other-sym-info.patch
+
+# Purpose:  Enhances readelf and objcopy to support v3 build notes.
+# Lifetime: Fixed in 2.30.
+Patch13: binutils-support-v3-build-notes.patch
 
 #----------------------------------------------------------------------------
 
@@ -273,10 +277,10 @@ using libelf instead of BFD.
 %prep
 %setup -q -n binutils-%{version}
 %patch01 -p1
-%patch02 -p1 
-%patch03 -p1 
-%patch04 -p1 
-%patch05 -p1 
+%patch02 -p1
+%patch03 -p1
+%patch04 -p1
+%patch05 -p1
 %patch06 -p1
 %patch07 -p1
 %patch08 -p1
@@ -284,6 +288,7 @@ using libelf instead of BFD.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -486,10 +491,14 @@ install -m 644 include/libiberty.h %{buildroot}%{_prefix}/include
 install -m 644 opcodes/libopcodes.a %{buildroot}%{_libdir}
 # Remove Windows/Novell only man pages
 rm -f %{buildroot}%{_mandir}/man1/{dlltool,nlmconv,windres,windmc}*
+%if %{without docs}
+rm -f %{buildroot}%{_mandir}/man1/{addr2line,ar,as,c++filt,elfedit,gprof,ld,nm,objcopy,objdump,ranlib,readelf,size,strings,strip}*
+rm -f %{buildroot}%{_infodir}/{as,bfd,binutils,gprof,ld}*
+%endif
 
 %if %{enable_shared}
 chmod +x %{buildroot}%{_libdir}/lib*.so*
-%endif # isnative
+%endif
 
 # Prevent programs from linking against libbfd and libopcodes
 # dynamically, as they are change far too often.
@@ -692,6 +701,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jan 03 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-10
+- Update readelf and objcopy to support v3 build notes.
+
 * Tue Dec 12 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-9
 - Have readelf display extra symbol information at the end of the line.  (#1479302)
 
