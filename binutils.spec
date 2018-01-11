@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -370,17 +370,9 @@ case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*)
 esac
 
 %if %{default_relro}
-# BZ 1523946: PowerPC64 is not ready for relro.
-case %{binutils_target} in
-    ppc64*)
-        CARGS="$CARGS --enable-relro=no"
-        ;;
-    *)
-        CARGS="$CARGS --enable-relro=yes"
-        ;;
-esac
+  CARGS="$CARGS --enable-relro=yes"
 %else
-        CARGS="$CARGS --enable-relro=no"
+  CARGS="$CARGS --enable-relro=no"
 %endif
 
 %if 0%{?_with_debug:1}
@@ -701,6 +693,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 11 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-11
+- *Do* enable relro by default for the PowerPC64 architecture.  (#1523946)
+
 * Wed Jan 03 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-10
 - Update readelf and objcopy to support v3 build notes.
 
