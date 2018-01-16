@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -153,6 +153,11 @@ Patch12: binutils-readelf-other-sym-info.patch
 # Purpose:  Enhances readelf and objcopy to support v3 build notes.
 # Lifetime: Fixed in 2.30.
 Patch13: binutils-support-v3-build-notes.patch
+
+# Purpose:  Adds a "-z undefs" option to the linker to compliment the already
+#           present "-z defs" option.
+# Lifetime: Fixed in 2.30.
+Patch14: binutils-z-undefs.patch
 
 #----------------------------------------------------------------------------
 
@@ -289,6 +294,7 @@ using libelf instead of BFD.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -693,6 +699,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jan 16 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-12
+- Add "-z undefs" option to the linker.
+
 * Thu Jan 11 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-11
 - *Do* enable relro by default for the PowerPC64 architecture.  (#1523946)
 
