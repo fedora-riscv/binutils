@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -158,6 +158,11 @@ Patch13: binutils-support-v3-build-notes.patch
 #           present "-z defs" option.
 # Lifetime: Fixed in 2.30.
 Patch14: binutils-z-undefs.patch
+
+# Purpose:  Fixes bugs in AArch64 static PIE support.  Specifically: FSF PRs
+#           22263 and 22269.
+# Lifetime: Fixed in 2.30.
+Patch15: binutils-aarch64-pie.patch
 
 #----------------------------------------------------------------------------
 
@@ -295,6 +300,7 @@ using libelf instead of BFD.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -699,6 +705,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jan 22 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-13
+- Fix bugs in AArch64 static PIE support.  (#1536645)
+
 * Tue Jan 16 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-12
 - Add "-z undefs" option to the linker.
 
