@@ -81,6 +81,8 @@ Source: http://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
 
 Source2: binutils-2.19.50.0.1-output-format.sed
 
+#----------------------------------------------------------------------------
+
 # Purpose:  Use /lib64 and /usr/lib64 instead of /lib and /usr/lib in the
 #           default library search path of 64-bit targets.
 # Lifetime: Permanent, but it should not be.  This is a bug in the libtool
@@ -100,13 +102,13 @@ Patch02: binutils-2.25-version.patch
 # Lifetime: Permanent.  This is a RHEL/Fedora specific patch.
 Patch03: binutils-2.22.52.0.1-export-demangle.h.patch
 
-# Purpose:  Disables the check in the BFD library's header file that config.h
-#           has been included before the bfd.h header.  See BZ #845084 for
-#           more details.
+# Purpose:  Disables the check in the BFD library's bfd.h header file that
+#           config.h has been included before the bfd.h header.  See BZ
+#           #845084 for more details.
 # Lifetime: Permanent - but it should not be.  The bfd.h header defines
 #           various types that are dependent upon configuration options, so
 #           the order of inclusion is important.
-# FIXME:    It would be better if the packages using the BFD header were
+# FIXME:    It would be better if the packages using the bfd.h header were
 #           fixed so that they do include the header files in the correct
 #           order.
 Patch04: binutils-2.22.52.0.4-no-config-h-check.patch
@@ -207,7 +209,8 @@ Provides: bundled(libiberty)
 
 Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
-BuildRequires: gcc
+# Perl, sed and touch are all used in the %prep section of this spec file.
+BuildRequires: gcc, perl, sed, coreutils
 
 # Gold needs bison in order to build gold/yyscript.c.
 # Bison needs m4.
@@ -225,6 +228,8 @@ BuildRequires: texinfo >= 4.0
 BuildRequires: /usr/bin/pod2man
 Requires(post): /sbin/install-info
 Requires(preun): /sbin/install-info
+%else
+BuildRequires: findutils
 %endif
 
 # Required for: ld-bootstrap/bootstrap.exp bootstrap with --static
@@ -625,6 +630,7 @@ rm -rf %{buildroot}
 
 %if %{isnative}
 /sbin/ldconfig
+
 %if %{with docs}
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/as.info.gz
   /sbin/install-info --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
