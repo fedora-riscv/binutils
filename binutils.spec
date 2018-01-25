@@ -9,15 +9,23 @@
 
 #---Start of Configure Options-----------------------------------------------
 
-# BZ 1124342: Provide a way to enable deterministic archives.
-# BZ 1195883: But do not do this by default.
+# Do not create deterministic archives by default  (cf: BZ 1195883)
 %define enable_deterministic_archives 0
-# BZ 1342618: Enable support for GCC LTO compilation.
+
+# Enable support for GCC LTO compilation.
 %define enable_lto 1
+
 # Disable the default generation of compressed debug sections.
 %define default_compress_debug 0
+
 # Default to read-only-relocations (relro) in shared binaries.
 %define default_relro 1
+
+# Only uncomment this next option if there is a problem building
+# the binutils and the compiler complains about the presence of
+# plugins.  The plugin should be harmless, but the compiler always
+# blames it first...
+# %undefine _annotated_build
 
 #----End of Configure Options------------------------------------------------
 
@@ -55,17 +63,12 @@
 # .so that is used at run time).
 %undefine _strict_symbol_defs_build
 
-# There is a bug in the i686 compiler that might be triggered by
-# the annobin plugin.  Try building without it...
-# FIXME: Remove this once the compiler is fixed.
-%undefine _annotated_build
-
 #----------------------------------------------------------------------------
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -721,10 +724,13 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 25 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-15
+- Reenable binary annotations.
+
 * Thu Jan 25 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-14
 - Fix creation of PowerPC64 function call stubs.  (#1523457)
 - Disable -z defs during build.
-- Disable binary annotation.  (temporary ?)
+- Disable binary annotations.  (temporary ?)
 
 * Mon Jan 22 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-13
 - Fix bugs in AArch64 static PIE support.  (#1536645)
