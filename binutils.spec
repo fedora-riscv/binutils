@@ -55,6 +55,11 @@
 # .so that is used at run time).
 %undefine _strict_symbol_defs_build
 
+# There is a bug in the i686 compiler that might be triggered by
+# the annobin plugin.  Try building without it...
+# FIXME: Remove this once the compiler is fixed.
+%undefine _annotated_build
+
 #----------------------------------------------------------------------------
 
 Summary: A GNU collection of binary utilities
@@ -718,6 +723,8 @@ exit 0
 %changelog
 * Thu Jan 25 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-14
 - Fix creation of PowerPC64 function call stubs.  (#1523457)
+- Disable -z defs during build.
+- Disable binary annotation.  (temporary ?)
 
 * Mon Jan 22 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-13
 - Fix bugs in AArch64 static PIE support.  (#1536645)
