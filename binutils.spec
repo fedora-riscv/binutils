@@ -49,12 +49,18 @@
 %define enable_shared 0
 %endif
 
+# The opcodes library needs a few functions defined in the bfd
+# library, but these symbols are not defined in the stub bfd .so
+# that is available at link time.  (They are present in the real
+# .so that is used at run time).
+%undefine _strict_symbol_defs_build
+
 #----------------------------------------------------------------------------
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -163,6 +169,10 @@ Patch14: binutils-z-undefs.patch
 #           22263 and 22269.
 # Lifetime: Fixed in 2.30.
 Patch15: binutils-aarch64-pie.patch
+
+# Purpose:  Fixes the creation of function call stubs for PowerPC64.
+# Lifetime: Fixed in 2.31.  See BZ 1523457
+Patch16: binutils-ppc64-stub-creation.patch
 
 #----------------------------------------------------------------------------
 
@@ -301,6 +311,7 @@ using libelf instead of BFD.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -705,6 +716,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 25 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-14
+- Fix creation of PowerPC64 function call stubs.  (#1523457)
+
 * Mon Jan 22 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-13
 - Fix bugs in AArch64 static PIE support.  (#1536645)
 
