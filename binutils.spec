@@ -68,7 +68,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -459,10 +459,10 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
   --with-bugurl=http://bugzilla.redhat.com/bugzilla/
 
 %if %{with docs}
-make %{_smp_mflags} tooldir=%{_prefix} all
-make %{_smp_mflags} tooldir=%{_prefix} info
+%make_build %{_smp_mflags} tooldir=%{_prefix} all
+%make_build %{_smp_mflags} tooldir=%{_prefix} info
 %else
-make %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
+%make_build %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
 %endif
 
 # Do not use %%check as it is run after %%install where libbfd.so is rebuild
@@ -488,9 +488,9 @@ rm -f binutils-%{_target_platform}.tar.bz2 binutils-%{_target_platform}-*.{sum,l
 %install
 rm -rf %{buildroot}
 %if %{with docs}
-make install DESTDIR=%{buildroot}
+%make_install DESTDIR=%{buildroot}
 %else
-make install DESTDIR=%{buildroot} MAKEINFO=true
+%make_install DESTDIR=%{buildroot} MAKEINFO=true
 %endif
 
 %if %{isnative}
@@ -500,18 +500,18 @@ make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
 
 # Rebuild libiberty.a with -fPIC.
 # Future: Remove it together with its header file, projects should bundle it.
-make -C libiberty clean
-make CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
+%make_build -C libiberty clean
+%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
 
 # Rebuild libbfd.a with -fPIC.
 # Without the hidden visibility the 3rd party shared libraries would export
 # the bfd non-stable ABI.
-make -C bfd clean
-make CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
+%make_build -C bfd clean
+%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
 
 # Rebuild libopcodes.a with -fPIC.
-make -C opcodes clean
-make CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
+%make_build -C opcodes clean
+%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
 
 install -m 644 bfd/libbfd.a %{buildroot}%{_libdir}
 install -m 644 libiberty/libiberty.a %{buildroot}%{_libdir}
@@ -730,6 +730,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 01 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-16
+- Use make_build and make_install macros.  (#1541027)
+
 * Thu Jan 25 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-15
 - Reenable binary annotations.
 
