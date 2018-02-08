@@ -68,7 +68,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -416,6 +416,9 @@ CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %define enable_shared 0
 %endif
 
+# BZ 1541027 - include the linker flags from redhat-rpm-config as well.
+export LDFLAGS=$RPM_LD_FLAGS
+
 # We could optimize the cross builds size by --enable-shared but the produced
 # binaries may be less convenient in the embedded environment.
 %configure \
@@ -730,6 +733,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 08 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-18
+- Inject RPM_LD_FLAGS into the build.  (#1541027)
+
 * Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2.29.1-17
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
 
