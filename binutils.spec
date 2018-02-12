@@ -21,12 +21,6 @@
 # Default to read-only-relocations (relro) in shared binaries.
 %define default_relro 1
 
-# Only uncomment this next option if there is a problem building
-# the binutils and the compiler complains about the presence of
-# plugins.  The plugin should be harmless, but the compiler always
-# blames it first...
-# %undefine _annotated_build
-
 #----End of Configure Options------------------------------------------------
 
 # Default: Not bootstrapping.
@@ -68,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -209,7 +203,7 @@ Provides: bundled(libiberty)
 
 Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
-# Perl, sed and touch are all used in the %prep section of this spec file.
+# Perl, sed and touch are all used in the %-prep section of this spec file.
 BuildRequires: gcc, perl, sed, coreutils
 
 # Gold needs bison in order to build gold/yyscript.c.
@@ -733,6 +727,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 12 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-19
+- Remove comment that explained how to disable annobin.  (#1541027)
+
 * Thu Feb 08 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-18
 - Inject RPM_LD_FLAGS into the build.  (#1541027)
 
