@@ -135,10 +135,10 @@ diff -rup binutils-2.26.orig/bfd/elf.c binutils-2.26/bfd/elf.c
 +++ binutils-2.26/bfd/elf.c	2016-02-19 09:35:54.904106515 +0000
 @@ -2387,6 +2387,7 @@ static const struct bfd_elf_special_sect
    { STRING_COMMA_LEN (".gnu.linkonce.b"), -2, SHT_NOBITS,      SHF_ALLOC + SHF_WRITE },
-   { STRING_COMMA_LEN (".gnu.lto_"),       -1, SHT_PROGBITS,    SHF_EXCLUDE },
-   { STRING_COMMA_LEN (".got"),             0, SHT_PROGBITS,    SHF_ALLOC + SHF_WRITE },
+   { STRING_COMMA_LEN (".gnu.lto_"),	  -1, SHT_PROGBITS,    SHF_EXCLUDE },
+   { STRING_COMMA_LEN (".got"),		   0, SHT_PROGBITS,    SHF_ALLOC + SHF_WRITE },
 +  { STRING_COMMA_LEN (".gnu_object_only"), 0, SHT_GNU_OBJECT_ONLY, SHF_EXCLUDE },
-   { STRING_COMMA_LEN (".gnu.version"),     0, SHT_GNU_versym,  0 },
+   { STRING_COMMA_LEN (".gnu.version"),	   0, SHT_GNU_versym,  0 },
    { STRING_COMMA_LEN (".gnu.version_d"),   0, SHT_GNU_verdef,  0 },
    { STRING_COMMA_LEN (".gnu.version_r"),   0, SHT_GNU_verneed, 0 },
 diff -rup binutils-2.26.orig/bfd/format.c binutils-2.26/bfd/format.c
@@ -711,7 +711,7 @@ diff -rup binutils-2.26.orig/ld/emultempl/spuelf.em binutils-2.26/ld/emultempl/s
    if (is_spu_target ())
      {
 @@ -432,7 +432,7 @@ gld${EMULATION_NAME}_finish (void)
- 	einfo ("%P: --auto-overlay ignored with zero local store range\n");
+ 	einfo (_("%P: --auto-overlay ignored with zero local store range\n"));
      }
  
 -  finish_default ();
@@ -2417,3 +2417,23 @@ diff -rup binutils-2.26.orig/ld/scripttempl/pe.sc binutils-2.26/ld/scripttempl/p
  LDEMUL_AFTER_ALLOCATION=gld${EMULATION_NAME}_after_allocation
 -LDEMUL_FINISH=gld${EMULATION_NAME}_finish
 +LDEMUL_FINISH=ppc_finish
+--- binutils.orig/bfd/format.c	2018-01-22 16:04:36.855155517 +0000
++++ binutils-2.30.0/bfd/format.c	2018-01-22 16:11:36.546253154 +0000
+@@ -47,6 +47,7 @@ SUBSECTION
+ #include "bfd.h"
+ #include "libbfd.h"
+ #if BFD_SUPPORTS_PLUGINS
++#include "plugin-api.h"
+ #include "plugin.h"
+ #endif
+ 
+--- binutils.orig/ld/ldlang.c	2018-01-22 16:04:37.271150658 +0000
++++ binutils-2.30.0/ld/ldlang.c	2018-01-22 16:14:10.653453040 +0000
+@@ -8954,6 +8954,7 @@ cmdline_object_only_list_append (cmdline
+       archive = abfd->my_archive;
+       if (archive)
+ 	break;
++      /* Fall through.  */
+     case cmdline_is_file_enum:
+       cmdline_list_append (&cmdline_object_only_file_list, type, data);
+       return;

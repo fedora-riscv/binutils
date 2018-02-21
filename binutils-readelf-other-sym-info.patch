@@ -11,11 +11,11 @@ diff -rup binutils.orig/binutils/readelf.c binutils-2.29/binutils/readelf.c
  	 table being generated, but for the moment this case is very
  	 rare.  */
        if (psym->st_other ^ vis)
- 	printf (" [%s] ", get_symbol_other (psym->st_other ^ vis));
+ 	printf (" [%s] ", get_symbol_other (filedata, psym->st_other ^ vis));
 +#endif
      }
  
-   printf (" %3.3s ", get_symbol_index_type (psym->st_shndx));
+   printf (" %3.3s ", get_symbol_index_type (filedata, psym->st_shndx));
 @@ -11031,6 +11033,15 @@ print_dynamic_symbol (bfd_vma si, unsign
      print_symbol (25, GET_DYNAMIC_NAME (psym->st_name));
    else
@@ -26,7 +26,7 @@ diff -rup binutils.orig/binutils/readelf.c binutils-2.29/binutils/readelf.c
 +
 +      /* Check to see if any other bits in the st_other field are set.  */
 +      if (psym->st_other ^ vis)
-+	printf (" \t[%s]", get_symbol_other (psym->st_other ^ vis));
++	printf (" \t[%s]", get_symbol_other (filedata, psym->st_other ^ vis));
 +    }
 +#endif
    putchar ('\n');
@@ -43,10 +43,10 @@ diff -rup binutils.orig/binutils/readelf.c binutils-2.29/binutils/readelf.c
  		     Note - displaying this information disrupts the layout of the
  		     table being generated, but for the moment this case is very rare.  */
  		  if (psym->st_other ^ vis)
- 		    printf (" [%s] ", get_symbol_other (psym->st_other ^ vis));
+ 		    printf (" [%s] ", get_symbol_other (filedata, psym->st_other ^ vis));
 +#endif
  		}
- 	      printf (" %4s ", get_symbol_index_type (psym->st_shndx));
+ 	      printf (" %4s ", get_symbol_index_type (filedata, psym->st_shndx));
  	      print_symbol (25, psym->st_name < strtab_size
 @@ -11571,7 +11573,15 @@ process_symbol_table (FILE * file)
  		    printf (sym_info == symbol_hidden ? "@%s" : "@@%s",
@@ -58,7 +58,7 @@ diff -rup binutils.orig/binutils/readelf.c binutils-2.29/binutils/readelf.c
  
 +		  /* Check to see if any other bits in the st_other field are set.  */
 +		  if (psym->st_other ^ vis)
-+		    printf (" \t[%s] ", get_symbol_other (psym->st_other ^ vis));
++		    printf (" \t[%s] ", get_symbol_other (filedata, psym->st_other ^ vis));
 +		}
 +#endif
  	      putchar ('\n');

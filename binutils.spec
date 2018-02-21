@@ -61,8 +61,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.29.1
-Release: 19%{?dist}
+Version: 2.30
+Release: 5%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -112,10 +112,6 @@ Patch04: binutils-2.22.52.0.4-no-config-h-check.patch
 # FIXME:    Try removing....
 Patch05: binutils-2.26-lto.patch
 
-# Purpose:  Skip PR14918 linker test for ARM native targets.
-# Lifetime: Fixed in 2.30.
-Patch06: binutils-2.29-skip-rp14918-test-for-arm.patch
-
 # Purpose:  Include the filename concerned in readelf error messages.  This
 #           makes readelf's output more helpful when it is run on multiple
 #           input files.
@@ -123,21 +119,7 @@ Patch06: binutils-2.29-skip-rp14918-test-for-arm.patch
 #           making it better (IMHO) but also potentially breaking tools that
 #           depend upon readelf's current format.  Hence it remains a local
 #           patch.
-Patch07: binutils-2.29-filename-in-error-messages.patch
-
-# Purpose:  Fix the generation of relocations to handle locating the start
-#           and stop symbols of orphan sections when using the GOLD linker.
-#           See: BZ 1500898 and PR 22291.
-# Lifetime: Fixed in 2.30.
-Patch08: binutils-2.29.1-gold-start-stop.patch
-
-# Purpose:  Update readelf so that if it is run with the --relocs option and
-#           there are no static relocs to be displayed, but there are dynamic
-#           relocs that could have been displayed, it will now issue a
-#           message suggesting the addition of the --use-dynamic option.
-#           See: BZ 1507694
-# Lifetime: Fixed in 2.30.
-Patch09: binutils-2.29.1-readelf-use-dynamic.patch
+Patch06: binutils-2.29-filename-in-error-messages.patch
 
 # Purpose:  Disable an x86/x86_64 optimization that moves functions from the
 #           PLT into the GOTPLT for faster access.  This optimization is
@@ -145,12 +127,7 @@ Patch09: binutils-2.29.1-readelf-use-dynamic.patch
 #           as ltrace and LD_AUDIT.  See BZs 1452111 and 1333481.
 # Lifetime: Permanent.  But it should not be.
 # FIXME:    Replace with a configure time option.
-Patch10: binutils-2.29-revert-PLT-elision.patch
-
-# Purpose:  Fixes a bug in strip/objcopy which could cause it to crash when
-#           deleting relocs in a file which also contains mergeable notes.
-# Lifetime: Fixed in 2.30.
-Patch11: binutils-strip-delete-relocs.patch
+Patch07: binutils-2.29-revert-PLT-elision.patch
 
 # Purpose:  Changes readelf so that when it displays extra information about
 #           a symbol, this information is placed at the end of the line.
@@ -158,25 +135,29 @@ Patch11: binutils-strip-delete-relocs.patch
 # FIXME:    The proper fix would be to update the scripts that are expecting
 #           a fixed output from readelf.  But it seems that some of them are
 #           no longer being maintained.
-Patch12: binutils-readelf-other-sym-info.patch
+Patch08: binutils-readelf-other-sym-info.patch
 
-# Purpose:  Enhances readelf and objcopy to support v3 build notes.
-# Lifetime: Fixed in 2.30.
-Patch13: binutils-support-v3-build-notes.patch
+# Purpose:  Do not create PLT entries for AARCH64 IFUNC symbols referenced in
+#           debug sections.
+# Lifetime: Permanent.
+# FIXME:    Find related bug.  Decide on permanency.
+Patch09: binutils-2.27-aarch64-ifunc.patch
 
-# Purpose:  Adds a "-z undefs" option to the linker to compliment the already
-#           present "-z defs" option.
-# Lifetime: Fixed in 2.30.
-Patch14: binutils-z-undefs.patch
+# Purpose:  Remove support for inserting PowerPC Speculation Barrier
+#           instructions from the linker.  (It has been deprecated in
+#           favour of a hardware fix).
+# Lifetime: Fixed in 2.30.1 and/or 2.31.
+Patch10: binutils-revert-PowerPC-speculation-barriers.patch
 
-# Purpose:  Fixes bugs in AArch64 static PIE support.  Specifically: FSF PRs
-#           22263 and 22269.
-# Lifetime: Fixed in 2.30.
-Patch15: binutils-aarch64-pie.patch
+# Purpose:  Stop readelf/objdump for searching for DWO links unless
+#           explicitly requested by the user.
+# Lifetime: Fixed in 2.30.1 and/or 2.31.
+Patch11: binutils-skip-dwo-search-if-not-needed.patch
 
-# Purpose:  Fixes the creation of function call stubs for PowerPC64.
-# Lifetime: Fixed in 2.31.  See BZ 1523457
-Patch16: binutils-ppc64-stub-creation.patch
+# Purpose:  Fix a bug in the BFD linker's layout algorithm which ended up
+#           placing executable and non-executable pages in the same segment.
+# Lifetime: Fixed in 2.30.1 and/or 2.31.
+Patch12: binutils-page-to-segment-assignment.patch
 
 #----------------------------------------------------------------------------
 
@@ -315,10 +296,6 @@ using libelf instead of BFD.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
-%patch14 -p1
-%patch15 -p1
-%patch16 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -610,6 +587,9 @@ fi
 
 #----------------------------------------------------------------------------
 
+%clean
+rm -rf %{buildroot}
+
 #----------------------------------------------------------------------------
 
 %post
@@ -724,6 +704,24 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Feb 21 2018 Nick Clifton  <nickc@redhat.com> 2.30-5
+- Fix assignment of pages to segments. (PR 22758)
+- Inject RPM_LD_FLAGS into the build.  (#1541027)
+- Fix slowdown in readelf when examining files with lots of debug information.  (PR 22802)
+- Remove support for PowerPC speculation barrier insertion.
+- Rebase on 2.30
+- Retire binutils-2.22.52.0.1-relro-on-by-default.patch
+- Retire binutils-2.28-dynamic-section-warning.patch
+- Retire binutils-2.29-skip-rp14918-test-for-arm.patch
+- Retire binutils-2.29.1-gold-start-stop.patch
+- Retire binutils-2.29.1-readelf-use-dynamic.patch
+- Retire binutils-aarch64-pie.patch
+- Retire binutils-coverity.patch
+- Retire binutils-ppc64-stub-creation.patch
+- Retire binutils-strip-delete-relocs.patch
+- Retire binutils-support-v3-build-notes.patch
+- Retire binutils-z-undefs.patch
+
 * Mon Feb 12 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-19
 - Remove comment that explained how to disable annobin.  (#1541027)
 

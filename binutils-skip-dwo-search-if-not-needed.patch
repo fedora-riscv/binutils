@@ -1,0 +1,13 @@
+--- binutils.orig/binutils/dwarf.c	2018-02-08 10:49:07.154191536 +0000
++++ binutils-2.30/binutils/dwarf.c	2018-02-08 12:53:32.649380368 +0000
+@@ -9851,6 +9851,10 @@ load_dwo_file (const char * main_filenam
+ void *
+ load_separate_debug_file (void * file, const char * filename)
+ {
++  /* Skip this operation if we are not interested in debug links.  */
++  if (! do_follow_links && ! do_debug_links)
++    return NULL;
++
+   /* See if there is a dwo link.  */
+   if (load_debug_section (str, file)
+       && load_debug_section (abbrev, file)
