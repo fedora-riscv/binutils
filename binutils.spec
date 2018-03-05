@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -177,6 +177,11 @@ Patch15: binutils-aarch64-pie.patch
 # Purpose:  Fixes the creation of function call stubs for PowerPC64.
 # Lifetime: Fixed in 2.31.  See BZ 1523457
 Patch16: binutils-ppc64-stub-creation.patch
+
+# Purpose:  Improves objdump's function for locating a symbol to match a
+#           given address, so that it uses a binary chop algorithm.
+# Lifetime: Fixed in 2.31.
+Patch17: binutils-speed-up-objdump.patch
 
 #----------------------------------------------------------------------------
 
@@ -319,6 +324,7 @@ using libelf instead of BFD.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -724,6 +730,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Mar 05 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-20
+- Speed up objdump.  (#1551540)
+
 * Mon Feb 12 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-19
 - Remove comment that explained how to disable annobin.  (#1541027)
 
