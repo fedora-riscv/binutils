@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -149,6 +149,11 @@ Patch12: binutils-strip-delete-relocs.patch
 #           a fixed output from readelf.  But it seems that some of them are
 #           no longer being maintained.
 Patch13: binutils-readelf-other-sym-info.patch
+
+# Purpose:  Improves objdump's function for locating a symbol to match a
+#           given address, so that it uses a binary chop algorithm.
+# Lifetime: Fixed in 2.31.
+Patch14: binutils-speed-up-objdump.patch
 
 #----------------------------------------------------------------------------
 
@@ -285,6 +290,7 @@ using libelf instead of BFD.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -693,6 +699,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Mar 05 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-13
+- Speed up objdump.  (#1551540)
+
 * Mon Dec 18 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-12
 - Re-enable gold for PowerPC64 and s390x.  (#1173780)
 
