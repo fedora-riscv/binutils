@@ -1,0 +1,139 @@
+diff -rup binutils.orig/bfd/elf32-i386.c binutils-2.29.1/bfd/elf32-i386.c
+--- binutils.orig/bfd/elf32-i386.c	2018-03-09 15:55:56.812856843 +0000
++++ binutils-2.29.1/bfd/elf32-i386.c	2018-03-09 16:00:45.104464000 +0000
+@@ -4080,6 +4080,10 @@ elf_i386_relocate_section (bfd *output_b
+ 
+ 	  if ((input_section->flags & SEC_ALLOC) == 0)
+ 	    {
++	      /* If this is a SHT_NOTE section without SHF_ALLOC, treat
++	         STT_GNU_IFUNC symbol as STT_FUNC.  */
++	      if (elf_section_type (input_section) == SHT_NOTE)
++		goto skip_ifunc;
+ 	      /* Dynamic relocs are not propagated for SEC_DEBUGGING
+ 		 sections because such sections are not SEC_ALLOC and
+ 		 thus ld.so will not process them.  */
+@@ -4301,6 +4305,7 @@ do_ifunc_pointer:
+ 	    }
+ 	}
+ 
++    skip_ifunc:
+       resolved_to_zero = (eh != NULL
+ 			  && UNDEFINED_WEAK_RESOLVED_TO_ZERO (info,
+ 							      eh->has_got_reloc,
+diff -rup binutils.orig/bfd/elf32-s390.c binutils-2.29.1/bfd/elf32-s390.c
+--- binutils.orig/bfd/elf32-s390.c	2018-03-09 15:55:56.827856667 +0000
++++ binutils-2.29.1/bfd/elf32-s390.c	2018-03-09 16:00:37.519553849 +0000
+@@ -2770,6 +2770,9 @@ elf_s390_relocate_section (bfd *output_b
+ 	case R_390_8:
+ 	case R_390_16:
+ 	case R_390_32:
++	  if ((input_section->flags & SEC_ALLOC) == 0)
++	    break;
++
+ 	  if (h != NULL
+ 	      && s390_is_ifunc_symbol_p (h)
+ 	      && h->def_regular)
+@@ -2831,9 +2834,6 @@ elf_s390_relocate_section (bfd *output_b
+ 		}
+ 	    }
+ 
+-	  if ((input_section->flags & SEC_ALLOC) == 0)
+-	    break;
+-
+ 	  if ((bfd_link_pic (info)
+ 	       && (h == NULL
+ 		   || ELF_ST_VISIBILITY (h->other) == STV_DEFAULT
+diff -rup binutils.orig/bfd/elf64-s390.c binutils-2.29.1/bfd/elf64-s390.c
+--- binutils.orig/bfd/elf64-s390.c	2018-03-09 15:55:56.812856843 +0000
++++ binutils-2.29.1/bfd/elf64-s390.c	2018-03-09 16:00:29.038654304 +0000
+@@ -2739,6 +2739,9 @@ elf_s390_relocate_section (bfd *output_b
+ 	case R_390_32:
+ 	case R_390_64:
+ 
++	  if ((input_section->flags & SEC_ALLOC) == 0)
++	    break;
++
+ 	  if (h != NULL
+ 	      && s390_is_ifunc_symbol_p (h)
+ 	      && h->def_regular)
+@@ -2801,9 +2804,6 @@ elf_s390_relocate_section (bfd *output_b
+ 		}
+ 	    }
+ 
+-	  if ((input_section->flags & SEC_ALLOC) == 0)
+-	    break;
+-
+ 	  if ((bfd_link_pic (info)
+ 	       && (h == NULL
+ 		   || (ELF_ST_VISIBILITY (h->other) == STV_DEFAULT
+diff -rup binutils.orig/bfd/elf64-x86-64.c binutils-2.29.1/bfd/elf64-x86-64.c
+--- binutils.orig/bfd/elf64-x86-64.c	2018-03-09 15:55:56.826856678 +0000
++++ binutils-2.29.1/bfd/elf64-x86-64.c	2018-03-09 16:00:20.798751915 +0000
+@@ -4409,6 +4409,10 @@ elf_x86_64_relocate_section (bfd *output
+ 
+ 	  if ((input_section->flags & SEC_ALLOC) == 0)
+ 	    {
++	      /* If this is a SHT_NOTE section without SHF_ALLOC, treat
++	         STT_GNU_IFUNC symbol as STT_FUNC.  */
++	      if (elf_section_type (input_section) == SHT_NOTE)
++		goto skip_ifunc;
+ 	      /* Dynamic relocs are not propagated for SEC_DEBUGGING
+ 		 sections because such sections are not SEC_ALLOC and
+ 		 thus ld.so will not process them.  */
+@@ -4634,6 +4638,7 @@ do_ifunc_pointer:
+ 	    }
+ 	}
+ 
++    skip_ifunc:
+       resolved_to_zero = (eh != NULL
+ 			  && UNDEFINED_WEAK_RESOLVED_TO_ZERO (info,
+ 							      eh->has_got_reloc,
+diff -rup binutils.orig/bfd/elfnn-aarch64.c binutils-2.29.1/bfd/elfnn-aarch64.c
+--- binutils.orig/bfd/elfnn-aarch64.c	2018-03-09 15:55:56.821856737 +0000
++++ binutils-2.29.1/bfd/elfnn-aarch64.c	2018-03-09 16:00:13.181842141 +0000
+@@ -4984,6 +4984,11 @@ elfNN_aarch64_final_link_relocate (reloc
+ 
+       if ((input_section->flags & SEC_ALLOC) == 0)
+ 	{
++	  /* If this is a SHT_NOTE section without SHF_ALLOC, treat
++	     STT_GNU_IFUNC symbol as STT_FUNC.  */
++	  if (elf_section_type (input_section) == SHT_NOTE)
++	    goto skip_ifunc;
++
+ 	  /* Dynamic relocs are not propagated for SEC_DEBUGGING
+ 	     sections because such sections are not SEC_ALLOC and
+ 	     thus ld.so will not process them.  */
+@@ -5177,6 +5182,7 @@ bad_ifunc_reloc:
+ 	}
+     }
+ 
++ skip_ifunc:
+   resolved_to_zero = (h != NULL
+ 		      && UNDEFWEAK_NO_DYNAMIC_RELOC (info, h));
+ 
+diff -rup binutils.orig/bfd/elfxx-sparc.c binutils-2.29.1/bfd/elfxx-sparc.c
+--- binutils.orig/bfd/elfxx-sparc.c	2018-03-09 15:55:56.822856726 +0000
++++ binutils-2.29.1/bfd/elfxx-sparc.c	2018-03-09 16:00:02.604967430 +0000
+@@ -3203,7 +3203,13 @@ _bfd_sparc_elf_relocate_section (bfd *ou
+ 
+ 	  if ((input_section->flags & SEC_ALLOC) == 0
+ 	      || h->plt.offset == (bfd_vma) -1)
+-	    abort ();
++	    {
++	      /* If this is a SHT_NOTE section without SHF_ALLOC, treat
++	         STT_GNU_IFUNC symbol as STT_FUNC.  */
++	      if (elf_section_type (input_section) == SHT_NOTE)
++		goto skip_ifunc;
++	      abort ();
++	    }
+ 
+ 	  plt_sec = htab->elf.splt;
+ 	  if (! plt_sec)
+@@ -3307,6 +3313,7 @@ _bfd_sparc_elf_relocate_section (bfd *ou
+ 	    }
+ 	}
+ 
++    skip_ifunc:
+       eh = (struct _bfd_sparc_elf_link_hash_entry *) h;
+       resolved_to_zero = (eh != NULL
+                           && UNDEFINED_WEAK_RESOLVED_TO_ZERO (info, eh));
