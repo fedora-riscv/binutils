@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -154,6 +154,11 @@ Patch13: binutils-readelf-other-sym-info.patch
 #           given address, so that it uses a binary chop algorithm.
 # Lifetime: Fixed in 2.31.
 Patch14: binutils-speed-up-objdump.patch
+
+# Purpose:  Treat relocs against STT_GNU_IFUNC symbols in note sections as
+#           if they were relocs against STT_FUNC symbols instead.
+# Lifetime: Fixed in 2.31.
+Patch15: binutils-ifunc-relocs-in-notes.patch
 
 #----------------------------------------------------------------------------
 
@@ -291,6 +296,7 @@ using libelf instead of BFD.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -699,6 +705,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.29-1-14
+- Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.  (#1553705)
+
 * Mon Mar 05 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-13
 - Speed up objdump.  (#1551540)
 
