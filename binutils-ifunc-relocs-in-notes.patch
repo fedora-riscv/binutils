@@ -1,0 +1,296 @@
+diff -rup binutils.orig/bfd/elf32-i386.c binutils-2.30/bfd/elf32-i386.c
+--- binutils.orig/bfd/elf32-i386.c	2018-03-09 14:43:05.324208873 +0000
++++ binutils-2.30/bfd/elf32-i386.c	2018-03-09 14:43:23.158000456 +0000
+@@ -2202,12 +2202,19 @@ elf_i386_relocate_section (bfd *output_b
+ 
+ 	  if ((input_section->flags & SEC_ALLOC) == 0)
+ 	    {
++	      /* If this is a SHT_NOTE section without SHF_ALLOC, treat
++	         STT_GNU_IFUNC symbol as STT_FUNC.  */
++	      if (elf_section_type (input_section) == SHT_NOTE)
++		goto skip_ifunc;
+ 	      /* Dynamic relocs are not propagated for SEC_DEBUGGING
+ 		 sections because such sections are not SEC_ALLOC and
+ 		 thus ld.so will not process them.  */
+ 	      if ((input_section->flags & SEC_DEBUGGING) != 0)
+ 		continue;
+-	      abort ();
++	      _bfd_error_handler (_("%B: error: relocation againt ifunc symbol in non-alloc section %A"),
++				  input_bfd, input_section);
++	      bfd_set_error (bfd_error_invalid_operation);
++	      return FALSE;
+ 	    }
+ 
+ 	  /* STT_GNU_IFUNC symbol must go through PLT.  */
+@@ -2421,6 +2428,7 @@ do_ifunc_pointer:
+ 	    }
+ 	}
+ 
++    skip_ifunc:
+       resolved_to_zero = (eh != NULL
+ 			  && UNDEFINED_WEAK_RESOLVED_TO_ZERO (info, eh));
+ 
+diff -rup binutils.orig/bfd/elf32-s390.c binutils-2.30/bfd/elf32-s390.c
+--- binutils.orig/bfd/elf32-s390.c	2018-03-09 14:43:05.325208861 +0000
++++ binutils-2.30/bfd/elf32-s390.c	2018-03-09 14:43:31.353904647 +0000
+@@ -2601,6 +2601,9 @@ elf_s390_relocate_section (bfd *output_b
+ 	case R_390_8:
+ 	case R_390_16:
+ 	case R_390_32:
++	  if ((input_section->flags & SEC_ALLOC) == 0)
++	    break;
++
+ 	  if (h != NULL
+ 	      && s390_is_ifunc_symbol_p (h)
+ 	      && h->def_regular)
+@@ -2662,9 +2665,6 @@ elf_s390_relocate_section (bfd *output_b
+ 		}
+ 	    }
+ 
+-	  if ((input_section->flags & SEC_ALLOC) == 0)
+-	    break;
+-
+ 	  if ((bfd_link_pic (info)
+ 	       && (h == NULL
+ 		   || (ELF_ST_VISIBILITY (h->other) == STV_DEFAULT
+Only in binutils-2.30/bfd: elf32-s390.c.orig
+diff -rup binutils.orig/bfd/elf64-s390.c binutils-2.30/bfd/elf64-s390.c
+--- binutils.orig/bfd/elf64-s390.c	2018-03-09 14:43:05.341208674 +0000
++++ binutils-2.30/bfd/elf64-s390.c	2018-03-09 14:43:31.354904635 +0000
+@@ -2559,6 +2559,9 @@ elf_s390_relocate_section (bfd *output_b
+ 	case R_390_32:
+ 	case R_390_64:
+ 
++	  if ((input_section->flags & SEC_ALLOC) == 0)
++	    break;
++
+ 	  if (h != NULL
+ 	      && s390_is_ifunc_symbol_p (h)
+ 	      && h->def_regular)
+@@ -2621,9 +2624,6 @@ elf_s390_relocate_section (bfd *output_b
+ 		}
+ 	    }
+ 
+-	  if ((input_section->flags & SEC_ALLOC) == 0)
+-	    break;
+-
+ 	  if ((bfd_link_pic (info)
+ 	       && (h == NULL
+ 		   || (ELF_ST_VISIBILITY (h->other) == STV_DEFAULT
+Only in binutils-2.30/bfd: elf64-s390.c.orig
+diff -rup binutils.orig/bfd/elf64-x86-64.c binutils-2.30/bfd/elf64-x86-64.c
+--- binutils.orig/bfd/elf64-x86-64.c	2018-03-09 14:43:05.344208639 +0000
++++ binutils-2.30/bfd/elf64-x86-64.c	2018-03-09 14:43:23.161000420 +0000
+@@ -2499,12 +2499,19 @@ elf_x86_64_relocate_section (bfd *output
+ 
+ 	  if ((input_section->flags & SEC_ALLOC) == 0)
+ 	    {
++	      /* If this is a SHT_NOTE section without SHF_ALLOC, treat
++	         STT_GNU_IFUNC symbol as STT_FUNC.  */
++	      if (elf_section_type (input_section) == SHT_NOTE)
++		goto skip_ifunc;
+ 	      /* Dynamic relocs are not propagated for SEC_DEBUGGING
+ 		 sections because such sections are not SEC_ALLOC and
+ 		 thus ld.so will not process them.  */
+ 	      if ((input_section->flags & SEC_DEBUGGING) != 0)
+ 		continue;
+-	      abort ();
++	      _bfd_error_handler (_("%B: error: relocation againt ifunc symbol in non-alloc section %A"),
++				  input_bfd, input_section);
++	      bfd_set_error (bfd_error_invalid_operation);
++	      return FALSE;
+ 	    }
+ 
+ 	  switch (r_type)
+@@ -2722,6 +2729,7 @@ do_ifunc_pointer:
+ 	    }
+ 	}
+ 
++    skip_ifunc:
+       resolved_to_zero = (eh != NULL
+ 			  && UNDEFINED_WEAK_RESOLVED_TO_ZERO (info, eh));
+ 
+diff -rup binutils.orig/bfd/elfnn-aarch64.c binutils-2.30/bfd/elfnn-aarch64.c
+--- binutils.orig/bfd/elfnn-aarch64.c	2018-03-09 14:43:05.337208721 +0000
++++ binutils-2.30/bfd/elfnn-aarch64.c	2018-03-09 14:43:31.355904624 +0000
+@@ -4987,6 +4987,11 @@ elfNN_aarch64_final_link_relocate (reloc
+ 
+       if ((input_section->flags & SEC_ALLOC) == 0)
+ 	{
++	  /* If this is a SHT_NOTE section without SHF_ALLOC, treat
++	     STT_GNU_IFUNC symbol as STT_FUNC.  */
++	  if (elf_section_type (input_section) == SHT_NOTE)
++	    goto skip_ifunc;
++
+ 	  /* Dynamic relocs are not propagated for SEC_DEBUGGING
+ 	     sections because such sections are not SEC_ALLOC and
+ 	     thus ld.so will not process them.  */
+@@ -5180,6 +5185,7 @@ bad_ifunc_reloc:
+ 	}
+     }
+ 
++ skip_ifunc:
+   resolved_to_zero = (h != NULL
+ 		      && UNDEFWEAK_NO_DYNAMIC_RELOC (info, h));
+ 
+Only in binutils-2.30/bfd: elfnn-aarch64.c.orig
+diff -rup binutils.orig/bfd/elfxx-sparc.c binutils-2.30/bfd/elfxx-sparc.c
+--- binutils.orig/bfd/elfxx-sparc.c	2018-03-09 14:43:05.333208768 +0000
++++ binutils-2.30/bfd/elfxx-sparc.c	2018-03-09 14:43:31.355904624 +0000
+@@ -3026,7 +3026,13 @@ _bfd_sparc_elf_relocate_section (bfd *ou
+ 
+ 	  if ((input_section->flags & SEC_ALLOC) == 0
+ 	      || h->plt.offset == (bfd_vma) -1)
+-	    abort ();
++	    {
++	      /* If this is a SHT_NOTE section without SHF_ALLOC, treat
++	         STT_GNU_IFUNC symbol as STT_FUNC.  */
++	      if (elf_section_type (input_section) == SHT_NOTE)
++		goto skip_ifunc;
++	      abort ();
++	    }
+ 
+ 	  plt_sec = htab->elf.splt;
+ 	  if (! plt_sec)
+@@ -3130,6 +3136,7 @@ _bfd_sparc_elf_relocate_section (bfd *ou
+ 	    }
+ 	}
+ 
++    skip_ifunc:
+       eh = (struct _bfd_sparc_elf_link_hash_entry *) h;
+       resolved_to_zero = (eh != NULL
+ 			  && UNDEFINED_WEAK_RESOLVED_TO_ZERO (info, eh));
+Only in binutils-2.30/bfd: elfxx-sparc.c.orig
+diff -rup binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp binutils-2.30/ld/testsuite/ld-ifunc/ifunc.exp
+--- binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp	2018-03-09 14:43:04.844214486 +0000
++++ binutils-2.30/ld/testsuite/ld-ifunc/ifunc.exp	2018-03-09 14:43:31.355904624 +0000
+@@ -47,6 +47,9 @@ if ![check_shared_lib_support] {
+     return
+ }
+ 
++# This test does not need a compiler...
++run_dump_test "ifuncmod5"
++
+ # We need a working compiler.  (Strictly speaking this is
+ # not true, we could use target specific assembler files).
+ if { [which $CC] == 0 } {
+Only in binutils-2.30: testsuite
+--- /dev/null	2018-03-09 07:59:09.608015200 +0000
++++ binutils-2.30/ld/testsuite/ld-ifunc/ifuncmod5.s	2018-03-09 14:45:45.698334500 +0000
+@@ -0,0 +1,105 @@
++	.file	"ifuncmod5.c"
++
++	.text
++	.type ifuncmod5.c, STT_NOTYPE
++ifuncmod5.c:
++	.size ifuncmod5.c, 0
++
++	.pushsection .gnu.build.attributes, "", %note
++	.balign 4
++	.dc.l 8 	
++	.dc.l 16	
++	.dc.l 0x100	
++	.asciz "GA$3p4"	
++	.dc.a ifuncmod5.c
++	.dc.a ifuncmod5.c_end	
++	.popsection
++
++.Ltext0:
++#APP
++	.protected global
++	.type foo, %gnu_indirect_function
++	.type foo_hidden, %gnu_indirect_function
++	.type foo_protected, %gnu_indirect_function
++	.hidden foo_hidden
++	.protected foo_protected
++#NO_APP
++	.align	8
++	.type	one, %function
++one:
++	.dc.l 0
++	.size	one, .-one
++	.align	8
++
++.globl foo
++	.type	foo, %function
++foo:
++	.dc.l	0
++	.size	foo, .-foo
++
++	.pushsection .gnu.build.attributes
++	.dc.l 6		
++	.dc.l 16	
++	.dc.l 0x101	
++	.dc.b 0x47, 0x41, 0x2a, 0x2, 0, 0 	
++	.dc.b 0, 0 	
++	.dc.a foo
++	.dc.a foo_end	
++	.popsection
++
++foo_end:
++	.align	8
++.globl foo_hidden
++	.type	foo_hidden, %function
++foo_hidden:
++	.dc.l	0
++	.size	foo_hidden, .-foo_hidden
++
++	.pushsection .gnu.build.attributes
++	.dc.l 6		
++	.dc.l 16	
++	.dc.l 0x101	
++	.dc.b 0x47, 0x41, 0x2a, 0x2, 0, 0 	
++	.dc.b 0, 0 	
++	.dc.a foo_hidden
++	.dc.a foo_hidden_end	
++	.popsection
++
++foo_hidden_end:
++	.align	8
++
++	.globl foo_protected
++	.type	foo_protected, %function
++foo_protected:
++	.dc.l	0
++
++	.size	foo_protected, .-foo_protected
++
++	.pushsection .gnu.build.attributes
++	.dc.l 6		
++	.dc.l 16	
++	.dc.l 0x101	
++	.dc.b 0x47, 0x41, 0x2a, 0x2, 0, 0 	
++	.dc.b 0, 0 	
++	.dc.a foo_protected
++	.dc.a foo_protected_end	
++	.popsection
++
++foo_protected_end:
++	.globl global
++
++	.data
++	.align	4
++	.type	global, %object
++	.size	global, 4
++global:
++	.long	-1
++
++	.text
++	.Letext0:
++
++ifuncmod5.c_end:
++	.type ifuncmod5.c_end, STT_NOTYPE
++	.size ifuncmod5.c_end, 0
++
++
+--- /dev/null	2018-03-09 07:59:09.608015200 +0000
++++ binutils-2.30/ld/testsuite/ld-ifunc/ifuncmod5.d	2018-03-09 14:45:45.698334500 +0000
+@@ -0,0 +1,8 @@
++# name: Reloc against IFUNC symbol in NOTE section
++# ld: -shared
++# nm: -p
++
++# We do not actually care about the notes at the moment.
++# The purpose of this test is to make sure that the link completes successfully.
++#pass
++

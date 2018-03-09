@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -180,14 +180,9 @@ Patch15: binutils-speed-up-objdump.patch
 Patch16: binutils-2.28-ignore-gold-duplicates.patch
 
 # Purpose:  Treat relosc against STT_GNU_IFUNC symbols in note sections as
-#           if they were relocs against STT_FUNC symbols instead.  (x86 version)
+#           if they were relocs against STT_FUNC symbols instead.
 # Lifetime: Fixed in 2.31.
-Patch17: binutils-x86_64-ifunc-relocs-in-notes.patch
-
-# Purpose:  Treat relosc against STT_GNU_IFUNC symbols in note sections as
-#           if they were relocs against STT_FUNC symbols instead.  (s390 version)
-# Lifetime: Fixed in 2.31.
-Patch18: binutils-s390-ifunc-relocs-in-notes.patch
+Patch17: binutils-ifunc-relocs-in-notes.patch
 
 #----------------------------------------------------------------------------
 
@@ -331,7 +326,6 @@ using libelf instead of BFD.
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
-%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -740,6 +734,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.30-12
+- Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.
+- Combined previous patches into one which covers all ifunc supporting architectures.
+- Retire binutils-s390-ifunc-relocs-in-notes.patch
+- Retire binutils-x86_64-ifunc-relocs-in-notes.patch
+
 * Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.30-11
 - Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.  (#1553705)
 
