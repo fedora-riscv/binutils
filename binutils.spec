@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -180,9 +180,14 @@ Patch15: binutils-speed-up-objdump.patch
 Patch16: binutils-2.28-ignore-gold-duplicates.patch
 
 # Purpose:  Treat relosc against STT_GNU_IFUNC symbols in note sections as
-#           if they were relocs against STT_FUNC symbols instead.
+#           if they were relocs against STT_FUNC symbols instead.  (x86 version)
 # Lifetime: Fixed in 2.31.
 Patch17: binutils-x86_64-ifunc-relocs-in-notes.patch
+
+# Purpose:  Treat relosc against STT_GNU_IFUNC symbols in note sections as
+#           if they were relocs against STT_FUNC symbols instead.  (s390 version)
+# Lifetime: Fixed in 2.31.
+Patch18: binutils-s390-ifunc-relocs-in-notes.patch
 
 #----------------------------------------------------------------------------
 
@@ -209,7 +214,7 @@ Provides: bundled(libiberty)
 
 Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
-# Perl, sed and touch are all used in the %-prep section of this spec file.
+# Perl, sed and touch are all used in the %%prep section of this spec file.
 BuildRequires: gcc, perl, sed, coreutils
 
 # Gold needs bison in order to build gold/yyscript.c.
@@ -326,6 +331,7 @@ using libelf instead of BFD.
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -734,8 +740,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.30-11
+- Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.  (#1553705)
+
 * Wed Mar 07 2018 Nick Clifton  <nickc@redhat.com> 2.30-10
-- Treat relocs against IFUNC symbols in note sections as relocs against the FUNC symbol instead.  (#1552056)
+- Treat relocs against x86_64 IFUNC symbols in note sections as relocs against the FUNC symbol instead.  (#1552056)
 
 * Wed Mar 07 2018 Nick Clifton  <nickc@redhat.com> 2.30-9
 - Stop strip from replacing unknown relocs with null relocs.  (#1545386)
