@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -183,6 +183,11 @@ Patch16: binutils-2.28-ignore-gold-duplicates.patch
 #           if they were relocs against STT_FUNC symbols instead.
 # Lifetime: Fixed in 2.31.
 Patch17: binutils-ifunc-relocs-in-notes.patch
+
+# Purpose:  Do not discard debug only object files created by GCC v8's
+#           LTO wrapper.
+# Lifetime: Fixed in 2.31.
+Patch18: binutils-debug-section-marking.patch
 
 #----------------------------------------------------------------------------
 
@@ -326,6 +331,7 @@ using libelf instead of BFD.
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -734,6 +740,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Mar 14 2018 Nick Clifton  <nickc@redhat.com> 2.30-13
+- Do not discard debugobj files created by GCC v8 LTO wrapper.  (#1543912 and RHBZ 84847 and PR 20882)
+
 * Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.30-12
 - Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.
 - Combined previous patches into one which covers all ifunc supporting architectures.
