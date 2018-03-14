@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -194,6 +194,11 @@ Patch18: binutils-2.28-ignore-gold-duplicates.patch
 # Lifetime: Fixed in 2.31.
 Patch19: binutils-ifunc-relocs-in-notes.patch
 
+# Purpose:  Do not discard debug only object files created by GCC v8's
+#           LTO wrapper.
+# Lifetime: Fixed in 2.31.
+Patch20: binutils-debug-section-marking.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -219,7 +224,7 @@ Provides: bundled(libiberty)
 
 Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
-# Perl, sed and touch are all used in the %-prep section of this spec file.
+# Perl, sed and touch are all used in the %%prep section of this spec file.
 BuildRequires: gcc, perl, sed, coreutils
 
 # Gold needs bison in order to build gold/yyscript.c.
@@ -338,6 +343,7 @@ using libelf instead of BFD.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -743,6 +749,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Mar 14 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-23
+- Do not discard debugobj files created by GCC v8 LTO wrapper.  (#1543912 and RHBZ 84847 and PR 20882)
+
 * Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-22
 - Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.  (#1553705)
 
