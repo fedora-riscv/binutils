@@ -1,0 +1,16 @@
+--- binutils.orig/gold/resolve.cc	2018-03-22 16:52:11.746513638 +0000
++++ binutils-2.30/gold/resolve.cc	2018-03-22 16:53:58.038192419 +0000
+@@ -265,10 +265,13 @@ Symbol_table::resolve(Sized_symbol<size>
+     return;
+ 
+   // Likewise for an absolute symbol defined twice with the same value.
++  // Plugin-symbols are always absolute with same value here, so ignore those.
+   if (!is_ordinary
+       && st_shndx == elfcpp::SHN_ABS
+       && !to_is_ordinary
+       && to_shndx == elfcpp::SHN_ABS
++      && object->pluginobj() == NULL
++      && to->object()->pluginobj() == NULL
+       && to->value() == sym.get_st_value())
+     return;
+ 

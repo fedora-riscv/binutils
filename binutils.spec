@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -188,6 +188,11 @@ Patch17: binutils-ifunc-relocs-in-notes.patch
 #           LTO wrapper.
 # Lifetime: Fixed in 2.31.
 Patch18: binutils-debug-section-marking.patch
+
+# Purpose:  Fix the GOLD linker's handling of PROTECTED symbols from the
+#           LLVM plugin.
+# Lifetime: Fixed in 2.31 (probably - check...).
+Patch19: binutils-gold-llvm-plugin.patch
 
 #----------------------------------------------------------------------------
 
@@ -332,6 +337,7 @@ using libelf instead of BFD.
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -740,6 +746,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 22 2018 Nick Clifton  <nickc@redhat.com> 2.30-14
+- Fix the GOLD linker's processing of protected symbols created by the LLVM plugin.  (#1559234 and PR 22868)
+
 * Wed Mar 14 2018 Nick Clifton  <nickc@redhat.com> 2.30-13
 - Do not discard debugobj files created by GCC v8 LTO wrapper.  (#1543912 and RHBZ 84847 and PR 20882)
 
