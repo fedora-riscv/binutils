@@ -1,0 +1,555 @@
+diff -rup binutils.orig/binutils/readelf.c binutils-2.30/binutils/readelf.c
+--- binutils.orig/binutils/readelf.c	2018-04-26 15:14:17.220464639 +0100
++++ binutils-2.30/binutils/readelf.c	2018-04-26 15:14:31.927287474 +0100
+@@ -12294,7 +12294,8 @@ is_32bit_abs_reloc (Filedata * filedata,
+     case EM_OR1K:
+       return reloc_type == 1; /* R_OR1K_32.  */
+     case EM_PARISC:
+-      return (reloc_type == 1 /* R_PARISC_DIR32.  */
++      return (reloc_type == 1 /* R_PARISC_DIR32.  */	      
++	      || reloc_type == 2 /* R_PARISC_DIR21L.  */
+ 	      || reloc_type == 41); /* R_PARISC_SECREL32.  */
+     case EM_PJ:
+     case EM_PJ_OLD:
+Only in binutils-2.30/binutils: readelf.c.orig
+diff -rup binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.30/binutils/testsuite/binutils-all/objcopy.exp
+--- binutils.orig/binutils/testsuite/binutils-all/objcopy.exp	2018-04-26 15:14:17.215464699 +0100
++++ binutils-2.30/binutils/testsuite/binutils-all/objcopy.exp	2018-04-26 15:14:31.927287474 +0100
+@@ -1062,6 +1062,7 @@ if [is_elf_format] {
+ 	run_dump_test "note-3-32"
+ 	run_dump_test "note-4-32"
+     }
++    run_dump_test "note-5"
+ }
+ 
+ run_dump_test "copy-2"
+Only in binutils-2.30/binutils/testsuite/binutils-all: objcopy.exp.orig
+diff -rup binutils.orig/gas/as.c binutils-2.30/gas/as.c
+--- binutils.orig/gas/as.c	2018-04-26 15:14:17.646459507 +0100
++++ binutils-2.30/gas/as.c	2018-04-26 15:14:31.927287474 +0100
+@@ -97,6 +97,7 @@ int verbose = 0;
+ 
+ #if defined OBJ_ELF || defined OBJ_MAYBE_ELF
+ int flag_use_elf_stt_common = DEFAULT_GENERATE_ELF_STT_COMMON;
++bfd_boolean flag_generate_build_notes = DEFAULT_GENERATE_BUILD_NOTES;
+ #endif
+ 
+ /* Keep the output file.  */
+@@ -304,8 +305,19 @@ Options:\n\
+                           generate ELF common symbols with STT_COMMON type\n"));
+   fprintf (stream, _("\
+   --sectname-subst        enable section name substitution sequences\n"));
++
++  fprintf (stream, _("\
++  --generate-missing-build-notes=[no|yes] "));
++#if DEFAULT_GENERATE_BUILD_NOTES
++  fprintf (stream, _("(default: yes)\n"));
++#else
++  fprintf (stream, _("(default: no)\n"));
+ #endif
+   fprintf (stream, _("\
++                          generate GNU Build notes if none are present in the input\n"));
++#endif /* OBJ_ELF */
++
++  fprintf (stream, _("\
+   -f                      skip whitespace and comment preprocessing\n"));
+   fprintf (stream, _("\
+   -g --gen-debug          generate debugging information\n"));
+@@ -470,6 +482,7 @@ parse_args (int * pargc, char *** pargv)
+       OPTION_NOEXECSTACK,
+       OPTION_SIZE_CHECK,
+       OPTION_ELF_STT_COMMON,
++      OPTION_ELF_BUILD_NOTES,
+       OPTION_SECTNAME_SUBST,
+       OPTION_ALTERNATE,
+       OPTION_AL,
+@@ -508,6 +521,7 @@ parse_args (int * pargc, char *** pargv)
+     ,{"size-check", required_argument, NULL, OPTION_SIZE_CHECK}
+     ,{"elf-stt-common", required_argument, NULL, OPTION_ELF_STT_COMMON}
+     ,{"sectname-subst", no_argument, NULL, OPTION_SECTNAME_SUBST}
++    ,{"generate-missing-build-notes", required_argument, NULL, OPTION_ELF_BUILD_NOTES}
+ #endif
+     ,{"fatal-warnings", no_argument, NULL, OPTION_WARN_FATAL}
+     ,{"gdwarf-2", no_argument, NULL, OPTION_GDWARF2}
+@@ -900,7 +914,19 @@ This program has absolutely no warranty.
+ 	case OPTION_SECTNAME_SUBST:
+ 	  flag_sectname_subst = 1;
+ 	  break;
+-#endif
++
++	case OPTION_ELF_BUILD_NOTES:
++	  if (strcasecmp (optarg, "no") == 0)
++	    flag_generate_build_notes = FALSE;
++	  else if (strcasecmp (optarg, "yes") == 0)
++	    flag_generate_build_notes = TRUE;
++	  else
++	    as_fatal (_("Invalid --generate-missing-build-notes option: `%s'"),
++		      optarg);
++	  break;
++
++#endif /* OBJ_ELF */
++
+ 	case 'Z':
+ 	  flag_always_generate_output = 1;
+ 	  break;
+diff -rup binutils.orig/gas/as.h binutils-2.30/gas/as.h
+--- binutils.orig/gas/as.h	2018-04-26 15:14:17.654459410 +0100
++++ binutils-2.30/gas/as.h	2018-04-26 15:14:31.927287474 +0100
+@@ -585,6 +585,10 @@ COMMON int flag_allow_nonconst_size;
+ /* If we should generate ELF common symbols with the STT_COMMON type.  */
+ extern int flag_use_elf_stt_common;
+ 
++/* TRUE iff GNU Build attribute notes should
++   be generated if none are in the input files.  */
++extern bfd_boolean flag_generate_build_notes;
++
+ /* If section name substitution sequences should be honored */
+ COMMON int flag_sectname_subst;
+ #endif
+Only in binutils-2.30/gas: as.h.orig
+diff -rup binutils.orig/gas/config.in binutils-2.30/gas/config.in
+--- binutils.orig/gas/config.in	2018-04-26 15:14:17.645459519 +0100
++++ binutils-2.30/gas/config.in	2018-04-26 15:14:31.927287474 +0100
+@@ -39,6 +39,10 @@
+ /* Define if you want compressed debug sections by default. */
+ #undef DEFAULT_FLAG_COMPRESS_DEBUG
+ 
++/* Define to 1 if you want to generate GNU Build attribute notes by default,
++   if none are contained in the input. */
++#undef DEFAULT_GENERATE_BUILD_NOTES
++
+ /* Define to 1 if you want to generate ELF common symbols with the STT_COMMON
+    type by default. */
+ #undef DEFAULT_GENERATE_ELF_STT_COMMON
+diff -rup binutils.orig/gas/configure binutils-2.30/gas/configure
+--- binutils.orig/gas/configure	2018-04-26 15:14:17.645459519 +0100
++++ binutils-2.30/gas/configure	2018-04-26 15:14:31.928287462 +0100
+@@ -771,6 +771,7 @@ enable_checking
+ enable_compressed_debug_sections
+ enable_x86_relax_relocations
+ enable_elf_stt_common
++enable_generate_build_notes
+ enable_werror
+ enable_build_warnings
+ with_cpu
+@@ -1426,6 +1427,9 @@ Optional Features:
+                           generate x86 relax relocations by default
+   --enable-elf-stt-common generate ELF common symbols with STT_COMMON type by
+                           default
++  --enable-generate-build-notes
++                          generate GNU Build notes if none are provided by the
++                          input
+   --enable-werror         treat compile warnings as errors
+   --enable-build-warnings enable build-time compiler warnings
+   --disable-nls           do not use Native Language Support
+@@ -11011,7 +11015,7 @@ else
+   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
+   lt_status=$lt_dlunknown
+   cat > conftest.$ac_ext <<_LT_EOF
+-#line 10990 "configure"
++#line 10994 "configure"
+ #include "confdefs.h"
+ 
+ #if HAVE_DLFCN_H
+@@ -11117,7 +11121,7 @@ else
+   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
+   lt_status=$lt_dlunknown
+   cat > conftest.$ac_ext <<_LT_EOF
+-#line 11096 "configure"
++#line 11100 "configure"
+ #include "confdefs.h"
+ 
+ #if HAVE_DLFCN_H
+@@ -11771,6 +11775,20 @@ if test "${enable_elf_stt_common+set}" =
+ esac
+ fi
+ 
++
++# Decide if the ELF assembler should default to generating
++# GNU Build notes if none are provided by the input.
++ac_default_generate_build_notes=0
++# Provide a configuration option to override the default.
++# Check whether --enable-generate_build_notes was given.
++if test "${enable_generate_build_notes+set}" = set; then :
++  enableval=$enable_generate_build_notes; case "${enableval}" in
++  yes)  ac_default_generate_build_notes=1 ;;
++  no)   ac_default_generate_build_notes=0 ;;
++esac
++fi
++
++
+ using_cgen=no
+ 
+ 
+@@ -12713,6 +12731,12 @@ cat >>confdefs.h <<_ACEOF
+ _ACEOF
+ 
+ 
++
++cat >>confdefs.h <<_ACEOF
++#define DEFAULT_GENERATE_BUILD_NOTES $ac_default_generate_build_notes
++_ACEOF
++
++
+ if test x$ac_default_compressed_debug_sections = xyes ; then
+ 
+ $as_echo "#define DEFAULT_FLAG_COMPRESS_DEBUG 1" >>confdefs.h
+diff -rup binutils.orig/gas/configure.ac binutils-2.30/gas/configure.ac
+--- binutils.orig/gas/configure.ac	2018-04-26 15:14:17.645459519 +0100
++++ binutils-2.30/gas/configure.ac	2018-04-26 15:14:31.928287462 +0100
+@@ -100,6 +100,20 @@ AC_ARG_ENABLE(elf_stt_common,
+   yes)  ac_default_elf_stt_common=1 ;;
+ esac])dnl
+ 
++
++# Decide if the ELF assembler should default to generating
++# GNU Build notes if none are provided by the input.
++ac_default_generate_build_notes=0
++# Provide a configuration option to override the default.
++AC_ARG_ENABLE(generate_build_notes,
++	      AS_HELP_STRING([--enable-generate-build-notes],
++	      [generate GNU Build notes if none are provided by the input]),
++[case "${enableval}" in
++  yes)  ac_default_generate_build_notes=1 ;;
++  no)   ac_default_generate_build_notes=0 ;;
++esac])dnl
++
++
+ using_cgen=no
+ 
+ AM_BINUTILS_WARNINGS
+@@ -610,6 +624,11 @@ AC_DEFINE_UNQUOTED(DEFAULT_GENERATE_ELF_
+   [Define to 1 if you want to generate ELF common symbols with the
+    STT_COMMON type by default.])
+ 
++AC_DEFINE_UNQUOTED(DEFAULT_GENERATE_BUILD_NOTES,
++  $ac_default_generate_build_notes,
++  [Define to 1 if you want to generate GNU Build attribute notes
++   by default, if none are contained in the input.])
++
+ if test x$ac_default_compressed_debug_sections = xyes ; then
+   AC_DEFINE(DEFAULT_FLAG_COMPRESS_DEBUG, 1, [Define if you want compressed debug sections by default.])
+ fi
+Only in binutils-2.30/gas: configure.ac.orig
+Only in binutils-2.30/gas: configure.orig
+diff -rup binutils.orig/gas/doc/as.texinfo binutils-2.30/gas/doc/as.texinfo
+--- binutils.orig/gas/doc/as.texinfo	2018-04-26 15:14:17.665459278 +0100
++++ binutils-2.30/gas/doc/as.texinfo	2018-04-26 15:14:31.929287450 +0100
+@@ -244,6 +244,7 @@ gcc(1), ld(1), and the Info entries for
+  [@b{-Z}] [@b{@@@var{FILE}}]
+  [@b{--sectname-subst}] [@b{--size-check=[error|warning]}]
+  [@b{--elf-stt-common=[no|yes]}]
++ [@b{--generate-missing-build-notes=[no|yes]}]
+  [@b{--target-help}] [@var{target-options}]
+  [@b{--}|@var{files} @dots{}]
+ @c
+@@ -754,6 +755,14 @@ Issue an error or warning for invalid EL
+ These options control whether the ELF assembler should generate common
+ symbols with the @code{STT_COMMON} type.  The default can be controlled
+ by a configure option @option{--enable-elf-stt-common}.
++
++@item --generate-missing-build-notes=yes
++@itemx --generate-missing-build-notes=no
++These options control whether the ELF assembler should generate GNU Build
++attribute notes if none are present in the input sources.
++The default can be controlled by the @option{--enable-generate-build-notes}
++configure option.
++
+ @end ifset
+ 
+ @item --help
+Only in binutils-2.30/gas/doc: as.texinfo.orig
+diff -rup binutils.orig/gas/NEWS binutils-2.30/gas/NEWS
+--- binutils.orig/gas/NEWS	2018-04-26 15:14:17.646459507 +0100
++++ binutils-2.30/gas/NEWS	2018-04-26 15:15:32.276560482 +0100
+@@ -1,5 +1,11 @@
+ -*- text -*-
+ 
++* Add --generate-missing-build-notes=[yes|no] option to create (or not) GNU
++  Build Attribute notes if none are present in the input sources.  Add a
++  --enable-generate-build-notes=[yes|no] configure time option to set the
++  default behaviour.  Set the default if the configure option is not used
++  to "no".
++
+ Changes in 2.30:
+ 
+ * Add support for loaction views in DWARF debug line information.
+Only in binutils-2.30/gas: NEWS.orig
+Only in binutils-2.30/gas: NEWS.rej
+diff -rup binutils.orig/gas/symbols.c binutils-2.30/gas/symbols.c
+--- binutils.orig/gas/symbols.c	2018-04-26 15:14:17.667459254 +0100
++++ binutils-2.30/gas/symbols.c	2018-04-26 15:14:31.929287450 +0100
+@@ -108,6 +108,7 @@ save_symbol_name (const char *name)
+   size_t name_length;
+   char *ret;
+ 
++  gas_assert (name != NULL);
+   name_length = strlen (name) + 1;	/* +1 for \0.  */
+   obstack_grow (&notes, name, name_length);
+   ret = (char *) obstack_finish (&notes);
+diff -rup binutils.orig/gas/write.c binutils-2.30/gas/write.c
+--- binutils.orig/gas/write.c	2018-04-26 15:14:18.296451677 +0100
++++ binutils-2.30/gas/write.c	2018-04-26 15:14:31.929287450 +0100
+@@ -1822,25 +1822,200 @@ create_obj_attrs_section (void)
+   const char *name;
+ 
+   size = bfd_elf_obj_attr_size (stdoutput);
+-  if (size)
++  if (size == 0)
++    return;
++
++  name = get_elf_backend_data (stdoutput)->obj_attrs_section;
++  if (!name)
++    name = ".gnu.attributes";
++  s = subseg_new (name, 0);
++  elf_section_type (s)
++    = get_elf_backend_data (stdoutput)->obj_attrs_section_type;
++  bfd_set_section_flags (stdoutput, s, SEC_READONLY | SEC_DATA);
++  frag_now_fix ();
++  p = frag_more (size);
++  bfd_elf_set_obj_attr_contents (stdoutput, (bfd_byte *)p, size);
++
++  subsegs_finish_section (s);
++  relax_segment (seg_info (s)->frchainP->frch_root, s, 0);
++  size_seg (stdoutput, s, NULL);
++}
++
++#include "struc-symbol.h"
++
++/* Create a relocation against an entry in a GNU Build attribute section.  */
++
++static void
++create_note_reloc (segT           sec,
++		   symbolS *      sym,
++		   bfd_size_type  offset,
++		   int            reloc_type,
++		   bfd_vma        addend,
++		   char *         note)
++{
++  struct reloc_list * reloc;
++
++  reloc = XNEW (struct reloc_list);
++
++  /* We create a .b type reloc as resolve_reloc_expr_symbols() has already been called.  */
++  reloc->u.b.sec   = sec;
++  reloc->u.b.s     = sym->bsym;
++  reloc->u.b.r.sym_ptr_ptr = & reloc->u.b.s;
++  reloc->u.b.r.address     = offset;
++  reloc->u.b.r.addend      = addend;
++  reloc->u.b.r.howto       = bfd_reloc_type_lookup (stdoutput, reloc_type);
++
++  if (reloc->u.b.r.howto == NULL)
+     {
+-      name = get_elf_backend_data (stdoutput)->obj_attrs_section;
+-      if (!name)
+-	name = ".gnu.attributes";
+-      s = subseg_new (name, 0);
+-      elf_section_type (s)
+-	= get_elf_backend_data (stdoutput)->obj_attrs_section_type;
+-      bfd_set_section_flags (stdoutput, s, SEC_READONLY | SEC_DATA);
+-      frag_now_fix ();
+-      p = frag_more (size);
+-      bfd_elf_set_obj_attr_contents (stdoutput, (bfd_byte *)p, size);
+-
+-      subsegs_finish_section (s);
+-      relax_segment (seg_info (s)->frchainP->frch_root, s, 0);
+-      size_seg (stdoutput, s, NULL);
++      as_bad (_("unable to create reloc for build note"));
++      return;
++    }
++
++  reloc->file = N_("<gnu build note>");
++  reloc->line = 0;
++
++  reloc->next = reloc_list;
++  reloc_list = reloc;
++
++  /* For REL relocs, store the addend in the section.  */
++  if (! sec->use_rela_p
++      /* The SH target is a special case that uses RELA relocs
++	 but still stores the addend in the word being relocated.  */
++      || strstr (bfd_get_target (stdoutput), "-sh") != NULL)
++    {
++      if (target_big_endian)
++	{
++	  if (bfd_arch_bits_per_address (stdoutput) <= 32)
++	    note[offset + 3] = addend;
++	  else
++	    note[offset + 7] = addend;
++	}
++      else
++	note[offset] = addend;
+     }
+ }
+-#endif
++
++static void
++maybe_generate_build_notes (void)
++{
++  segT      sec;
++  char *    note;
++  offsetT   note_size;
++  offsetT   desc_size;
++  offsetT   desc2_offset;
++  int       desc_reloc;
++  symbolS * sym;
++
++  if (! flag_generate_build_notes
++      || bfd_get_section_by_name (stdoutput,
++				  GNU_BUILD_ATTRS_SECTION_NAME) != NULL)
++    return;
++
++  /* Create a GNU Build Attribute section.  */
++  sec = subseg_new (GNU_BUILD_ATTRS_SECTION_NAME, FALSE);
++  elf_section_type (sec) = SHT_NOTE;
++  bfd_set_section_flags (stdoutput, sec,
++			 SEC_READONLY | SEC_HAS_CONTENTS | SEC_DATA);
++  bfd_set_section_alignment (stdoutput, sec, 2);
++
++  /* Create a version note.  */
++  if (bfd_arch_bits_per_address (stdoutput) <= 32)
++    {
++      note_size = 28;
++      desc_size = 8; /* Two 4-byte offsets.  */
++      desc2_offset = 24;
++
++      /* FIXME: The BFD backend for the CRX target does not support the
++	 BFD_RELOC_32, even though it really should.  Likewise for the
++	 CR16 target.  So we have special case code here...  */
++      if (strstr (bfd_get_target (stdoutput), "-crx") != NULL)
++	desc_reloc = BFD_RELOC_CRX_NUM32;
++      else if (strstr (bfd_get_target (stdoutput), "-cr16") != NULL)
++	desc_reloc = BFD_RELOC_CR16_NUM32;
++      else
++	desc_reloc = BFD_RELOC_32;
++    }
++  else
++    {
++      note_size = 36;
++      desc_size = 16; /* Two  8-byte offsets.  */
++      desc2_offset = 28;
++      /* FIXME: The BFD backend for the IA64 target does not support the
++	 BFD_RELOC_64, even though it really should.  The HPPA backend
++	 has a similar issue, although it does not support BFD_RELOCs at
++	 all!  So we have special case code to handle these targets.  */
++      if (strstr (bfd_get_target (stdoutput), "-ia64") != NULL)
++	desc_reloc = target_big_endian ? BFD_RELOC_IA64_DIR32MSB : BFD_RELOC_IA64_DIR32LSB;
++      else if (strstr (bfd_get_target (stdoutput), "-hppa") != NULL)
++	desc_reloc = 80; /* R_PARISC_DIR64.  */
++      else
++	desc_reloc = BFD_RELOC_64;
++    }
++  
++  frag_now_fix ();
++  note = frag_more (note_size);
++  memset (note, 0, note_size);
++
++  if (target_big_endian)
++    {
++      note[3] = 8; /* strlen (name) + 1.  */
++      note[7] = desc_size; /* Two 8-byte offsets.  */
++      note[10] = NT_GNU_BUILD_ATTRIBUTE_OPEN >> 8;
++      note[11] = NT_GNU_BUILD_ATTRIBUTE_OPEN & 0xff;
++    }
++  else
++    {
++      note[0] = 8; /* strlen (name) + 1.  */
++      note[4] = desc_size; /* Two 8-byte offsets.  */
++      note[8] = NT_GNU_BUILD_ATTRIBUTE_OPEN & 0xff;
++      note[9] = NT_GNU_BUILD_ATTRIBUTE_OPEN >> 8;
++    }
++
++  /* The a1 version number indicates that this note was
++     generated by the assembler and not the gcc annobin plugin.  */
++  memcpy (note + 12, "GA$3a1", 8);
++
++  /* Find the first code section symbol.  */
++  for (sym = symbol_rootP; sym != NULL; sym = sym->sy_next)
++    if (sym->bsym != NULL
++	&& sym->bsym->flags & BSF_SECTION_SYM
++	&& sym->bsym->section != NULL
++	&& sym->bsym->section->flags & SEC_CODE)
++      {
++	/* Found one - now create a relocation against this symbol.  */
++	create_note_reloc (sec, sym, 20, desc_reloc, 0, note);
++	break;
++      }
++
++  /* Find the last code section symbol.  */
++  if (sym)
++    {
++      for (sym = symbol_lastP; sym != NULL; sym = sym->sy_previous)
++	if (sym->bsym != NULL
++	    && sym->bsym->flags & BSF_SECTION_SYM
++	    && sym->bsym->section != NULL
++	    && sym->bsym->section->flags & SEC_CODE)
++	  {
++	    /* Create a relocation against the end of this symbol.  */
++	    create_note_reloc (sec, sym, desc2_offset, desc_reloc,
++			       bfd_get_section_size (sym->bsym->section),
++			       note);
++	    break;
++	  }
++    }
++  /* else - if we were unable to find any code section symbols then
++     probably there is no code in the output.  So leaving the start
++     and end values as zero in the note is OK.  */
++
++  /* FIXME: Maybe add a note recording the assembler command line and version ?  */
++
++  /* Install the note(s) into the section.  */
++  bfd_set_section_contents (stdoutput, sec, (bfd_byte *) note, 0, note_size);
++  subsegs_finish_section (sec);
++  relax_segment (seg_info (sec)->frchainP->frch_root, sec, 0);
++  size_seg (stdoutput, sec, NULL);
++}
++#endif /* OBJ_ELF */
+ 
+ /* Write the object file.  */
+ 
+@@ -2052,6 +2227,11 @@ write_object_file (void)
+   resolve_local_symbol_values ();
+   resolve_reloc_expr_symbols ();
+ 
++#ifdef OBJ_ELF
++  if (IS_ELF)
++    maybe_generate_build_notes ();
++#endif
++  
+   PROGRESS (1);
+ 
+ #ifdef tc_frob_file_before_adjust
+Only in binutils-2.30/gas: write.c.orig
+Only in binutils-2.30: testsuite
+--- /dev/null	2018-04-26 08:07:19.307057583 +0100
++++ binutils-2.30/binutils/testsuite/binutils-all/note-5.d	2018-04-26 15:17:06.318427614 +0100
+@@ -0,0 +1,11 @@
++#PROG: objcopy
++#as: --generate-missing-build-notes=yes
++#readelf: --notes --wide
++#name: assembler generated build notes
++#source: note-5.s
++
++#...
++Displaying notes found in: .gnu.build.attributes
++[ 	]+Owner[ 	]+Data size[ 	]+Description
++[ 	]+GA\$<version>3a1[ 	]+0x000000(08|10)[ 	]+OPEN[ 	]+Applies to region from 0 to 0x.. \(note_5.s\)
++#...
+--- /dev/null	2018-04-26 08:07:19.307057583 +0100
++++ binutils-2.30/binutils/testsuite/binutils-all/note-5.s	2018-04-26 15:17:06.318427614 +0100
+@@ -0,0 +1,14 @@
++	.text
++	.global note_5.s
++note_5.s:
++	.dc.l	2
++	.dc.l	4
++	.dc.l	6
++	.dc.l	8
++	.dc.l	8
++	.dc.l	8
++	.dc.l	8
++	.dc.l	8
++	.dc.l	8
++	.dc.l	8
++	
+\ No newline at end of file

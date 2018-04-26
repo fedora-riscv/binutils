@@ -21,6 +21,9 @@
 # Default to read-only-relocations (relro) in shared binaries.
 %define default_relro 1
 
+# Enable the default generation of GNU Build notes by the assembler.
+%define default_generate_notes 1
+
 #----End of Configure Options------------------------------------------------
 
 # Default: Not bootstrapping.
@@ -62,7 +65,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -193,6 +196,11 @@ Patch18: binutils-debug-section-marking.patch
 #           LLVM plugin.
 # Lifetime: Fixed in 2.31 (probably - check...).
 Patch19: binutils-gold-llvm-plugin.patch
+
+# Purpose:  Enhance the assembler so that it will automatically generate
+#           GNU Build attribute notes if none are present in the inputs.
+# Lifetime: Fixed in 2.31
+Patch20: binutils-gas-build-notes.patch
 
 #----------------------------------------------------------------------------
 
@@ -338,6 +346,7 @@ using libelf instead of BFD.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -469,6 +478,11 @@ export LDFLAGS=$RPM_LD_FLAGS
   --enable-compressed-debug-sections=all \
 %else
   --enable-compressed-debug-sections=none \
+%endif
+%if %{default_generate_notes}
+  --enable-generate-build-notes=yes \
+%else
+  --enable-generate-build-notes=no \
 %endif
   $CARGS \
   --enable-plugins \
@@ -746,6 +760,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Apr 26 2018 Nick Clifton  <nickc@redhat.com> 2.30-15
+- Enhance the assembler to automatically generate annobin notes if none are present in the input.
+
 * Thu Mar 22 2018 Nick Clifton  <nickc@redhat.com> 2.30-14
 - Fix the GOLD linker's processing of protected symbols created by the LLVM plugin.  (#1559234 and PR 22868)
 
