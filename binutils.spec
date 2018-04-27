@@ -65,7 +65,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -201,6 +201,21 @@ Patch19: binutils-gold-llvm-plugin.patch
 #           GNU Build attribute notes if none are present in the inputs.
 # Lifetime: Fixed in 2.31
 Patch20: binutils-gas-build-notes.patch
+
+# Purpose:  Fix a CVE triggered by running objdump on a corrupt AOUT
+#           format file.
+# Lifetime: Fixed in 2.31
+Patch21: binutils-CVE-2018-7642.patch
+
+# Purpose:  Fix a CVE triggered by running objdump on a binary containing
+#           corrupt DWARF debug information.
+# Lifetime: Fixed in 2.31
+Patch22: binutils-CVE-2018-7643.patch
+
+# Purpose:  Fix a CVE triggered by running objdump on a corrupt COFF
+#           format file.
+# Lifetime: Fixed in 2.31
+Patch23: binutils-CVE-2018-7208.patch
 
 #----------------------------------------------------------------------------
 
@@ -347,6 +362,9 @@ using libelf instead of BFD.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
+%patch21 -p1
+%patch22 -p1
+%patch23 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -760,6 +778,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Apr 27 2018 Nick Clifton  <nickc@redhat.com> 2.30-16
+- Fix for PR 22887 - crashing objdump by passing it a corrupt AOUT binary.  (#1553115)
+- Fix for PR 22905 - crashing objdump by passing it a corrupt DWARF file.  (#1553122)
+- Fix for PR 22741 - crashing objdump by passing it a corrupt COFF file.  (#1571918)
+
 * Thu Apr 26 2018 Nick Clifton  <nickc@redhat.com> 2.30-15
 - Enhance the assembler to automatically generate annobin notes if none are present in the input.
 
