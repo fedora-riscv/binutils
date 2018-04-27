@@ -21,8 +21,10 @@
 # Default to read-only-relocations (relro) in shared binaries.
 %define default_relro 1
 
-# Enable the default generation of GNU Build notes by the assembler.
-%define default_generate_notes 1
+# Disable the default generation of GNU Build notes by the assembler.
+# This has turned out to be problematic for the i686 architecture.
+# although the extact reason has not been determined.  (See BZ 1572485)
+%define default_generate_notes 0
 
 #----End of Configure Options------------------------------------------------
 
@@ -65,7 +67,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -778,6 +780,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Apr 27 2018 Nick Clifton  <nickc@redhat.com> 2.30-17
+- Disable the automatic generation of annobin notes.  (#1572485)
+
 * Fri Apr 27 2018 Nick Clifton  <nickc@redhat.com> 2.30-16
 - Fix for PR 22887 - crashing objdump by passing it a corrupt AOUT binary.  (#1553115)
 - Fix for PR 22905 - crashing objdump by passing it a corrupt DWARF file.  (#1553122)
