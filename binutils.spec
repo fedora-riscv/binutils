@@ -24,6 +24,8 @@
 # Disable the default generation of GNU Build notes by the assembler.
 # This has turned out to be problematic for the i686 architecture.
 # although the extact reason has not been determined.  (See BZ 1572485)
+# It also breaks building EFI binaries on AArch64, as these cannot have
+# relocations against absolute symbols.
 %define default_generate_notes 0
 
 #----End of Configure Options------------------------------------------------
@@ -67,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -204,20 +206,54 @@ Patch19: binutils-gold-llvm-plugin.patch
 # Lifetime: Fixed in 2.31
 Patch20: binutils-gas-build-notes.patch
 
-# Purpose:  Fix a CVE triggered by running objdump on a corrupt AOUT
+# Purpose:  Fix a seg-fault triggered by running objdump on a corrupt AOUT
 #           format file.
 # Lifetime: Fixed in 2.31
 Patch21: binutils-CVE-2018-7642.patch
 
-# Purpose:  Fix a CVE triggered by running objdump on a binary containing
-#           corrupt DWARF debug information.
+# Purpose:  Fix a seg-fault triggered by running readelf or objdump on a
+#           file containing corrupt DWARF debug information.
 # Lifetime: Fixed in 2.31
 Patch22: binutils-CVE-2018-7643.patch
 
-# Purpose:  Fix a CVE triggered by running objdump on a corrupt COFF
+# Purpose:  Fix a seg-fault triggered by running objdump on a corrupt COFF
 #           format file.
 # Lifetime: Fixed in 2.31
 Patch23: binutils-CVE-2018-7208.patch
+
+# Purpose:  Fix a seg-fault triggered by running readelf or objdump on a
+#           file containing corrupt DWARF debug information.
+# Lifetime: Fixed in 2.31
+Patch24: binutils-CVE-2018-10372.patch
+
+# Purpose:  Fix another seg-fault triggered by running readelf or objdump on a
+#           file containing corrupt DWARF debug information.
+# Lifetime: Fixed in 2.31
+Patch25: binutils-CVE-2018-10373.patch
+
+# Purpose:  Fix a seg-fault triggered by running objcopy on a corrupt ELF
+#           file.
+# Lifetime: Fixed in 2.31
+Patch26: binutils-CVE-2018-7570.patch
+
+# Purpose:  Fix a seg-fault triggered by running objcopy on a large ELF
+#           file on a 32-bit host machine.
+# Lifetime: Fixed in 2.31
+Patch27: binutils-CVE-2018-6323.patch
+
+# Purpose:  Fix a seg-fault triggered by running nm on a corrupt ELF file.
+# Lifetime: Fixed in 2.31
+Patch28: binutils-CVE-2018-6759.patch
+
+# Purpose:  Fix a seg-fault triggered by running nm on a file containing
+#           corrupt DWARF information.
+# Lifetime: Fixed in 2.31
+Patch29: binutils-CVE-2018-7569.patch
+
+# Purpose:  Fix a seg-fault triggered by running nm on a file containing
+#           corrupt DWARF information.
+# Lifetime: Fixed in 2.31
+Patch30: binutils-CVE-2018-7568.patch
 
 #----------------------------------------------------------------------------
 
@@ -367,6 +403,13 @@ using libelf instead of BFD.
 %patch21 -p1
 %patch22 -p1
 %patch23 -p1
+%patch24 -p1
+%patch25 -p1
+%patch26 -p1
+%patch27 -p1
+%patch28 -p1
+%patch29 -p1
+%patch30 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -780,6 +823,15 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 01 2018 Nick Clifton  <nickc@redhat.com> 2.30-18
+- Fix a seg-fault parsing corrupt DWARF information.  (#1573360)
+- Fix another seg-fault parsing corrupt DWARF information.  (#1573367)
+- Fix a seg-fault copying a corrupt ELF file.  (#1551788)
+- Fix a seg-fault parsing a large ELF files on a 32-bit host.  (#1539891)
+- Fix a seg-fault running nm on a corrupt ELF file.  (#15343247)
+- Fix a seg-fault running nm on a file containing corrupt DWARF information.  (#1551781)
+- Fix another seg-fault running nm on a file containing corrupt DWARF information.  (#1551763)
+
 * Fri Apr 27 2018 Nick Clifton  <nickc@redhat.com> 2.30-17
 - Disable the automatic generation of annobin notes.  (#1572485)
 
