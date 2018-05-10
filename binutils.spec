@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -255,6 +255,16 @@ Patch29: binutils-CVE-2018-7569.patch
 # Lifetime: Fixed in 2.31
 Patch30: binutils-CVE-2018-7568.patch
 
+# Purpose:  Fix a seg-fault triggered by running objcopy on a corrupt
+#           PE format file.
+# Lifetime: Fixed in 2.31
+Patch31: binutils-CVE-2018-10534.patch
+
+# Purpose:  Fix a seg-fault triggered by running objcopy on a corrupt
+#           ELF format file.
+# Lifetime: Fixed in 2.31
+Patch32: binutils-CVE-2018-10535.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -410,6 +420,8 @@ using libelf instead of BFD.
 %patch28 -p1
 %patch29 -p1
 %patch30 -p1
+%patch31 -p1
+%patch32 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -823,6 +835,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu May 10 2018 Nick Clifton  <nickc@redhat.com> 2.30-19
+- Fix a seg-fault running objcopy on a corrupt PE format file.  (#1574702)
+- Fix a seg-fault running objcopy on a corrupt ELF format file.  (#1574705)
+
 * Tue May 01 2018 Nick Clifton  <nickc@redhat.com> 2.30-18
 - Fix a seg-fault parsing corrupt DWARF information.  (#1573360)
 - Fix another seg-fault parsing corrupt DWARF information.  (#1573367)
