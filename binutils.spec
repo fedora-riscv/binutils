@@ -270,6 +270,11 @@ Patch32: binutils-CVE-2018-10535.patch
 # Lifetime: Fixed in 2.31
 Patch33: binutils-x86-local-relocs.patch
 
+# Purpose:  Stop the assembler from generating GNU build notes against
+#           linkonce sections.
+# Lifetime: Fixed in 2.31
+Patch34: binutils-linkonce-notes.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -428,6 +433,7 @@ using libelf instead of BFD.
 %patch31 -p1
 %patch32 -p1
 %patch33 -p1
+%patch34 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -843,6 +849,7 @@ exit 0
 %changelog
 * Mon May 14 2018 Nick Clifton  <nickc@redhat.com> 2.30-20
 - Have the x86 linker resolve relocations against the _end, _edata and __bss_start symbols locally.  (#1576735)
+- Do not generate GNU build notes for linkonce sections.  (#1576362)
 
 * Thu May 10 2018 Nick Clifton  <nickc@redhat.com> 2.30-19
 - Fix a seg-fault running objcopy on a corrupt PE format file.  (#1574702)
