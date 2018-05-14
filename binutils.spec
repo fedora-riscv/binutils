@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -265,6 +265,11 @@ Patch31: binutils-CVE-2018-10534.patch
 # Lifetime: Fixed in 2.31
 Patch32: binutils-CVE-2018-10535.patch
 
+# Purpose:  Have the x86 linker resolve relocations against the _end,
+#           __bss_start and -edata symbols locally.
+# Lifetime: Fixed in 2.31
+Patch33: binutils-x86-local-relocs.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -422,6 +427,7 @@ using libelf instead of BFD.
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
+%patch33 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -835,6 +841,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon May 14 2018 Nick Clifton  <nickc@redhat.com> 2.30-20
+- Have the x86 linker resolve relocations against the _end, _edata and __bss_start symbols locally.  (#1576735)
+
 * Thu May 10 2018 Nick Clifton  <nickc@redhat.com> 2.30-19
 - Fix a seg-fault running objcopy on a corrupt PE format file.  (#1574702)
 - Fix a seg-fault running objcopy on a corrupt ELF format file.  (#1574705)
