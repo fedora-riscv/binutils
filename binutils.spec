@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -275,6 +275,11 @@ Patch33: binutils-x86-local-relocs.patch
 # Lifetime: Fixed in 2.31
 Patch34: binutils-linkonce-notes.patch
 
+# Purpose:  Fix a seg-fault triggered by running objcopy on a corrupt
+#           PE format file.
+# Lifetime: Fixed in 2.31
+Patch35: binutils-CVE-2018-8945.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -434,6 +439,7 @@ using libelf instead of BFD.
 %patch32 -p1
 %patch33 -p1
 %patch34 -p1
+%patch35 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -847,6 +853,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu May 17 2018 Nick Clifton  <nickc@redhat.com> 2.30-21
+- Fix a seg-fault parsing PE format binaries.  (#1560829)
+
 * Mon May 14 2018 Nick Clifton  <nickc@redhat.com> 2.30-20
 - Have the x86 linker resolve relocations against the _end, _edata and __bss_start symbols locally.  (#1576735)
 - Do not generate GNU build notes for linkonce sections.  (#1576362)
@@ -883,7 +892,7 @@ exit 0
 
 * Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.30-12
 - Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.
-- Combined previous patches into one which covers all ifunc supporting architectures.
+- Combined previous patches into one which covers all ifunc supporting architectures.    (#1553705)
 - Retire binutils-s390-ifunc-relocs-in-notes.patch
 - Retire binutils-x86_64-ifunc-relocs-in-notes.patch
 
