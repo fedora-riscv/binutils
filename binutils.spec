@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -159,6 +159,22 @@ Patch14: binutils-speed-up-objdump.patch
 #           if they were relocs against STT_FUNC symbols instead.
 # Lifetime: Fixed in 2.31.
 Patch15: binutils-ifunc-relocs-in-notes.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt x86 binaries.
+# Lifetime: Fixed in 2.29.1.
+Patch16: binutils-CVE-2017-13757.patch
+
+# Purpose:  Fix a seg-fault induced when parsing ELF version information.
+# Lifetime: Fixed in 2.29.1.
+Patch17: binutils-CVE-2017-14333.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt TEKHEX format files.
+# Lifetime: Fixed in 2.29.1.
+Patch18: binutils-CVE-2017-12967.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt ELF format files.
+# Lifetime: Fixed in 2.29.1.
+Patch19: binutils-CVE-2017-12799.patch
 
 #----------------------------------------------------------------------------
 
@@ -297,6 +313,10 @@ using libelf instead of BFD.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
+%patch17 -p1
+%patch18 -p1
+%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -705,6 +725,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu May 31 2018 Nick Clifton  <nickc@redhat.com> 2.29-1-15
+- Fix a seg-fault that can occur when parsing corrupt x86 binaries.  (#1487762)
+- Fix a seg-fault that can occur when parsing ELF version information.  (#1492130)
+- Fix a seg-fault that can occur when parsing corrupt TEKHEX files.  (#1484527)
+- Fix a seg-fault that can occur when parsing corrupt ELF files.  (#1480343)
+
 * Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.29-1-14
 - Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.  (#1553705)
 
