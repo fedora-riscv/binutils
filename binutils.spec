@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -280,6 +280,14 @@ Patch34: binutils-linkonce-notes.patch
 # Lifetime: Fixed in 2.31
 Patch35: binutils-CVE-2018-8945.patch
 
+# Purpose:  Fix handling of local version symbols by the x86 linker.
+# Lifetime: Fixed in 2.31
+Patch36: binutils-x86-local-version.patch
+
+# Purpose:  Fix linker testsuite failures
+# Lifetime: Fixed in 2.31 (probably)
+Patch37: binutils-fix-testsuite-failures.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -440,6 +448,8 @@ using libelf instead of BFD.
 %patch33 -p1
 %patch34 -p1
 %patch35 -p1
+%patch36 -p1
+%patch37 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -853,6 +863,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jun 01 2018 Nick Clifton  <nickc@redhat.com> 2.30-22
+- Fix handling of local versioned symbols by the x86 linker.  (PR 23194)
+- Fix linker testsuite failures.
+
 * Thu May 17 2018 Nick Clifton  <nickc@redhat.com> 2.30-21
 - Fix a seg-fault parsing PE format binaries.  (#1560829)
 

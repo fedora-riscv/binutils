@@ -1,0 +1,58 @@
+diff -rup binutils.orig/bfd/elf.c binutils-2.30/bfd/elf.c
+--- binutils.orig/bfd/elf.c	2018-06-01 09:10:37.866552789 +0100
++++ binutils-2.30/bfd/elf.c	2018-06-01 09:16:23.159605609 +0100
+@@ -707,11 +707,23 @@ setup_group (bfd *abfd, Elf_Internal_Shd
+ 			      |= SEC_LINK_ONCE | SEC_LINK_DUPLICATES_DISCARD;
+ 			  break;
+ 			}
+-		      if (idx >= shnum)
++		      if (idx < shnum)
++			{
++			  dest->shdr = elf_elfsections (abfd)[idx];
++			  /* PR binutils/23199: All sections in a
++			     section group should be marked with
++			     SHF_GROUP.  But some tools generate
++			     broken objects without SHF_GROUP.  Fix
++			     them up here.  */
++			  dest->shdr->sh_flags |= SHF_GROUP;
++			}
++		      if (idx >= shnum
++			  || dest->shdr->sh_type == SHT_GROUP)
+ 			{
+ 			  _bfd_error_handler
+-			    (_("%B: invalid SHT_GROUP entry"), abfd);
+-			  idx = 0;
++			    (_("%B: invalid entry in SHT_GROUP section [%u]"),
++			     abfd, i);
++			  dest->shdr = NULL;
+ 			}
+ 		      dest->shdr = elf_elfsections (abfd)[idx];
+ 		    }
+@@ -779,7 +791,8 @@ setup_group (bfd *abfd, Elf_Internal_Shd
+ 		idx = (Elf_Internal_Group *) shdr->contents;
+ 		n_elt = shdr->sh_size / 4;
+ 		while (--n_elt != 0)
+-		  if ((s = (++idx)->shdr->bfd_section) != NULL
++		  if ((++idx)->shdr != NULL
++		      && (s = idx->shdr->bfd_section) != NULL
+ 		      && elf_next_in_group (s) != NULL)
+ 		    break;
+ 		if (n_elt != 0)
+diff -rup binutils.orig/bfd/elfxx-x86.c binutils-2.30/bfd/elfxx-x86.c
+--- binutils.orig/bfd/elfxx-x86.c	2018-06-01 09:10:37.854552926 +0100
++++ binutils-2.30/bfd/elfxx-x86.c	2018-06-01 09:21:10.570323575 +0100
+@@ -1976,7 +1976,13 @@ _bfd_x86_elf_link_symbol_references_loca
+       return TRUE;
+     }
+ 
+-  eh->local_ref = 1;
++  /* Symbols created by HIDDEN and PROVIDE_HIDDEN assignments in linker
++     script aren't forced local here yet.  bfd_hide_sym_by_version
++     can't be used to check if a versioned symbol is hidden.  It has to
++     be syncd with _bfd_elf_link_assign_sym_version to get the correct
++     answer.  */
++  if (!h->root.ldscript_def && h->versioned == unversioned)
++    eh->local_ref = 1;
+   return FALSE;
+ }
+ 
