@@ -1,0 +1,17 @@
+--- binutils.orig/bfd/elf32-ppc.c	2018-06-12 17:35:40.931551297 +0100
++++ binutils-2.30/bfd/elf32-ppc.c	2018-06-12 17:37:22.252441292 +0100
+@@ -4677,12 +4677,12 @@ _bfd_elf_ppc_merge_fp_attributes (bfd *i
+ 	_bfd_error_handler
+ 	  /* xgettext:c-format */
+ 	  (_("Warning: %B uses IBM long double, "
+-	     "%B uses IEEE long double"), ibfd, obfd);
++	     "%B uses IEEE long double"), obfd, ibfd);
+       else if (out_fp == 3 * 4 && in_fp == 1 * 4)
+ 	_bfd_error_handler
+ 	  /* xgettext:c-format */
+ 	  (_("Warning: %B uses IBM long double, "
+-	     "%B uses IEEE long double"), obfd, ibfd);
++	     "%B uses IEEE long double"), ibfd, obfd);
+     }
+ }
+ 

@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -288,6 +288,11 @@ Patch36: binutils-x86-local-version.patch
 # Lifetime: Fixed in 2.31 (probably)
 Patch37: binutils-fix-testsuite-failures.patch
 
+# Purpose:  Correct warning messages about incompatible PowerPC IEEE
+#           long double sizes in different binaries.
+# Lifetime: Fixed in 2.31.
+Patch38: binutils-PowerPC-IEEE-long-double-warnings.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -450,6 +455,7 @@ using libelf instead of BFD.
 %patch35 -p1
 %patch36 -p1
 %patch37 -p1
+%patch38 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -863,6 +869,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jun 12 2018 Nick Clifton  <nickc@redhat.com> 2.30-23
+- Correct warning messages about incompatible PowerPC IEEE long double settings.
+
 * Fri Jun 01 2018 Nick Clifton  <nickc@redhat.com> 2.30-22
 - Fix handling of local versioned symbols by the x86 linker.  (PR 23194)
 - Fix linker testsuite failures.
