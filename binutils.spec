@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -644,7 +644,9 @@ fi
   %{_bindir}/%{?cross}ld.bfd %{ld_bfd_priority}
 %{_sbindir}/alternatives --install %{_bindir}/%{?cross}ld %{?cross}ld \
   %{_bindir}/%{?cross}ld.gold %{ld_gold_priority}
-%{_sbindir}/alternatives --auto %{?cross}ld
+if [ $1 = 0 ]; then
+  %{_sbindir}/alternatives --auto %{?cross}ld
+fi
 %endif # both ld.gold and ld.bfd
 
 %if %{isnative}
@@ -749,6 +751,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jun 18 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-24
+- When installing both ld.bfd and ld.gold, do not reset the current alternative if upgrading.  (#1592069)
+
 * Wed Mar 14 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-23
 - Do not discard debugobj files created by GCC v8 LTO wrapper.  (#1543912 and RHBZ 84847 and PR 20882)
 
