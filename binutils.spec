@@ -69,9 +69,8 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
-Group: Development/Tools
 URL: https://sourceware.org/binutils
 
 # Note - the Linux Kernel binutils releases are too unstable and contain
@@ -297,7 +296,7 @@ Patch38: binutils-PowerPC-IEEE-long-double-warnings.patch
 
 Provides: bundled(libiberty)
 
-%define gold_arches %ix86 x86_64 %arm aarch64 %{power64} s390x
+%define gold_arches %{ix86} x86_64 %{arm} aarch64 %{power64} s390x
 
 %if %{with bootstrap}
 %define build_gold      no
@@ -389,7 +388,6 @@ converting addresses to file and line).
 
 %package devel
 Summary: BFD and opcodes static and dynamic libraries and header files
-Group: System Environment/Libraries
 Provides: binutils-static = %{version}-%{release}
 %if %{with docs}
 Requires(post): /sbin/install-info
@@ -625,7 +623,6 @@ rm -f binutils-%{_target_platform}.tar.bz2 binutils-%{_target_platform}-*.{sum,l
 #----------------------------------------------------------------------------
 
 %install
-rm -rf %{buildroot}
 %if %{with docs}
 %make_install DESTDIR=%{buildroot}
 %else
@@ -668,7 +665,7 @@ chmod +x %{buildroot}%{_libdir}/lib*.so*
 %endif
 
 # Prevent programs from linking against libbfd and libopcodes
-# dynamically, as they are change far too often.
+# dynamically, as they are changed far too often.
 rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.so
 
 # Remove libtool files, which reference the .so libs
@@ -752,11 +749,6 @@ fi
 
 #----------------------------------------------------------------------------
 
-%clean
-rm -rf %{buildroot}
-
-#----------------------------------------------------------------------------
-
 %post
 %if "%{build_gold}" == "both"
 %__rm -f %{_bindir}/%{?cross}ld
@@ -823,7 +815,6 @@ exit 0
 #----------------------------------------------------------------------------
 
 %files -f %{?cross}binutils.lang
-%defattr(-,root,root,-)
 %license COPYING COPYING3 COPYING3.LIB COPYING.LIB
 %doc README
 %{_bindir}/%{?cross}[!l]*
@@ -857,7 +848,6 @@ exit 0
 %endif # with docs
 
 %files devel
-%defattr(-,root,root,-)
 %{_prefix}/include/*
 %{_libdir}/lib*.a
 %{_libdir}/libbfd.so
@@ -871,6 +861,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jul  4 2018 Peter Robinson <pbrobinson@fedoraproject.org> 2.30-25
+- Minor spec cleanups and fixes
+
 * Mon Jun 18 2018 Nick Clifton  <nickc@redhat.com> 2.30-24
 - When installing both ld.bfd and ld.gold, do not reset the current alternative if upgrading.  (#1592069)
 
