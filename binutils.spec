@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -198,6 +198,10 @@ Patch19: binutils-ifunc-relocs-in-notes.patch
 #           LTO wrapper.
 # Lifetime: Fixed in 2.31.
 Patch20: binutils-debug-section-marking.patch
+
+# Purpose:  Fix a potential memory exhaustion attack using corrupt ELF files.
+# Lifetime: Fixed in 2.31.
+Patch21: binutils-CVE-2018-13033.patch
 
 #----------------------------------------------------------------------------
 
@@ -344,6 +348,7 @@ using libelf instead of BFD.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
+%patch21 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -751,6 +756,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jul 05 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-25
+- Fix potential memory exhaustion when parsing corrupt ELF files.  (#1597440)
+
 * Mon Jun 18 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-24
 - When installing both ld.bfd and ld.gold, do not reset the current alternative if upgrading.  (#1592069)
 
