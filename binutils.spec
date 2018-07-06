@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -292,6 +292,10 @@ Patch37: binutils-fix-testsuite-failures.patch
 # Lifetime: Fixed in 2.31.
 Patch38: binutils-PowerPC-IEEE-long-double-warnings.patch
 
+# Purpose:  Fix the generation of relocations for assembler generated notes.
+# Lifetime: Fixed in 2.31.
+Patch39: binutils-missing-notes.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -454,6 +458,7 @@ using libelf instead of BFD.
 %patch36 -p1
 %patch37 -p1
 %patch38 -p1
+%patch39 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -861,6 +866,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jul  6 2018 Peter Robinson <pbrobinson@fedoraproject.org> 2.30-26
+- Fix the generation of relocations for assembler created notes.
+
 * Wed Jul  4 2018 Peter Robinson <pbrobinson@fedoraproject.org> 2.30-25
 - Minor spec cleanups and fixes
 
