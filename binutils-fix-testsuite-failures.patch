@@ -321,17 +321,6 @@ diff -rup binutils.orig/gold/testsuite/Makefile.in binutils-2.30/gold/testsuite/
  # Get the offset from an S-record line to the start of the data.
  
  proc srec_off { l } {
---- binutils.orig/ld/testsuite/ld-x86-64/pr14207.d	2018-05-31 16:14:12.614540068 +0100
-+++ binutils-2.30/ld/testsuite/ld-x86-64/pr14207.d	2018-06-01 11:02:02.438444359 +0100
-@@ -13,7 +13,7 @@ Program Headers:
-   LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x0001c8 0x0001c8 R   0x200000
-   LOAD           0x000b.8 0x0000000000200b.8 0x0000000000200b.8 0x0004.0 0x000c.8 RW  0x200000
-   DYNAMIC        0x000b.0 0x0000000000200b.0 0x0000000000200b.0 0x0001.0 0x0001.0 RW  0x8
--  GNU_RELRO      0x000b.8 0x0000000000200b.8 0x0000000000200b.8 0x0004.8 0x0004.8 R   0x1
-+  GNU_RELRO      0x000b.8 0x0000000000200b.8 0x0000000000200b.8 0x0004.. 0x0004.8 R   0x1
- 
-  Section to Segment mapping:
-   Segment Sections...
 --- binutils.orig/ld/testsuite/ld-x86-64/pr22001-1b.err	2018-05-31 16:14:12.621539991 +0100
 +++ binutils-2.30/ld/testsuite/ld-x86-64/pr22001-1b.err	2018-06-01 11:02:58.554805393 +0100
 @@ -1,2 +1,2 @@
@@ -480,39 +469,6 @@ diff -rup binutils.orig/gold/testsuite/Makefile.in binutils-2.30/gold/testsuite/
  run_srec_test $test1 "tmpdir/sr1.o tmpdir/sr2.o"
  
  # Now try linking a C++ program with global constructors and
---- binutils.orig/ld/testsuite/ld-elf/tls.exp	2018-05-31 16:14:12.665539507 +0100
-+++ binutils-2.30/ld/testsuite/ld-elf/tls.exp	2018-06-01 14:17:13.223211181 +0100
-@@ -37,15 +37,18 @@ if { [which $CC] == 0 } {
-     return
- }
- 
--run_ld_link_tests [list \
--    [list \
--	"Build pr22263-1" \
--	"-pie -e _start -z text" \
--	"" \
--	"" \
--	{ pr22263-1a.c pr22263-1b.c } \
--	{{readelf -r pr22263-1.rd}} \
--	"pr22263-1" \
--	"-fPIE -O2" \
--    ] \
--]
-+# The s390x system compiler miscompiles these tests.
-+if { ! [istarget s390x-*-*] } {
-+    run_ld_link_tests [list \
-+			   [list \
-+				"Build pr22263-1" \
-+				"-pie -e _start -z text" \
-+				"" \
-+				"" \
-+				{ pr22263-1a.c pr22263-1b.c } \
-+				{{readelf -r pr22263-1.rd}} \
-+				"pr22263-1" \
-+				"-fPIE -O2" \
-+			       ] \
-+			  ]
-+}
 --- binutils.orig/ld/testsuite/ld-elf/indirect.exp	2018-05-31 16:14:12.649539683 +0100
 +++ binutils-2.30/ld/testsuite/ld-elf/indirect.exp	2018-06-01 14:32:22.949232924 +0100
 @@ -156,12 +156,26 @@ set run_tests {
@@ -681,3 +637,21 @@ diff -rup binutils.orig/gold/testsuite/Makefile.in binutils-2.30/gold/testsuite/
  
  if {![ar_simple_create $ar "" "tmpdir/libtext.a" "tmpdir/text.o"] || \
      ![ar_simple_create $ar "" "tmpdir/libempty.a" ""]} {
+--- binutils.orig/ld/testsuite/ld-elf/tls.exp	2018-07-09 09:49:50.488248175 +0100
++++ binutils-2.30.90/ld/testsuite/ld-elf/tls.exp	2018-07-09 10:46:26.449688046 +0100
+@@ -39,7 +39,9 @@ if [istarget "sparc*-*-*"] {
+     append AFLAGS_PIC " -K PIC"
+ }
+ 
+-run_ld_link_tests [list \
++# The s390x system compiler miscompiles these tests.
++if { ! [istarget s390x-*-*] } {
++    run_ld_link_tests [list \
+     [list \
+ 	"Build pr22263-1" \
+ 	"-pie -e _start -z text" \
+@@ -51,3 +53,4 @@ run_ld_link_tests [list \
+ 	"-fPIE -O2" \
+     ] \
+ ]
++}

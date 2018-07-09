@@ -44,18 +44,6 @@ diff -rup binutils.orig/ld/testsuite/ld-i386/pr19636-2e.d binutils-2.29.1/ld/tes
  Symbol table '\.dynsym' contains [0-9]+ entries:
   +Num: +Value +Size Type +Bind +Vis +Ndx Name
  #...
-diff -rup binutils.orig/ld/testsuite/ld-i386/pr20830.d binutils-2.29.1/ld/testsuite/ld-i386/pr20830.d
---- binutils.orig/ld/testsuite/ld-i386/pr20830.d	2017-11-15 13:32:39.332065299 +0000
-+++ binutils-2.29.1/ld/testsuite/ld-i386/pr20830.d	2017-11-15 15:04:43.205165384 +0000
-@@ -19,7 +19,7 @@ Contents of the .eh_frame section:
-   DW_CFA_offset: r8 \(eip\) at cfa-4
-   DW_CFA_nop
-   DW_CFA_nop
--
-+#pass
- 0+18 00000010 0000001c FDE cie=00000000 pc=00000188..00000193
-   DW_CFA_nop
-   DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pltgot-1.d binutils-2.29.1/ld/testsuite/ld-x86-64/pltgot-1.d
 --- binutils.orig/ld/testsuite/ld-x86-64/pltgot-1.d	2017-11-15 13:32:39.415064300 +0000
 +++ binutils-2.29.1/ld/testsuite/ld-x86-64/pltgot-1.d	2017-11-15 15:08:39.333375801 +0000
@@ -119,7 +107,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr20830a.d binutils-2.29.1/ld/tes
    DW_CFA_nop
 +#pass
  
- 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000238..0000000000000244
+ 0+18 0000000000000014 0000001c FDE cie=00000000 pc=00000000000001c8..00000000000001d4
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr20830a-now.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr20830a-now.d
 --- binutils.orig/ld/testsuite/ld-x86-64/pr20830a-now.d	2017-11-15 13:32:39.413064324 +0000
@@ -130,7 +118,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr20830a-now.d binutils-2.29.1/ld
    DW_CFA_nop
 +#pass
  
- 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000238..0000000000000244
+ 0+18 0000000000000014 0000001c FDE cie=00000000 pc=00000000000001c8..00000000000001d4
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr20830b.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr20830b.d
 --- binutils.orig/ld/testsuite/ld-x86-64/pr20830b.d	2017-11-15 13:32:39.413064324 +0000
@@ -142,7 +130,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr20830b.d binutils-2.29.1/ld/tes
 -
 +#pass
 + 
- 0+18 0000000000000010 0000001c FDE cie=00000000 pc=0000000000000188..0000000000000194
+ 0+18 0000000000000010 0000001c FDE cie=00000000 pc=0000000000000138..0000000000000144
    DW_CFA_nop
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr20830b-now.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr20830b-now.d
@@ -155,7 +143,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr20830b-now.d binutils-2.29.1/ld
 -
 +#pass
 + 
- 0+18 0000000000000010 0000001c FDE cie=00000000 pc=0000000000000188..0000000000000194
+ 0+18 0000000000000010 0000001c FDE cie=00000000 pc=0000000000000138..0000000000000144
    DW_CFA_nop
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038a.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr21038a.d
@@ -168,7 +156,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038a.d binutils-2.29.1/ld/tes
 -
 +#pass
 +  
- 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000238..0000000000000244
+ 0+18 0000000000000014 0000001c FDE cie=00000000 pc=00000000000001c8..00000000000001d4
    DW_CFA_nop
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038a-now.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr21038a-now.d
@@ -181,7 +169,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038a-now.d binutils-2.29.1/ld
 -
 +#pass
 +  
- 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000238..0000000000000244
+ 0+18 0000000000000014 0000001c FDE cie=00000000 pc=00000000000001c8..00000000000001d4
    DW_CFA_nop
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038b.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr21038b.d
@@ -193,7 +181,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038b.d binutils-2.29.1/ld/tes
    DW_CFA_nop
 +#pass
  
- 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000248..000000000000024d
+ 0+18 0000000000000014 0000001c FDE cie=00000000 pc=00000000000001d8..00000000000001dd
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038b-now.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr21038b-now.d
 --- binutils.orig/ld/testsuite/ld-x86-64/pr21038b-now.d	2017-11-15 13:32:39.416064288 +0000
@@ -205,7 +193,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038b-now.d binutils-2.29.1/ld
 -
 +#pass
 +  
- 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000248..000000000000024d
+ 0+18 0000000000000014 0000001c FDE cie=00000000 pc=00000000000001d8..00000000000001dd
    DW_CFA_nop
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038c.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr21038c.d
@@ -218,7 +206,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038c.d binutils-2.29.1/ld/tes
 -
 +#pass
 +  
- 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000290..00000000000002a1
+ 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000220..0000000000000231
    DW_CFA_nop
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038c-now.d binutils-2.29.1/ld/testsuite/ld-x86-64/pr21038c-now.d
@@ -231,7 +219,7 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21038c-now.d binutils-2.29.1/ld
 -
 +#pass
 +  
- 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000290..00000000000002a1
+ 0+18 0000000000000014 0000001c FDE cie=00000000 pc=0000000000000220..0000000000000231
    DW_CFA_nop
    DW_CFA_nop
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/tlspic2.rd binutils-2.29.1/ld/testsuite/ld-x86-64/tlspic2.rd
@@ -265,3 +253,14 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/tlspic2.rd binutils-2.29.1/ld/tes
    /* Since STT_GNU_IFUNC symbol must go through PLT, we handle it
       here if it is defined and referenced in a non-shared object.  */
    if (h->type == STT_GNU_IFUNC
+--- binutils.orig/ld/testsuite/ld-i386/pr20830.d	2018-07-09 09:49:51.277239857 +0100
++++ binutils-2.30.90/ld/testsuite/ld-i386/pr20830.d	2018-07-09 10:32:41.113356733 +0100
+@@ -19,7 +19,7 @@ Contents of the .eh_frame section:
+   DW_CFA_offset: r8 \(eip\) at cfa-4
+   DW_CFA_nop
+   DW_CFA_nop
+-
++#pass
+ 0+18 00000010 0000001c FDE cie=00000000 pc=00000128..00000133
+   DW_CFA_nop
+   DW_CFA_nop
