@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30.90
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -154,6 +154,11 @@ Patch09: binutils-2.27-aarch64-ifunc.patch
 # Purpose:  Fix linker testsuite failures
 # Lifetime: Fixed in 2.32 (probably)
 Patch10: binutils-fix-testsuite-failures.patch
+
+# Purpose:  Revert fix for PR 23161 which was placing unversioned section
+#           symbols (_edata, _end, __bss_start) into shared libraries.
+# Lifetime: Fixed in 2.32 (maybe)
+Patch11: binutils-do-not-provide-shared-section-symbols.patch
 
 #----------------------------------------------------------------------------
 
@@ -289,6 +294,7 @@ using libelf instead of BFD.
 %patch08 -p1
 %patch09 -p1
 %patch10 -p1
+%patch11 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -696,7 +702,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Mon Jul  9 2018 Peter Robinson <pbrobinson@fedoraproject.org> 2.30.90-1
+* Tue Jul 10 2018 Nick Clifton  <nickc@redhat.com> 2.30.90-2
+- Revert fix for PR 23161 which was placing unversioned section symbols (_edata, _end, __bss_start) into shared libraries.  (#1599521)
+
+* Mon Jul  9 2018 Nick Clifton  <nickc@redhat.com> 2.30.90-1
 - Rebase to a snapshot of the soon-to-be-created 2.31 FSF release.
 
 * Fri Jul  6 2018 Peter Robinson <pbrobinson@fedoraproject.org> 2.30-26
