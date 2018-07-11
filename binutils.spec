@@ -54,7 +54,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: http://sources.redhat.com/binutils
@@ -175,6 +175,10 @@ Patch18: binutils-CVE-2017-12967.patch
 # Purpose:  Fix a seg-fault induced when parsing corrupt ELF format files.
 # Lifetime: Fixed in 2.29.1.
 Patch19: binutils-CVE-2017-12799.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt DWARF files.
+# Lifetime: Fixed in 2.30.
+Patch20: binutils-CVE-2018-7568.patch
 
 #----------------------------------------------------------------------------
 
@@ -317,6 +321,7 @@ using libelf instead of BFD.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -725,25 +730,28 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Thu May 31 2018 Nick Clifton  <nickc@redhat.com> 2.29-1-15
+* Wed Jul 11 2018 Nick Clifton  <nickc@redhat.com> 2.29-16
+- Fix a seg-fault that can occur when parsing corrupt DWARF information.  (#1551772)
+
+* Thu May 31 2018 Nick Clifton  <nickc@redhat.com> 2.29-15
 - Fix a seg-fault that can occur when parsing corrupt x86 binaries.  (#1487762)
 - Fix a seg-fault that can occur when parsing ELF version information.  (#1492130)
 - Fix a seg-fault that can occur when parsing corrupt TEKHEX files.  (#1484527)
 - Fix a seg-fault that can occur when parsing corrupt ELF files.  (#1480343)
 
-* Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.29-1-14
+* Fri Mar 09 2018 Nick Clifton  <nickc@redhat.com> 2.29-14
 - Treat relocs against s390x IFUNC symbols in note sections as relocs against the FUNC symbol instead.  (#1553705)
 
-* Mon Mar 05 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-13
+* Mon Mar 05 2018 Nick Clifton  <nickc@redhat.com> 2.29.13
 - Speed up objdump.  (#1551540)
 
-* Mon Dec 18 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-12
+* Mon Dec 18 2017 Nick Clifton  <nickc@redhat.com> 2.29-12
 - Re-enable gold for PowerPC64 and s390x.  (#1173780)
 
-* Fri Dec 15 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-11
+* Fri Dec 15 2017 Nick Clifton  <nickc@redhat.com> 2.29-11
 - Have readelf display extra symbol information at the end of the line.  (#1479302)
 
-* Mon Dec 11 2017 Nick Clifton  <nickc@redhat.com> 2.29.1-10
+* Mon Dec 11 2017 Nick Clifton  <nickc@redhat.com> 2.29-10
 - Do not enable relro by default for the PowerPC64 architecture.  (#1523946)
 
 * Fri Dec 08 2017 Nick Clifton  <nickc@redhat.com> 2.29-9
