@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -202,6 +202,14 @@ Patch20: binutils-debug-section-marking.patch
 # Purpose:  Fix a potential memory exhaustion attack using corrupt ELF files.
 # Lifetime: Fixed in 2.31.
 Patch21: binutils-CVE-2018-13033.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt DWARF1 files.
+# Lifetime: Fixed in 2.30.
+Patch22: binutils-CVE-2018-7568.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt DWARF2 files.
+# Lifetime: Fixed in 2.30.
+Patch23: binutils-CVE-2018-7569.patch
 
 #----------------------------------------------------------------------------
 
@@ -349,6 +357,8 @@ using libelf instead of BFD.
 %patch19 -p1
 %patch20 -p1
 %patch21 -p1
+%patch22 -p1
+%patch23 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -756,6 +766,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jul 11 2018 Nick Clifton  <nickc@redhat.com> 2.29-1-26
+- Fix a seg-fault that can occur when parsing corrupt DWARF1 information.  (#1551772)
+- Fix a seg-fault that can occur when parsing corrupt DWARF2 information.  (#1551779)
+
 * Thu Jul 05 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-25
 - Fix potential memory exhaustion when parsing corrupt ELF files.  (#1597440)
 
