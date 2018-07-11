@@ -62,7 +62,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.29.1
-Release: 26%{?dist}
+Release: 27%{?dist}
 License: GPLv3+
 Group: Development/Tools
 URL: https://sourceware.org/binutils
@@ -210,6 +210,34 @@ Patch22: binutils-CVE-2018-7568.patch
 # Purpose:  Fix a seg-fault induced when parsing corrupt DWARF2 files.
 # Lifetime: Fixed in 2.30.
 Patch23: binutils-CVE-2018-7569.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt DWARF2 files.
+# Lifetime: Fixed in 2.30.
+Patch24: binutils-CVE-2018-10372.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt PE format files.
+# Lifetime: Fixed in 2.30.
+Patch25: binutils-CVE-2018-10535.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt DWARF2 information.
+# Lifetime: Fixed in 2.31.
+Patch26: binutils-CVE-2018-10373.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt ELF format files.
+# Lifetime: Fixed in 2.31.
+Patch27: binutils-CVE-2018-7643.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt PE format files.
+# Lifetime: Fixed in 2.31.
+Patch28: binutils-CVE-2018-7208.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt ELF format files.
+# Lifetime: Fixed in 2.31.
+Patch29: binutils-CVE-2018-7643.patch
+
+# Purpose:  Fix a seg-fault induced when parsing corrupt ELF format files.
+# Lifetime: Fixed in 2.31.
+Patch30: binutils-CVE-2018-6323.patch
 
 #----------------------------------------------------------------------------
 
@@ -359,6 +387,13 @@ using libelf instead of BFD.
 %patch21 -p1
 %patch22 -p1
 %patch23 -p1
+%patch24 -p1
+%patch25 -p1
+%patch26 -p1
+%patch27 -p1
+%patch28 -p1
+%patch29 -p1
+%patch30 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -766,7 +801,16 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Wed Jul 11 2018 Nick Clifton  <nickc@redhat.com> 2.29-1-26
+* Wed Jul 11 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-27
+- Fix a seg-fault that can occur when parsing corrupt DWARF2 information.  (#1573359)
+- Fix a seg-fault that can occur when parsing corrupt PE files.  (#1574700)
+- Fix a seg-fault that can occur when parsing corrupt DWARF2 information.  (#1573365)
+- Fix a seg-fault that can occur when parsing corrupt ELF files.  (#1551786)
+- Fix a seg-fault that can occur when parsing corrupt PE files.  (#1546624)
+- Fix a seg-fault that can occur when parsing corrupt ELF files.  (#1543245)
+- Fix a seg-fault that can occur when parsing corrupt ELF files.  (#1539888)
+
+* Wed Jul 11 2018 Nick Clifton  <nickc@redhat.com> 2.29.1-26
 - Fix a seg-fault that can occur when parsing corrupt DWARF1 information.  (#1551772)
 - Fix a seg-fault that can occur when parsing corrupt DWARF2 information.  (#1551779)
 
