@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30.90
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -159,6 +159,11 @@ Patch10: binutils-fix-testsuite-failures.patch
 #           symbols (_edata, _end, __bss_start) into shared libraries.
 # Lifetime: Fixed in 2.32 (maybe)
 Patch11: binutils-do-not-provide-shared-section-symbols.patch
+
+# Purpose:  Stop gold from complaining about relocs in the .gnu.build.attribute
+#           section that reference symbols in discarded sections.
+# Lifetime: Fixed in 2.32 (maybe)
+Patch12: binutils-gold-ignore-discarded-note-relocs.patch
 
 #----------------------------------------------------------------------------
 
@@ -288,13 +293,14 @@ using libelf instead of BFD.
 %patch02 -p1
 %patch03 -p1
 %patch04 -p1
-# %patch05 -p1
+#% patch05 -p1
 %patch06 -p1
 %patch07 -p1
 %patch08 -p1
 %patch09 -p1
 %patch10 -p1
 %patch11 -p1
+%patch12 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -702,6 +708,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jul 12 2018 Nick Clifton  <nickc@redhat.com> 2.30.90-3
+- Stop gold from complaining about annobin note relocs against symbols in sections which have been discarded.  (#1600431)
+
 * Tue Jul 10 2018 Nick Clifton  <nickc@redhat.com> 2.30.90-2
 - Revert fix for PR 23161 which was placing unversioned section symbols (_edata, _end, __bss_start) into shared libraries.  (#1599521)
 
