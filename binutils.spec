@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.30.90
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -708,6 +708,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jul 12 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2.30.90-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
 * Thu Jul 12 2018 Nick Clifton  <nickc@redhat.com> 2.30.90-3
 - Stop gold from complaining about annobin note relocs against symbols in sections which have been discarded.  (#1600431)
 
