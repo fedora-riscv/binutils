@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -162,6 +162,10 @@ Patch11: binutils-do-not-provide-shared-section-symbols.patch
 #           section that reference symbols in discarded sections.
 # Lifetime: Fixed in 2.32 (maybe)
 Patch12: binutils-gold-ignore-discarded-note-relocs.patch
+
+# Purpose:  Improve partial relro support for 64-bit s/390.
+# Lifetime: Fixed in 2.32 
+Patch13: binutils-s390-partial-relro.patch
 
 #----------------------------------------------------------------------------
 
@@ -299,6 +303,7 @@ using libelf instead of BFD.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -706,6 +711,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jul 19 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2.31.2-1
+- Improve partial relro support for the s/390.
+
 * Thu Jul 19 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2.31.1-1
 - Rebase to official 2.31.1 GNU Binutils release.
 - Retire: binutils-2.22.52.0.1-export-demangle.h.patch
