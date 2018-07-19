@@ -46,7 +46,7 @@
 
 %if %{with debug}
 %undefine with_testsuite
-%endif
+%endif1599521)
 
 %if 0%{!?binutils_target:1}
 %define binutils_target %{_target_platform}
@@ -68,8 +68,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.30.90
-Release: 4%{?dist}
+Version: 2.31.1
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -77,9 +77,7 @@ URL: https://sourceware.org/binutils
 # too many controversial patches so we stick with the official FSF version
 # instead.
 
-# Source: http://ftp.gnu.org/gnu/binutils/binutils-% {version}.tar.xz
-Source: https://sourceware.org/pub/binutils/snapshots/binutils-%{version}.tar.xz
-
+Source: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
 
 Source2: binutils-2.19.50.0.1-output-format.sed
 
@@ -708,6 +706,38 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jul 19 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2.31.1-1
+- Rebase to official 2.31.1 GNU Binutils release.
+- Retire: binutils-2.22.52.0.1-export-demangle.h.patch
+- Retire: binutils-2.30-allow_R_AARCH64-symbols.patch
+- Retire: binutils-CVE-2018-10372.patch
+- Retire: binutils-CVE-2018-10373.patch
+- Retire: binutils-CVE-2018-10534.patch
+- Retire: binutils-CVE-2018-10535.patch
+- Retire: binutils-CVE-2018-6323.patch
+- Retire: binutils-CVE-2018-6759.patch
+- Retire: binutils-CVE-2018-7208.patch
+- Retire: binutils-CVE-2018-7568.patch
+- Retire: binutils-CVE-2018-7569.patch
+- Retire: binutils-CVE-2018-7570.patch
+- Retire: binutils-CVE-2018-7642.patch
+- Retire: binutils-CVE-2018-7643.patch
+- Retire: binutils-CVE-2018-8945.patch
+- Retire: binutils-PowerPC-IEEE-long-double-warnings.patch
+- Retire: binutils-debug-section-marking.patch
+- Retire: binutils-gas-build-notes.patch
+- Retire: binutils-gold-llvm-plugin.patch
+- Retire: binutils-ifunc-relocs-in-notes.patch
+- Retire: binutils-linkonce-notes.patch
+- Retire: binutils-missing-notes.patch
+- Retire: binutils-page-to-segment-assignment.patch
+- Retire: binutils-revert-PowerPC-speculation-barriers.patch
+- Retire: binutils-skip-dwo-search-if-not-needed.patch
+- Retire: binutils-speed-up-objdump.patch
+- Retire: binutils-strip-unknown-relocs.patch
+- Retire: binutils-x86-local-relocs.patch
+- Retire: binutils-x86-local-version.patch
+
 * Thu Jul 12 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2.30.90-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 
