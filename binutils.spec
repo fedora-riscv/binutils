@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -711,10 +711,13 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Thu Jul 19 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2.31.2-1
+* Tue Jul 24 2018 Nick Clifton  <nickc@redhat.com> - 2.31.3-1
+- Extend gold linker patch to cover subsections of .gnu.build.attributes.
+
+* Thu Jul 19 2018 Nick Clifton  <nickc@redhat.com> - 2.31.2-1
 - Improve partial relro support for the s/390.
 
-* Thu Jul 19 2018 Fedora Release Engineering <releng@fedoraproject.org> - 2.31.1-1
+* Thu Jul 19 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-1
 - Rebase to official 2.31.1 GNU Binutils release.
 - Retire: binutils-2.22.52.0.1-export-demangle.h.patch
 - Retire: binutils-2.30-allow_R_AARCH64-symbols.patch
