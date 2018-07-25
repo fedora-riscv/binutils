@@ -711,10 +711,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Tue Jul 24 2018 Nick Clifton  <nickc@redhat.com> - 2.31.3-1
-- Extend gold linker patch to cover subsections of .gnu.build.attributes.
+* Tue Jul 24 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-3
+- Extend gold linker patch to cover subsections of .gnu.build.attributes.  (#1607054)
 
-* Thu Jul 19 2018 Nick Clifton  <nickc@redhat.com> - 2.31.2-1
+* Thu Jul 19 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-2
 - Improve partial relro support for the s/390.
 
 * Thu Jul 19 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-1
