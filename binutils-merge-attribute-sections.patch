@@ -8,3 +8,13 @@
  EOF
  }
  
+--- binutils.orig/gold/layout.cc	2018-07-26 10:07:31.059922048 +0100
++++ binutils-2.31.1/gold/layout.cc	2018-07-26 16:57:51.911028541 +0100
+@@ -5429,6 +5429,7 @@ const Layout::Section_name_mapping Layou
+   MAPPING_INIT(".gnu.linkonce.armextab.", ".ARM.extab"),
+   MAPPING_INIT(".ARM.exidx", ".ARM.exidx"),
+   MAPPING_INIT(".gnu.linkonce.armexidx.", ".ARM.exidx"),
++  MAPPING_INIT(".gnu.build.attributes.", ".gnu.build.attributes"),
+ };
+ 
+ // Mapping for ".text" section prefixes with -z,keep-text-section-prefix.
