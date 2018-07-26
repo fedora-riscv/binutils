@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -166,6 +166,10 @@ Patch12: binutils-gold-ignore-discarded-note-relocs.patch
 # Purpose:  Improve partial relro support for 64-bit s/390.
 # Lifetime: Fixed in 2.32 
 Patch13: binutils-s390-partial-relro.patch
+
+# Purpose:  Merge .gnu.build.attribute sections into a single section.
+# Lifetime: Fixed in 2.32 
+Patch14: binutils-merge-attribute-sections.patch
 
 #----------------------------------------------------------------------------
 
@@ -304,6 +308,7 @@ using libelf instead of BFD.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -711,6 +716,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jul 26 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-4
+- Merge .gnu.build.attribute sections together.  (#1608390)
+
 * Tue Jul 24 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-3
 - Extend gold linker patch to cover subsections of .gnu.build.attributes.  (#1607054)
 
