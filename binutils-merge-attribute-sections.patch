@@ -4,7 +4,7 @@
    cat <<EOF
    ${INITIAL_READONLY_SECTIONS}
    .note.gnu.build-id : { *(.note.gnu.build-id) }
-+  .gnu-.build.attributes : { *(.gnu.build.attributes .gnu.build.attributes.*) }
++  .gnu.build.attributes : { *(.gnu.build.attributes .gnu.build.attributes.*) }
  EOF
  }
  
