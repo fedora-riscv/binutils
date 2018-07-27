@@ -1,15 +1,6 @@
---- binutils.orig/ld/scripttempl/elf.sc	2018-07-26 10:07:32.307908582 +0100
-+++ binutils-2.31.1/ld/scripttempl/elf.sc	2018-07-26 10:10:42.123860250 +0100
-@@ -379,6 +379,7 @@ emit_early_ro()
-   cat <<EOF
-   ${INITIAL_READONLY_SECTIONS}
-   .note.gnu.build-id : { *(.note.gnu.build-id) }
-+  .gnu.build.attributes : { *(.gnu.build.attributes .gnu.build.attributes.*) }
- EOF
- }
- 
---- binutils.orig/gold/layout.cc	2018-07-26 10:07:31.059922048 +0100
-+++ binutils-2.31.1/gold/layout.cc	2018-07-26 16:57:51.911028541 +0100
+diff -rup binutils.orig/gold/layout.cc binutils-2.31.1/gold/layout.cc
+--- binutils.orig/gold/layout.cc	2018-07-27 11:49:15.188939352 +0100
++++ binutils-2.31.1/gold/layout.cc	2018-07-27 11:50:03.984405949 +0100
 @@ -5429,6 +5429,7 @@ const Layout::Section_name_mapping Layou
    MAPPING_INIT(".gnu.linkonce.armextab.", ".ARM.extab"),
    MAPPING_INIT(".ARM.exidx", ".ARM.exidx"),
@@ -18,3 +9,14 @@
  };
  
  // Mapping for ".text" section prefixes with -z,keep-text-section-prefix.
+diff -rup binutils.orig/ld/scripttempl/elf.sc binutils-2.31.1/ld/scripttempl/elf.sc
+--- binutils.orig/ld/scripttempl/elf.sc	2018-07-27 11:49:16.418925906 +0100
++++ binutils-2.31.1/ld/scripttempl/elf.sc	2018-07-27 11:49:44.991613567 +0100
+@@ -564,6 +564,7 @@ cat <<EOF
+   ${CREATE_SHLIB-${SDATA2}}
+   ${CREATE_SHLIB-${SBSS2}}
+   ${OTHER_READONLY_SECTIONS}
++  .gnu.build.attributes : { *(.gnu.build.attributes .gnu.build.attributes.*) }
+   .eh_frame_hdr : { *(.eh_frame_hdr) ${RELOCATING+*(.eh_frame_entry .eh_frame_entry.*)} }
+   .eh_frame     ${RELOCATING-0} : ONLY_IF_RO { KEEP (*(.eh_frame)) ${RELOCATING+*(.eh_frame.*)} }
+   .gcc_except_table ${RELOCATING-0} : ONLY_IF_RO { *(.gcc_except_table

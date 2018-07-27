@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -716,8 +716,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jul 27 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-7
+- Fix a thinko in the merge patch.
+
 * Fri Jul 27 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-6
-- Fix typo in merge patch.
+- Fix a typo in the merge patch.
 
 * Thu Jul 26 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-5
 - Merge .gnu.build.attribute sections together.  (#1608390)
