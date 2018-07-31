@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -716,6 +716,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jul 31 2018 Florian Weimer <fweimer@redhat.com> - 2.31.1-9
+- Rebuild with fixed binutils
+
 * Mon Jul 30 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-8
 - Move the .gnu.build.attributes section to after the .comment section.
 
