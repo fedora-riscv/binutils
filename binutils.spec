@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -170,6 +170,10 @@ Patch13: binutils-s390-partial-relro.patch
 # Purpose:  Merge .gnu.build.attribute sections into a single section.
 # Lifetime: Fixed in 2.32 
 Patch14: binutils-merge-attribute-sections.patch
+
+# Purpose:  Improve objcopy's --merge-notes option.
+# Lifetime: Fixed in 2.32
+Patch15: binutils-note-merge-improvements.patch
 
 #----------------------------------------------------------------------------
 
@@ -309,6 +313,7 @@ using libelf instead of BFD.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -716,6 +721,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Aug 06 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-10
+- Improve objcopy's --merge-notes option.  (#1608390)
+
 * Tue Jul 31 2018 Florian Weimer <fweimer@redhat.com> - 2.31.1-9
 - Rebuild with fixed binutils
 
