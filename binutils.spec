@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -155,8 +155,10 @@ Patch10: binutils-fix-testsuite-failures.patch
 
 # Purpose:  Revert fix for PR 23161 which was placing unversioned section
 #           symbols (_edata, _end, __bss_start) into shared libraries.
-# Lifetime: Fixed in 2.32 (maybe)
-Patch11: binutils-do-not-provide-shared-section-symbols.patch
+#           See also PR 23499 and BZ 1614920
+# Lifetime: Fixed in 2.32
+# Patch11: binutils-do-not-provide-shared-section-symbols.patch
+Patch11: binutils-clear-version-info.patch
 
 # Purpose:  Stop gold from complaining about relocs in the .gnu.build.attribute
 #           section that reference symbols in discarded sections.
@@ -721,6 +723,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 14 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-11
+- Remove the version information from a dynamic symbol that is being overridden.  (#1614920)
+
 * Mon Aug 06 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-10
 - Improve objcopy's --merge-notes option.  (#1608390)
 
