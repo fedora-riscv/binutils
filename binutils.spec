@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -176,6 +176,10 @@ Patch14: binutils-merge-attribute-sections.patch
 # Purpose:  Improve objcopy's --merge-notes option.
 # Lifetime: Fixed in 2.32
 Patch15: binutils-note-merge-improvements.patch
+
+# Purpose:  Detect and report corrupt symbol version information.
+# Lifetime: Fixed in 2.32
+Patch16: binutils-detect-corrupt-sym-version-info.patch
 
 #----------------------------------------------------------------------------
 
@@ -316,6 +320,7 @@ using libelf instead of BFD.
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -723,6 +728,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 28 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-12
+- Detect and report corrupt symbol version information.  (#1599521)
+
 * Tue Aug 14 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-11
 - Remove the version information from a dynamic symbol that is being overridden.  (#1614920)
 
