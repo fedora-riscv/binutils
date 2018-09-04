@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -180,6 +180,11 @@ Patch15: binutils-note-merge-improvements.patch
 # Purpose:  Detect and report corrupt symbol version information.
 # Lifetime: Fixed in 2.32
 Patch16: binutils-detect-corrupt-sym-version-info.patch
+
+# Purpose:  Delay the evaluation of linker script constants until
+#            after the configuration options have been set.
+# Lifetime: Fixed in 2.32
+Patch17: binutils-delay-ld-script-constant-eval.patch
 
 #----------------------------------------------------------------------------
 
@@ -321,6 +326,7 @@ using libelf instead of BFD.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -728,6 +734,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Sep 04 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-13
+- Delay the evaluation of linker script constants until after the configuration options have been set.  (#1624751)
+
 * Tue Aug 28 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-12
 - Detect and report corrupt symbol version information.  (#1599521)
 
