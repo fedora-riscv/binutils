@@ -46,7 +46,7 @@
 
 %if %{with debug}
 %undefine with_testsuite
-%endif1599521)
+%endif
 
 %if 0%{!?binutils_target:1}
 %define binutils_target %{_target_platform}
@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -185,6 +185,23 @@ Patch16: binutils-detect-corrupt-sym-version-info.patch
 #            after the configuration options have been set.
 # Lifetime: Fixed in 2.32
 Patch17: binutils-delay-ld-script-constant-eval.patch
+
+# Purpose:  Stop readelf's reports of gaps in build notes - they are unreliable.
+# Lifetime: Unknown.
+Patch18: binutils-disable-readelf-gap-reports.patch
+
+# Purpose:  Stop the binutils from statically linking with libstdc++.
+# Lifetime: Permanent.
+Patch20: binutils-do-not-link-with-static-libstdc++.patch
+
+# Purpose:  Add a .attach_to_group pseudo-op to the assembler for
+#           use by the annobin gcc plugin.
+# Lifetime: Permanent.
+Patch21: binutils-attach-to-group.patch
+
+# Purpose:  Fix a potential buffer overrun when parsing a corrupt ELF file.
+# Lifetime: Fixed in 2.32.
+Patch22: binutils-CVE-2018-17358.patch
 
 #----------------------------------------------------------------------------
 
@@ -314,7 +331,6 @@ using libelf instead of BFD.
 %patch02 -p1
 %patch03 -p1
 %patch04 -p1
-#% patch05 -p1
 %patch06 -p1
 %patch07 -p1
 %patch08 -p1
@@ -327,8 +343,13 @@ using libelf instead of BFD.
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
+%patch20 -p1
+%patch21 -p1
+%patch22 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
+# FIXME - this is no longer true.  Maybe try reinstating autotool use ?
 
 # On ppc64 and aarch64, we might use 64KiB pages
 sed -i -e '/#define.*ELF_COMMONPAGESIZE/s/0x1000$/0x10000/' bfd/elf*ppc.c
@@ -475,7 +496,7 @@ export LDFLAGS=$RPM_LD_FLAGS
 %make_build %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
 %endif
 
-# Do not use %%check as it is run after %%install where libbfd.so is rebuild
+# Do not use %%check as it is run after %%install where libbfd.so is rebuilt
 # with -fvisibility=hidden no longer being usable in its shared form.
 %if %{without testsuite}
 echo ====================TESTSUITE DISABLED=========================
@@ -483,14 +504,29 @@ echo ====================TESTSUITE DISABLED=========================
 make -k check < /dev/null || :
 echo ====================TESTING=========================
 cat {gas/testsuite/gas,ld/ld,binutils/binutils}.sum
+%if "%{build_gold}" == "both"
+if [ -f gold/test-suite.log ]; then
+    cat gold/test-suite.log
+fi
+if [ -f gold/testsuite/test-suite.log ]; then
+    cat gold/testsuite/*.log
+fi
+%endif
 echo ====================TESTING END=====================
 for file in {gas/testsuite/gas,ld/ld,binutils/binutils}.{sum,log}
 do
   ln $file binutils-%{_target_platform}-$(basename $file) || :
 done
-tar cjf binutils-%{_target_platform}.tar.bz2 binutils-%{_target_platform}-*.{sum,log}
-uuencode binutils-%{_target_platform}.tar.bz2 binutils-%{_target_platform}.tar.bz2
-rm -f binutils-%{_target_platform}.tar.bz2 binutils-%{_target_platform}-*.{sum,log}
+tar cjf binutils-%{_target_platform}.tar.xz  binutils-%{_target_platform}-*.{sum,log}
+uuencode binutils-%{_target_platform}.tar.xz binutils-%{_target_platform}.tar.xz
+rm -f binutils-%{_target_platform}.tar.xz    binutils-%{_target_platform}-*.{sum,log}
+%if "%{build_gold}" == "both"
+if [-f gold/testsuite/test-suite.log ]; then
+  tar cjf  binutils-%{_target_platform}-gold.log.tar.xz gold/testsuite/*.log
+  uuencode binutils-%{_target_platform}-gold.log.tar.xz binutils-%{_target_platform}-gold.log.tar.xz
+  rm -f    binutils-%{_target_platform}-gold.log.tar.xz
+fi
+%endif
 %endif
 
 #----------------------------------------------------------------------------
@@ -734,6 +770,13 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Sep 28 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-14
+- Fix a potential buffer overrun when parsing a corrupt ELF file.  (#1632912)
+- Add a .attach_to_group pseuo-op to assembler (for use by annobin).  (#1630574)
+- Stop the binutils from statically linking with libstdc++.  (#1630550)
+- Include gold testsuite results in test logs.
+- Disable readelf's reporting of gaps in build notes.  (#1623556)
+
 * Tue Sep 04 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-13
 - Delay the evaluation of linker script constants until after the configuration options have been set.  (#1624751)
 
