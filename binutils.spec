@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -202,6 +202,10 @@ Patch21: binutils-attach-to-group.patch
 # Purpose:  Fix a potential buffer overrun when parsing a corrupt ELF file.
 # Lifetime: Fixed in 2.32.
 Patch22: binutils-CVE-2018-17358.patch
+
+# Purpose:  Allow OS specific sections in section groups.
+# Lifetime: Might be fixed in 2.32
+Patch23: binutils-special-sections-in-groups.patch
 
 #----------------------------------------------------------------------------
 
@@ -347,6 +351,7 @@ using libelf instead of BFD.
 %patch20 -p1
 %patch21 -p1
 %patch22 -p1
+%patch23 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -770,6 +775,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Oct 12 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-15
+- Allow OS specific sections in section groups.  (#1639485)
+
 * Fri Sep 28 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-14
 - Fix a potential buffer overrun when parsing a corrupt ELF file.  (#1632912)
 - Add a .attach_to_group pseuo-op to assembler (for use by annobin).  (#1630574)
