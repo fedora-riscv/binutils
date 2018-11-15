@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -775,6 +775,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Nov 15 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-16
+- Remove debugging fprintf statement accidentally left in patch.  (#1645828)
+
 * Fri Oct 12 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-15
 - Allow OS specific sections in section groups.  (#1639485)
 
