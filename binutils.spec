@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -734,6 +734,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Nov 15 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-14
+- Remove debugging fprintf statement accidentally left in patch.  (#1645828)
+
 * Tue Sep 04 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-13
 - Delay the evaluation of linker script constants until after the configuration options have been set.  (#1624751)
 
