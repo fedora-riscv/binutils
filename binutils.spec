@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -206,6 +206,11 @@ Patch22: binutils-CVE-2018-17358.patch
 # Purpose:  Allow OS specific sections in section groups.
 # Lifetime: Might be fixed in 2.32
 Patch23: binutils-special-sections-in-groups.patch
+
+# Purpose:  Stop gold from issuing warnings about dropped version
+#            information, unless explicitly requested otherwise.
+# Lifetime: Fixed in 2.32
+Patch24: binutils-gold-discard-version-info.patch
 
 #----------------------------------------------------------------------------
 
@@ -352,6 +357,7 @@ using libelf instead of BFD.
 %patch21 -p1
 %patch22 -p1
 %patch23 -p1
+%patch24 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -775,6 +781,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Nov 28 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-17
+- Stop gold from warning about discard version information unless explicitly requested.  (#1654153)
+
 * Thu Nov 15 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-16
 - Remove debugging fprintf statement accidentally left in patch.  (#1645828)
 
