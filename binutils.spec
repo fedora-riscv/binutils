@@ -46,7 +46,7 @@
 
 %if %{with debug}
 %undefine with_testsuite
-%endif1599521)
+%endif
 
 %if 0%{!?binutils_target:1}
 %define binutils_target %{_target_platform}
@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -185,6 +185,11 @@ Patch16: binutils-detect-corrupt-sym-version-info.patch
 #            after the configuration options have been set.
 # Lifetime: Fixed in 2.32
 Patch17: binutils-delay-ld-script-constant-eval.patch
+
+# Purpose:  Stop gold from issuing warnings about dropped version
+#            information, unless explicitly requested otherwise.
+# Lifetime: Fixed in 2.32
+Patch18: binutils-gold-discard-version-info.patch
 
 #----------------------------------------------------------------------------
 
@@ -314,7 +319,6 @@ using libelf instead of BFD.
 %patch02 -p1
 %patch03 -p1
 %patch04 -p1
-#% patch05 -p1
 %patch06 -p1
 %patch07 -p1
 %patch08 -p1
@@ -327,6 +331,7 @@ using libelf instead of BFD.
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -734,6 +739,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Nov 28 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-15
+- Stop gold from warning about discard version information unless explicitly requested.  (#1654153)
+
 * Thu Nov 15 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-14
 - Remove debugging fprintf statement accidentally left in patch.  (#1645828)
 
