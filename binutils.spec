@@ -28,6 +28,12 @@
 # relocations against absolute symbols.
 %define default_generate_notes 0
 
+# Enable thread support in the GOLD linker.  This is particularly
+# important if plugins to the linker intend to use threads themselves.
+# See BZ 1636479 for more details.  This option is made configurable
+# in case there is ever a need to disable thread support.
+%define enable_threading 1
+
 #----End of Configure Options------------------------------------------------
 
 # Default: Not bootstrapping.
@@ -69,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -496,6 +502,11 @@ export LDFLAGS=$RPM_LD_FLAGS
 %else
   --enable-generate-build-notes=no \
 %endif
+%if %{enable_threading}
+  --enable-threads=yes \
+%else
+  --enable-threads=no \
+%endif
   $CARGS \
   --enable-plugins \
   --with-bugurl=http://bugzilla.redhat.com/bugzilla/
@@ -532,7 +543,7 @@ tar cjf binutils-%{_target_platform}.tar.xz  binutils-%{_target_platform}-*.{sum
 uuencode binutils-%{_target_platform}.tar.xz binutils-%{_target_platform}.tar.xz
 rm -f binutils-%{_target_platform}.tar.xz    binutils-%{_target_platform}-*.{sum,log}
 %if "%{build_gold}" == "both"
-if [-f gold/testsuite/test-suite.log ]; then
+if [ -f gold/testsuite/test-suite.log ]; then
   tar cjf  binutils-%{_target_platform}-gold.log.tar.xz gold/testsuite/*.log
   uuencode binutils-%{_target_platform}-gold.log.tar.xz binutils-%{_target_platform}-gold.log.tar.xz
   rm -f    binutils-%{_target_platform}-gold.log.tar.xz
@@ -781,6 +792,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jan 02 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-18
+- Ensure that GOLD is linked with pthread library.  (#1636479)
+
 * Wed Nov 28 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-17
 - Stop gold from warning about discard version information unless explicitly requested.  (#1654153)
 
