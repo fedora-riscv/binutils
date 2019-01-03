@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -190,6 +190,10 @@ Patch17: binutils-delay-ld-script-constant-eval.patch
 #            information, unless explicitly requested otherwise.
 # Lifetime: Fixed in 2.32
 Patch18: binutils-gold-discard-version-info.patch
+
+# Purpose:  Fix a memory leak reading minisymbols.
+# Lifetime: Fixed in 2.32
+Patch19: binutils-CVE-2018-20002.patch
 
 #----------------------------------------------------------------------------
 
@@ -332,6 +336,7 @@ using libelf instead of BFD.
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -480,7 +485,7 @@ export LDFLAGS=$RPM_LD_FLAGS
 %make_build %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
 %endif
 
-# Do not use %%check as it is run after %%install where libbfd.so is rebuild
+# Do not use %%check as it is run after %%install where libbfd.so is rebuilt
 # with -fvisibility=hidden no longer being usable in its shared form.
 %if %{without testsuite}
 echo ====================TESTSUITE DISABLED=========================
@@ -739,6 +744,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 03 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-16
+- Fix a memory leak reading minisymbols.  (#1661535)
+
 * Wed Nov 28 2018 Nick Clifton  <nickc@redhat.com> - 2.31.1-15
 - Stop gold from warning about discard version information unless explicitly requested.  (#1654153)
 
