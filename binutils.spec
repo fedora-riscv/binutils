@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -217,6 +217,10 @@ Patch23: binutils-special-sections-in-groups.patch
 #            information, unless explicitly requested otherwise.
 # Lifetime: Fixed in 2.32
 Patch24: binutils-gold-discard-version-info.patch
+
+# Purpose:  Fix a memory leak reading minisymbols.
+# Lifetime: Fixed in 2.32
+Patch25: binutils-CVE-2018-20002.patch
 
 #----------------------------------------------------------------------------
 
@@ -364,6 +368,7 @@ using libelf instead of BFD.
 %patch22 -p1
 %patch23 -p1
 %patch24 -p1
+%patch25 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -792,6 +797,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 03 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-19
+- Fix a memory leak reading minisymbols.  (#1661535)
+
 * Wed Jan 02 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-18
 - Ensure that GOLD is linked with pthread library.  (#1636479)
 
