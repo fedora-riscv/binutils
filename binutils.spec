@@ -245,7 +245,6 @@ Provides: bundled(libiberty)
 %define debug_package %{nil}
 %endif
 
-Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 # Perl, sed and touch are all used in the %%prep section of this spec file.
 BuildRequires: gcc, perl, sed, coreutils
