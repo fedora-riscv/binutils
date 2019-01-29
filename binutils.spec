@@ -713,15 +713,7 @@ exit 0
 #----------------------------------------------------------------------------
 
 %if %{isnative}
-%postun
-/sbin/ldconfig
-  if [ -e %{_infodir}/binutils.info.gz ]
-  then
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/as.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/gprof.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/ld.info.gz
-  fi
+%postun -p /sbin/ldconfig
 %endif # isnative
 
 #----------------------------------------------------------------------------
