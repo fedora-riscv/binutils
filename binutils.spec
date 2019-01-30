@@ -244,7 +244,6 @@ Provides: bundled(libiberty)
 %define debug_package %{nil}
 %endif
 
-Buildroot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 # Perl, sed and touch are all used in the %%prep section of this spec file.
 BuildRequires: gcc, perl, sed, coreutils
@@ -263,8 +262,6 @@ BuildRequires: gettext, flex, zlib-devel
 BuildRequires: texinfo >= 4.0
 # BZ 920545: We need pod2man in order to build the manual pages.
 BuildRequires: /usr/bin/pod2man
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 %else
 BuildRequires: findutils
 %endif
@@ -319,8 +316,6 @@ converting addresses to file and line).
 Summary: BFD and opcodes static and dynamic libraries and header files
 Provides: binutils-static = %{version}-%{release}
 %if %{with docs}
-Requires(post): /sbin/install-info
-Requires(preun): /sbin/install-info
 %endif
 Requires: zlib-devel
 Requires: binutils = %{version}-%{release}
@@ -698,13 +693,6 @@ fi
 
 %if %{isnative}
 /sbin/ldconfig
-
-%if %{with docs}
-  /sbin/install-info --info-dir=%{_infodir} %{_infodir}/as.info.gz
-  /sbin/install-info --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
-  /sbin/install-info --info-dir=%{_infodir} %{_infodir}/gprof.info.gz
-  /sbin/install-info --info-dir=%{_infodir} %{_infodir}/ld.info.gz
-%endif # with docs
 %endif # isnative
 
 exit 0
@@ -719,32 +707,12 @@ if [ $1 = 0 ]; then
 fi
 %endif # both ld.gold and ld.bfd
 
-%if %{isnative}
-if [ $1 = 0 ]; then
-  if [ -e %{_infodir}/binutils.info.gz ]
-  then
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/as.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/gprof.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/ld.info.gz
-  fi
-fi
-%endif # isnative
-
 exit 0
 
 #----------------------------------------------------------------------------
 
 %if %{isnative}
-%postun
-/sbin/ldconfig
-  if [ -e %{_infodir}/binutils.info.gz ]
-  then
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/as.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/binutils.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/gprof.info.gz
-    /sbin/install-info --delete --info-dir=%{_infodir} %{_infodir}/ld.info.gz
-  fi
+%postun -p /sbin/ldconfig
 %endif # isnative
 
 #----------------------------------------------------------------------------
