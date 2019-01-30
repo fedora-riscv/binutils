@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -118,11 +118,6 @@ Patch03: binutils-2.31-export-demangle.h.patch
 #           fixed so that they do include the header files in the correct
 #           order.
 Patch04: binutils-2.22.52.0.4-no-config-h-check.patch
-
-# Purpose:  Import H.J.Lu's Kernel LTO patch.
-# Lifetime: Permanent, but needs continual updating.
-# FIXME:    Try removing....
-# Patch05: binutils-2.26-lto.patch
 
 # Purpose:  Include the filename concerned in readelf error messages.  This
 #           makes readelf's output more helpful when it is run on multiple
@@ -221,6 +216,10 @@ Patch24: binutils-gold-discard-version-info.patch
 # Purpose:  Fix a memory leak reading minisymbols.
 # Lifetime: Fixed in 2.32
 Patch25: binutils-CVE-2018-20002.patch
+
+# Purpose:  Fix assembler check for an output file matching an input file.
+# Lifetime: Fixed in 2.32
+Patch26: binutils-gas-input-matches-output.patch
 
 #----------------------------------------------------------------------------
 
@@ -369,6 +368,7 @@ using libelf instead of BFD.
 %patch23 -p1
 %patch24 -p1
 %patch25 -p1
+%patch26 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -692,9 +692,8 @@ fi
   %{_bindir}/%{?cross}ld.bfd %{ld_bfd_priority}
 %{_sbindir}/alternatives --install %{_bindir}/%{?cross}ld %{?cross}ld \
   %{_bindir}/%{?cross}ld.gold %{ld_gold_priority}
-if [ $1 = 0 ]; then
-  %{_sbindir}/alternatives --auto %{?cross}ld
-fi
+# Do not run "alternatives --auto ld" here.  Leave the setting to
+# however the user previously had it set.  See BZ 1592069 for more details.
 %endif # both ld.gold and ld.bfd
 
 %if %{isnative}
@@ -797,6 +796,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jan 30 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-20
+- Fix the assembler's check that the output file is not also one of the input files.  (#1660279)
+
 * Thu Jan 03 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-19
 - Fix a memory leak reading minisymbols.  (#1661535)
 
