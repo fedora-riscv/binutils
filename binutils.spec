@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -194,6 +194,10 @@ Patch18: binutils-gold-discard-version-info.patch
 # Purpose:  Fix a memory leak reading minisymbols.
 # Lifetime: Fixed in 2.32
 Patch19: binutils-CVE-2018-20002.patch
+
+# Purpose:  Fix assembler check for an output file matching an input file.
+# Lifetime: Fixed in 2.32
+Patch20: binutils-gas-input-matches-output.patch
 
 #----------------------------------------------------------------------------
 
@@ -337,6 +341,7 @@ using libelf instead of BFD.
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -744,6 +749,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jan 30 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-17
+- Fix the assembler's check that the output file is not also one of the input files.  (#1660279)
+
 * Thu Jan 03 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-16
 - Fix a memory leak reading minisymbols.  (#1661535)
 
