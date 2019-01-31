@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -764,6 +764,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.31.1-21
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
 * Wed Jan 30 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-20
 - Fix the assembler's check that the output file is not also one of the input files.  (#1660279)
 
