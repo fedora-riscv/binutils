@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -712,7 +712,8 @@ exit 0
 #----------------------------------------------------------------------------
 
 %if %{isnative}
-%postun -p /sbin/ldconfig
+%postun
+/sbin/ldconfig
 %endif # isnative
 
 #----------------------------------------------------------------------------
@@ -764,6 +765,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 14 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-22
+- Rework the post uninstall stage to avoid mysterious error from ldconfig.  (#1673912)
+
 * Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.31.1-21
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
 
