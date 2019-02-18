@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -221,6 +221,10 @@ Patch25: binutils-CVE-2018-20002.patch
 # Lifetime: Fixed in 2.32
 Patch26: binutils-gas-input-matches-output.patch
 
+# Purpose:  Ensure that decompressed sections have the correct alignment.
+# Lifetime: Fixed in 2.32
+Patch27: binutils-alignment-of-decompressed-sections.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -364,6 +368,7 @@ using libelf instead of BFD.
 %patch24 -p1
 %patch25 -p1
 %patch26 -p1
+%patch27 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -765,6 +770,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 18 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-23
+- Ensure that decompressed sections have the correct alignment.  (#1678204)
+
 * Thu Feb 14 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-22
 - Rework the post uninstall stage to avoid mysterious error from ldconfig.  (#1673912)
 
