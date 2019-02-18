@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -198,6 +198,10 @@ Patch19: binutils-CVE-2018-20002.patch
 # Purpose:  Fix assembler check for an output file matching an input file.
 # Lifetime: Fixed in 2.32
 Patch20: binutils-gas-input-matches-output.patch
+
+# Purpose:  Ensure that decompressed sections have the correct alignment.
+# Lifetime: Fixed in 2.32
+Patch21: binutils-alignment-of-decompressed-sections.patch
 
 #----------------------------------------------------------------------------
 
@@ -342,6 +346,7 @@ using libelf instead of BFD.
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
+%patch21 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -749,6 +754,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 18 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-18
+- Ensure that decompressed sections have the correct alignment.  (#1678204)
+
 * Wed Jan 30 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-17
 - Fix the assembler's check that the output file is not also one of the input files.  (#1660279)
 
