@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -168,6 +168,10 @@ Patch11: binutils-gold-ignore-discarded-note-relocs.patch
 # Lifetime: Might be fixed in 2.33
 Patch12: binutils-special-sections-in-groups.patch
 
+# Purpose:  Fix linker testsuite failures.
+# Lifetime: Fixed in 2.33 (possibly)
+Patch13: binutils-fix-testsuite-failures.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -190,7 +194,6 @@ Provides: bundled(libiberty)
 %define __debug_install_post : > %{_builddir}/%{?buildsubdir}/debugfiles.list
 %define debug_package %{nil}
 %endif
-
 
 # Perl, sed and touch are all used in the %%prep section of this spec file.
 BuildRequires: gcc, perl, sed, coreutils
@@ -299,6 +302,7 @@ using libelf instead of BFD.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
+%patch13 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -700,6 +704,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Feb 20 2019 Nick Clifton  <nickc@redhat.com> - 2.32-2
+- Fix some bfd linker testsuite failures.
+
 * Wed Feb 20 2019 Nick Clifton  <nickc@redhat.com> - 2.32-1
 - Rebase to GNU Binutils 2.32
 - Retire: binutils-s390-partial-relro.patch
