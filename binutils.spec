@@ -74,8 +74,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.31.1
-Release: 23%{?dist}
+Version: 2.32
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -106,7 +106,7 @@ Patch02: binutils-2.25-version.patch
 # Purpose:  Exports the demangle.h header file (associated with the libiberty
 #           sources) with the binutils-devel rpm.
 # Lifetime: Permanent.  This is a RHEL/Fedora specific patch.
-Patch03: binutils-2.31-export-demangle.h.patch
+Patch03: binutils-export-demangle.h.patch
 
 # Purpose:  Disables the check in the BFD library's bfd.h header file that
 #           config.h has been included before the bfd.h header.  See BZ
@@ -126,7 +126,7 @@ Patch04: binutils-2.22.52.0.4-no-config-h-check.patch
 #           making it better (IMHO) but also potentially breaking tools that
 #           depend upon readelf's current format.  Hence it remains a local
 #           patch.
-Patch06: binutils-2.29-filename-in-error-messages.patch
+Patch05: binutils-2.29-filename-in-error-messages.patch
 
 # Purpose:  Disable an x86/x86_64 optimization that moves functions from the
 #           PLT into the GOTPLT for faster access.  This optimization is
@@ -134,7 +134,7 @@ Patch06: binutils-2.29-filename-in-error-messages.patch
 #           as ltrace and LD_AUDIT.  See BZs 1452111 and 1333481.
 # Lifetime: Permanent.  But it should not be.
 # FIXME:    Replace with a configure time option.
-Patch07: binutils-2.29-revert-PLT-elision.patch
+Patch06: binutils-2.29-revert-PLT-elision.patch
 
 # Purpose:  Changes readelf so that when it displays extra information about
 #           a symbol, this information is placed at the end of the line.
@@ -142,88 +142,31 @@ Patch07: binutils-2.29-revert-PLT-elision.patch
 # FIXME:    The proper fix would be to update the scripts that are expecting
 #           a fixed output from readelf.  But it seems that some of them are
 #           no longer being maintained.
-Patch08: binutils-readelf-other-sym-info.patch
+Patch07: binutils-readelf-other-sym-info.patch
 
 # Purpose:  Do not create PLT entries for AARCH64 IFUNC symbols referenced in
 #           debug sections.
 # Lifetime: Permanent.
 # FIXME:    Find related bug.  Decide on permanency.
-Patch09: binutils-2.27-aarch64-ifunc.patch
-
-# Purpose:  Fix linker testsuite failures
-# Lifetime: Fixed in 2.32 (probably)
-Patch10: binutils-fix-testsuite-failures.patch
-
-# Purpose:  Revert fix for PR 23161 which was placing unversioned section
-#           symbols (_edata, _end, __bss_start) into shared libraries.
-#           See also PR 23499 and BZ 1614920
-# Lifetime: Fixed in 2.32
-# Patch11: binutils-do-not-provide-shared-section-symbols.patch
-Patch11: binutils-clear-version-info.patch
-
-# Purpose:  Stop gold from complaining about relocs in the .gnu.build.attribute
-#           section that reference symbols in discarded sections.
-# Lifetime: Fixed in 2.32 (maybe)
-Patch12: binutils-gold-ignore-discarded-note-relocs.patch
-
-# Purpose:  Improve partial relro support for 64-bit s/390.
-# Lifetime: Fixed in 2.32 
-Patch13: binutils-s390-partial-relro.patch
-
-# Purpose:  Merge .gnu.build.attribute sections into a single section.
-# Lifetime: Fixed in 2.32 
-Patch14: binutils-merge-attribute-sections.patch
-
-# Purpose:  Improve objcopy's --merge-notes option.
-# Lifetime: Fixed in 2.32
-Patch15: binutils-note-merge-improvements.patch
-
-# Purpose:  Detect and report corrupt symbol version information.
-# Lifetime: Fixed in 2.32
-Patch16: binutils-detect-corrupt-sym-version-info.patch
-
-# Purpose:  Delay the evaluation of linker script constants until
-#            after the configuration options have been set.
-# Lifetime: Fixed in 2.32
-Patch17: binutils-delay-ld-script-constant-eval.patch
-
-# Purpose:  Stop readelf's reports of gaps in build notes - they are unreliable.
-# Lifetime: Unknown.
-Patch18: binutils-disable-readelf-gap-reports.patch
+Patch08: binutils-2.27-aarch64-ifunc.patch
 
 # Purpose:  Stop the binutils from statically linking with libstdc++.
 # Lifetime: Permanent.
-Patch20: binutils-do-not-link-with-static-libstdc++.patch
+Patch09: binutils-do-not-link-with-static-libstdc++.patch
 
 # Purpose:  Add a .attach_to_group pseudo-op to the assembler for
 #           use by the annobin gcc plugin.
 # Lifetime: Permanent.
-Patch21: binutils-attach-to-group.patch
+Patch10: binutils-attach-to-group.patch
 
-# Purpose:  Fix a potential buffer overrun when parsing a corrupt ELF file.
-# Lifetime: Fixed in 2.32.
-Patch22: binutils-CVE-2018-17358.patch
+# Purpose:  Stop gold from complaining about relocs in the .gnu.build.attribute
+#           section that reference symbols in discarded sections.
+# Lifetime: Fixed in 2.33 (maybe)
+Patch11: binutils-gold-ignore-discarded-note-relocs.patch
 
 # Purpose:  Allow OS specific sections in section groups.
-# Lifetime: Might be fixed in 2.32
-Patch23: binutils-special-sections-in-groups.patch
-
-# Purpose:  Stop gold from issuing warnings about dropped version
-#            information, unless explicitly requested otherwise.
-# Lifetime: Fixed in 2.32
-Patch24: binutils-gold-discard-version-info.patch
-
-# Purpose:  Fix a memory leak reading minisymbols.
-# Lifetime: Fixed in 2.32
-Patch25: binutils-CVE-2018-20002.patch
-
-# Purpose:  Fix assembler check for an output file matching an input file.
-# Lifetime: Fixed in 2.32
-Patch26: binutils-gas-input-matches-output.patch
-
-# Purpose:  Ensure that decompressed sections have the correct alignment.
-# Lifetime: Fixed in 2.32
-Patch27: binutils-alignment-of-decompressed-sections.patch
+# Lifetime: Might be fixed in 2.33
+Patch12: binutils-special-sections-in-groups.patch
 
 #----------------------------------------------------------------------------
 
@@ -348,6 +291,7 @@ using libelf instead of BFD.
 %patch02 -p1
 %patch03 -p1
 %patch04 -p1
+%patch05 -p1
 %patch06 -p1
 %patch07 -p1
 %patch08 -p1
@@ -355,20 +299,6 @@ using libelf instead of BFD.
 %patch10 -p1
 %patch11 -p1
 %patch12 -p1
-%patch13 -p1
-%patch14 -p1
-%patch15 -p1
-%patch16 -p1
-%patch17 -p1
-%patch18 -p1
-%patch20 -p1
-%patch21 -p1
-%patch22 -p1
-%patch23 -p1
-%patch24 -p1
-%patch25 -p1
-%patch26 -p1
-%patch27 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -770,6 +700,25 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Feb 20 2019 Nick Clifton  <nickc@redhat.com> - 2.32-1
+- Rebase to GNU Binutils 2.32
+- Retire: binutils-s390-partial-relro.patch
+- Retire: binutils-note-merge-improvements.patch
+- Retire: Retire: binutils-merge-attribute-sections.patch
+- Retire: binutils-gold-discard-version-info.patch
+- Retire: binutils-gas-input-matches-output.patch
+- Retire: binutils-fix-testsuite-failures.patch
+- Retire: binutils-do-not-provide-shared-section-symbols.patch
+- Retire: binutils-disable-readelf-gap-reports.patch
+- Retire: binutils-detect-corrupt-sym-version-info.patch
+- Retire: binutils-delay-ld-script-constant-eval.patch
+- Retire: binutils-clear-version-info.patch
+- Retire: binutils-CVE-2018-20002.patch
+- Retire: binutils-CVE-2018-17358.patch
+- Retire: binutils-2.31-export-demangle.h.patch
+- Retire: binutils-2.28-ignore-gold-duplicates.patch
+- Retire: binutils-2.26-lto.patch
+
 * Mon Feb 18 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-23
 - Ensure that decompressed sections have the correct alignment.  (#1678204)
 
