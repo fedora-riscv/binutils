@@ -1,0 +1,12 @@
+--- binutils.orig/bfd/elf64-ppc.c	2019-02-20 10:58:09.700552616 +0000
++++ binutils-2.31.1/bfd/elf64-ppc.c	2019-02-20 10:59:15.989062349 +0000
+@@ -13530,7 +13530,8 @@ write_plt_relocs_for_local_syms (struct
+ 		}
+ 
+ 	      val = sym->st_value + ent->addend;
+-	      val += PPC64_LOCAL_ENTRY_OFFSET (sym->st_other);
++	      if (ELF_ST_TYPE (sym->st_info) != STT_GNU_IFUNC)
++		val += PPC64_LOCAL_ENTRY_OFFSET (sym->st_other);
+ 	      if (sym_sec != NULL && sym_sec->output_section != NULL)
+ 		val += sym_sec->output_offset + sym_sec->output_section->vma;
+ 
