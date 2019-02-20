@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -225,6 +225,10 @@ Patch26: binutils-gas-input-matches-output.patch
 # Lifetime: Fixed in 2.32
 Patch27: binutils-alignment-of-decompressed-sections.patch
 
+# Purpose:  Correct the generation of relocations for local ifuncs on PowerPC64
+# Lifetime: Fixed in 2.32
+Patch28: binutils-ppc64-local-ifunc-relocs.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -369,6 +373,7 @@ using libelf instead of BFD.
 %patch25 -p1
 %patch26 -p1
 %patch27 -p1
+%patch28 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -770,6 +775,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Feb 20 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-24
+- Correct the generation of relocations for PowerPC local ifuncs.  (PR 23937)
+
 * Mon Feb 18 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-23
 - Ensure that decompressed sections have the correct alignment.  (#1678204)
 
