@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -233,6 +233,10 @@ Patch28: binutils-ppc64-local-ifunc-relocs.patch
 # Lifetime: Fixed in 2.33
 Patch29: binutils-CVE-2019-9073.patch
 
+# Purpose:  Stop illegal memory access parsing corrupt PE files.
+# Lifetime: Fixed in 2.33
+Patch30: binutils-CVE-2019-9074.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -379,6 +383,7 @@ using libelf instead of BFD.
 %patch27 -p1
 %patch28 -p1
 %patch29 -p1
+%patch30 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -780,6 +785,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-26
+- Stop potential illegal memory access when parsing corrupt PE files.  (#1680682)
+
 * Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-25
 - Improve objdump's handling of corrupt input files.  (#1680663)
 
