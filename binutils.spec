@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -210,6 +210,10 @@ Patch22: binutils-ppc64-local-ifunc-relocs.patch
 # Purpose:  Improve objdump's handling of corrupt input files.
 # Lifetime: Fixed in 2.33
 Patch23: binutils-CVE-2019-9073.patch
+
+# Purpose:  Stop illegal memory access parsing corrupt PE files.
+# Lifetime: Fixed in 2.33
+Patch24: binutils-CVE-2019-9074.patch
 
 #----------------------------------------------------------------------------
 
@@ -764,6 +768,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-21
+- Stop potential illegal memory access when parsing corrupt PE files.  (#1680682)
+
 * Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-20
 - Improve objdump's handling of corrupt input files.  (#1680663)
 
