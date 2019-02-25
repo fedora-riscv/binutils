@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -175,6 +175,10 @@ Patch13: binutils-fix-testsuite-failures.patch
 # Purpose:  Improve objdump's handling of corrupt input files.
 # Lifetime: Fixed in 2.33
 Patch14: binutils-CVE-2019-9073.patch
+
+# Purpose:  Stop illegal memory access parsing corrupt PE files.
+# Lifetime: Fixed in 2.33
+Patch15: binutils-CVE-2019-9074.patch
 
 #----------------------------------------------------------------------------
 
@@ -308,6 +312,7 @@ using libelf instead of BFD.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -709,6 +714,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.32-4
+- Stop potential illegal memory access when parsing corrupt PE files.  (#1680682)
+
 * Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.32-3
 - Improve objdump's handling of corrupt input files.  (#1680663)
 
