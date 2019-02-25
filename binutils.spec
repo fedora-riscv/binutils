@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -171,6 +171,10 @@ Patch12: binutils-special-sections-in-groups.patch
 # Purpose:  Fix linker testsuite failures.
 # Lifetime: Fixed in 2.33 (possibly)
 Patch13: binutils-fix-testsuite-failures.patch
+
+# Purpose:  Improve objdump's handling of corrupt input files.
+# Lifetime: Fixed in 2.33
+Patch14: binutils-CVE-2019-9073.patch
 
 #----------------------------------------------------------------------------
 
@@ -303,6 +307,7 @@ using libelf instead of BFD.
 %patch11 -p1
 %patch12 -p1
 %patch13 -p1
+%patch14 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -704,6 +709,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.32-3
+- Improve objdump's handling of corrupt input files.  (#1680663)
+
 * Wed Feb 20 2019 Nick Clifton  <nickc@redhat.com> - 2.32-2
 - Fix some bfd linker testsuite failures.
 
