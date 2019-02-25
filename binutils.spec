@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -206,6 +206,10 @@ Patch21: binutils-alignment-of-decompressed-sections.patch
 # Purpose:  Correct the generation of relocations for local ifuncs on PowerPC64
 # Lifetime: Fixed in 2.32
 Patch22: binutils-ppc64-local-ifunc-relocs.patch
+
+# Purpose:  Improve objdump's handling of corrupt input files.
+# Lifetime: Fixed in 2.33
+Patch23: binutils-CVE-2019-9073.patch
 
 #----------------------------------------------------------------------------
 
@@ -352,6 +356,7 @@ using libelf instead of BFD.
 %patch20 -p1
 %patch21 -p1
 %patch22 -p1
+%patch23 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -759,7 +764,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Wed Feb 20 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-29
+* Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-20
+- Improve objdump's handling of corrupt input files.  (#1680663)
+
+* Wed Feb 20 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-19
 - Correct the generation of relocations for PowerPC local ifuncs.  (PR 23937)
 
 * Mon Feb 18 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-18
