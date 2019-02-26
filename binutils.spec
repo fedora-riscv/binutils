@@ -28,6 +28,11 @@
 # relocations against absolute symbols.
 %define default_generate_notes 0
 
+# Use "--without gold" to exclude the gold linker.
+# The default is to include it.
+# Note - in the future the gold linker may become deprecated.
+%bcond_without gold
+
 # Enable thread support in the GOLD linker.  This is particularly
 # important if plugins to the linker intend to use threads themselves.
 # See BZ 1636479 for more details.  This option is made configurable
@@ -75,7 +80,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -192,16 +197,13 @@ Patch17: binutils-CVE-2019-9077.patch
 
 Provides: bundled(libiberty)
 
-%define gold_arches %{ix86} x86_64 %{arm} aarch64 %{power64} s390x
-
-%if %{with bootstrap}
-%define build_gold      no
-%else
-%ifarch %gold_arches
-%define build_gold      both
-%else
-%define build_gold      no
-%endif
+%if %{with gold}
+# For now we make the binutils package require the gold sub-package.
+# That way other packages that have a requirement on "binutils" but
+# actually want gold will not have to be changed.  In the future, if
+# we decide to deprecate gold, we can remove this requirement, and
+# then update other packages as necessary.
+Requires: binutils-gold = %{version}
 %endif
 
 %if %{with debug}
@@ -213,12 +215,6 @@ Provides: bundled(libiberty)
 
 # Perl, sed and touch are all used in the %%prep section of this spec file.
 BuildRequires: gcc, perl, sed, coreutils
-
-# Gold needs bison in order to build gold/yyscript.c.
-# Bison needs m4.
-%if "%{build_gold}" == "both"
-BuildRequires: bison, m4, gcc-c++
-%endif
 
 %if %{without bootstrap}
 BuildRequires: gettext, flex, zlib-devel
@@ -237,22 +233,6 @@ BuildRequires: findutils
 %if %{with testsuite}
 # relro_test.sh uses dc which is part of the bc rpm, hence its inclusion here.
 BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc
-%if "%{build_gold}" == "both"
-# The GOLD testsuite needs a static libc++
-BuildRequires: libstdc++-static
-%endif
-%endif
-
-Conflicts: gcc-c++ < 4.0.0
-
-# The higher of these two numbers determines the default ld.
-%{!?ld_bfd_priority: %global ld_bfd_priority    50}
-%{!?ld_gold_priority:%global ld_gold_priority   30}
-
-%if "%{build_gold}" == "both"
-Requires(post): coreutils
-Requires(post): %{_sbindir}/alternatives
-Requires(preun): %{_sbindir}/alternatives
 %endif
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
@@ -281,8 +261,6 @@ converting addresses to file and line).
 %package devel
 Summary: BFD and opcodes static and dynamic libraries and header files
 Provides: binutils-static = %{version}-%{release}
-%if %{with docs}
-%endif
 Requires: zlib-devel
 Requires: binutils = %{version}-%{release}
 # BZ 1215242: We need touch...
@@ -301,6 +279,39 @@ dynamic libraries.
 
 Developers starting new projects are strongly encouraged to consider
 using libelf instead of BFD.
+
+#----------------------------------------------------------------------------
+
+%if %{with gold}
+
+%package gold
+Summary: The GOLD linker, a faster alternative to the BFD linker
+Provides: gold = %{version}-%{release}
+Requires: binutils = %{version}-%{release}
+
+%description gold
+This package provides the GOLD linker, which can be used as an alternative to
+the default binutils linker (ld.bfd).  The GOLD is generally faster than the
+BFD linker, and it supports features such as Identical Code Folding and
+Incremental linking.  Unfortunately it is not as well maintained as the BFD
+linker, and it may become deprecated in the future.
+
+# Gold needs bison in order to build gold/yyscript.c.
+BuildRequires: bison, m4, gcc-c++
+# The GOLD testsuite needs a static libc++
+BuildRequires: libstdc++-static
+
+Conflicts: gcc-c++ < 4.0.0
+
+# The higher of these two numbers determines the default ld.
+%{!?ld_bfd_priority: %global ld_bfd_priority    50}
+%{!?ld_gold_priority:%global ld_gold_priority   30}
+
+Requires(post): coreutils
+Requires(post): %{_sbindir}/alternatives
+Requires(preun): %{_sbindir}/alternatives
+
+%endif # with gold
 
 #----------------------------------------------------------------------------
 
@@ -424,13 +435,10 @@ export LDFLAGS=$RPM_LD_FLAGS
   --quiet \
   --build=%{_target_platform} --host=%{_target_platform} \
   --target=%{binutils_target} \
-%ifarch %gold_arches
-%if "%{build_gold}" == "both"
-  --enable-gold=default --enable-ld \
-%else
-  --enable-gold \
+%if %{with gold}
+  --enable-gold=default \
 %endif
-%endif
+  --enable-ld \
 %if %{isnative}
   --with-sysroot=/ \
 %else
@@ -485,7 +493,7 @@ echo ====================TESTSUITE DISABLED=========================
 make -k check < /dev/null || :
 echo ====================TESTING=========================
 cat {gas/testsuite/gas,ld/ld,binutils/binutils}.sum
-%if "%{build_gold}" == "both"
+%if %{with gold}
 if [ -f gold/test-suite.log ]; then
     cat gold/test-suite.log
 fi
@@ -501,14 +509,14 @@ done
 tar cjf binutils-%{_target_platform}.tar.xz  binutils-%{_target_platform}-*.{sum,log}
 uuencode binutils-%{_target_platform}.tar.xz binutils-%{_target_platform}.tar.xz
 rm -f binutils-%{_target_platform}.tar.xz    binutils-%{_target_platform}-*.{sum,log}
-%if "%{build_gold}" == "both"
+%if %{with gold}
 if [ -f gold/testsuite/test-suite.log ]; then
   tar cjf  binutils-%{_target_platform}-gold.log.tar.xz gold/testsuite/*.log
   uuencode binutils-%{_target_platform}-gold.log.tar.xz binutils-%{_target_platform}-gold.log.tar.xz
   rm -f    binutils-%{_target_platform}-gold.log.tar.xz
 fi
 %endif
-%endif
+%endif # with testsuite
 
 #----------------------------------------------------------------------------
 
@@ -640,7 +648,7 @@ fi
 #----------------------------------------------------------------------------
 
 %post
-%if "%{build_gold}" == "both"
+%if %{with gold}
 %__rm -f %{_bindir}/%{?cross}ld
 %{_sbindir}/alternatives --install %{_bindir}/%{?cross}ld %{?cross}ld \
   %{_bindir}/%{?cross}ld.bfd %{ld_bfd_priority}
@@ -648,23 +656,23 @@ fi
   %{_bindir}/%{?cross}ld.gold %{ld_gold_priority}
 # Do not run "alternatives --auto ld" here.  Leave the setting to
 # however the user previously had it set.  See BZ 1592069 for more details.
-%endif # both ld.gold and ld.bfd
+%endif
 
 %if %{isnative}
-/sbin/ldconfig
-%endif # isnative
+%ldconfig_post
+%endif
 
 exit 0
 
 #----------------------------------------------------------------------------
 
 %preun
-%if "%{build_gold}" == "both"
+%if %{with gold}
 if [ $1 = 0 ]; then
   %{_sbindir}/alternatives --remove %{?cross}ld %{_bindir}/%{?cross}ld.bfd
   %{_sbindir}/alternatives --remove %{?cross}ld %{_bindir}/%{?cross}ld.gold
 fi
-%endif # both ld.gold and ld.bfd
+%endif
 
 exit 0
 
@@ -672,8 +680,8 @@ exit 0
 
 %if %{isnative}
 %postun
-/sbin/ldconfig
-%endif # isnative
+%ldconfig_postun
+%endif
 
 #----------------------------------------------------------------------------
 
@@ -682,12 +690,11 @@ exit 0
 %doc README
 %{_bindir}/%{?cross}[!l]*
 
-%if "%{build_gold}" == "both"
-%{_bindir}/%{?cross}ld.*
-%ghost %{_bindir}/%{?cross}ld
-%else
+%if %{with gold}
 %{_bindir}/%{?cross}ld*
-%endif # both ld.gold and ld.bfd
+%else
+%{_bindir}/%{?cross}ld.bfd
+%endif
 
 %if %{with docs}
 %{_mandir}/man1/*
@@ -695,20 +702,21 @@ exit 0
 %{_infodir}/binutils.info.gz
 %{_infodir}/gprof.info.gz
 %{_infodir}/ld.info.gz
-%endif # with docs
+%endif
 
 %if %{enable_shared}
 %{_libdir}/lib*.so
 %exclude %{_libdir}/libbfd.so
 %exclude %{_libdir}/libopcodes.so
-%endif # enable_shared
+%endif
 
 %if %{isnative}
 
 %if %{with docs}
 %{_infodir}/[^b]*info*
 %{_infodir}/binutils*info*
-%endif # with docs
+%{_infodir}/bfd*info*
+%endif
 
 %files devel
 %{_prefix}/include/*
@@ -716,14 +724,19 @@ exit 0
 %{_libdir}/libbfd.so
 %{_libdir}/libopcodes.so
 
-%if %{with docs}
-%{_infodir}/bfd*info*
-%endif # with docs
-
 %endif # isnative
+
+%if %{with gold}
+%files gold
+%{_bindir}/%{?cross}ld.gold
+%ghost %{_bindir}/%{?cross}ld
+%endif
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Feb 26 2019 Nick Clifton  <nickc@redhat.com> - 2.32-7
+- Move GOLD into a sub-package of BINUTILS.
+
 * Tue Feb 26 2019 Nick Clifton  <nickc@redhat.com> - 2.32-6
 - Stop potential illegal memory access when parsing a corrupt MIPS binary.  (#1680676)
 
