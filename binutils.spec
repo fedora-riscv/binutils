@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -219,6 +219,10 @@ Patch24: binutils-CVE-2019-9074.patch
 # Lifetime: Fixed in 2.33
 Patch25: binutils-CVE-2019-9075.patch
 
+# Purpose:  Stop illegal memory access parsing a corrupt MIPS binary.
+# Lifetime: Fixed in 2.33
+Patch26: binutils-CVE-2019-9077.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -367,6 +371,7 @@ using libelf instead of BFD.
 %patch23 -p1
 %patch24 -p1
 %patch25 -p1
+%patch26 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -774,6 +779,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Feb 26 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-23
+- Stop potential illegal memory access when parsing a corrupt MIPS binary.  (#1680676)
+
 * Tue Feb 26 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-22
 - Stop potential illegal memory access when parsing corrupt archives.  (#1680670)
 
