@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -214,6 +214,10 @@ Patch23: binutils-CVE-2019-9073.patch
 # Purpose:  Stop illegal memory access parsing corrupt PE files.
 # Lifetime: Fixed in 2.33
 Patch24: binutils-CVE-2019-9074.patch
+
+# Purpose:  Stop illegal memory access parsing corrupt archives.
+# Lifetime: Fixed in 2.33
+Patch25: binutils-CVE-2019-9075.patch
 
 #----------------------------------------------------------------------------
 
@@ -361,6 +365,8 @@ using libelf instead of BFD.
 %patch21 -p1
 %patch22 -p1
 %patch23 -p1
+%patch24 -p1
+%patch25 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -768,6 +774,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Feb 26 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-22
+- Stop potential illegal memory access when parsing corrupt archives.  (#1680670)
+
 * Mon Feb 25 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-21
 - Stop potential illegal memory access when parsing corrupt PE files.  (#1680682)
 
