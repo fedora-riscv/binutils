@@ -80,7 +80,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -203,7 +203,7 @@ Provides: bundled(libiberty)
 # actually want gold will not have to be changed.  In the future, if
 # we decide to deprecate gold, we can remove this requirement, and
 # then update other packages as necessary.
-Requires: binutils-gold = %{version}
+Requires: binutils-gold >= %{version}
 %endif
 
 %if %{with debug}
@@ -234,6 +234,11 @@ BuildRequires: findutils
 # relro_test.sh uses dc which is part of the bc rpm, hence its inclusion here.
 BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc
 %endif
+
+Requires(post): %{_sbindir}/alternatives
+Requires(preun): %{_sbindir}/alternatives
+# We also need rm.
+Requires(post): coreutils
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -287,7 +292,7 @@ using libelf instead of BFD.
 %package gold
 Summary: The GOLD linker, a faster alternative to the BFD linker
 Provides: gold = %{version}-%{release}
-Requires: binutils = %{version}-%{release}
+Requires: binutils >= %{version}
 
 %description gold
 This package provides the GOLD linker, which can be used as an alternative to
@@ -306,10 +311,6 @@ Conflicts: gcc-c++ < 4.0.0
 # The higher of these two numbers determines the default ld.
 %{!?ld_bfd_priority: %global ld_bfd_priority    50}
 %{!?ld_gold_priority:%global ld_gold_priority   30}
-
-Requires(post): coreutils
-Requires(post): %{_sbindir}/alternatives
-Requires(preun): %{_sbindir}/alternatives
 
 %endif # with gold
 
@@ -648,15 +649,17 @@ fi
 #----------------------------------------------------------------------------
 
 %post
-%if %{with gold}
 %__rm -f %{_bindir}/%{?cross}ld
 %{_sbindir}/alternatives --install %{_bindir}/%{?cross}ld %{?cross}ld \
   %{_bindir}/%{?cross}ld.bfd %{ld_bfd_priority}
+
+%if %{with gold}
 %{_sbindir}/alternatives --install %{_bindir}/%{?cross}ld %{?cross}ld \
   %{_bindir}/%{?cross}ld.gold %{ld_gold_priority}
+%endif
+
 # Do not run "alternatives --auto ld" here.  Leave the setting to
 # however the user previously had it set.  See BZ 1592069 for more details.
-%endif
 
 %if %{isnative}
 %ldconfig_post
@@ -667,9 +670,11 @@ exit 0
 #----------------------------------------------------------------------------
 
 %preun
-%if %{with gold}
 if [ $1 = 0 ]; then
   %{_sbindir}/alternatives --remove %{?cross}ld %{_bindir}/%{?cross}ld.bfd
+fi
+%if %{with gold}
+if [ $1 = 0 ]; then
   %{_sbindir}/alternatives --remove %{?cross}ld %{_bindir}/%{?cross}ld.gold
 fi
 %endif
@@ -734,6 +739,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Feb 27 2019 Nick Clifton  <nickc@redhat.com> - 2.32-8
+- Fix requirements and use of the alternatives mechanism.  (#1683408, #1683466)
+
 * Tue Feb 26 2019 Nick Clifton  <nickc@redhat.com> - 2.32-7
 - Move GOLD into a sub-package of BINUTILS.
 
