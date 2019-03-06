@@ -1,0 +1,39 @@
+diff -rup binutils.orig/bfd/coffgen.c binutils-2.31.1/bfd/coffgen.c
+--- binutils.orig/bfd/coffgen.c	2019-03-06 08:49:19.500586870 +0000
++++ binutils-2.31.1/bfd/coffgen.c	2019-03-06 08:49:45.798394582 +0000
+@@ -2289,7 +2289,7 @@ coff_find_nearest_line_with_names (bfd *
+      information.  So try again, using a bias against the address sought.  */
+   if (coff_data (abfd)->dwarf2_find_line_info != NULL)
+     {
+-      bfd_signed_vma bias;
++      bfd_signed_vma bias = 0;
+ 
+       /* Create a cache of the result for the next call.  */
+       if (sec_data == NULL && section->owner == abfd)
+@@ -2301,10 +2301,11 @@ coff_find_nearest_line_with_names (bfd *
+ 
+       if (sec_data != NULL && sec_data->saved_bias)
+ 	bias = sec_data->saved_bias;
+-      else
++      else if (symbols)
+ 	{
+ 	  bias = _bfd_dwarf2_find_symbol_bias (symbols,
+ 					       & coff_data (abfd)->dwarf2_find_line_info);
++
+ 	  if (sec_data)
+ 	    {
+ 	      sec_data->saved_bias = TRUE;
+Only in binutils-2.31.1/bfd: coffgen.c.orig
+diff -rup binutils.orig/bfd/dwarf2.c binutils-2.31.1/bfd/dwarf2.c
+--- binutils.orig/bfd/dwarf2.c	2019-03-06 08:49:19.498586884 +0000
++++ binutils-2.31.1/bfd/dwarf2.c	2019-03-06 08:49:45.799394575 +0000
+@@ -4463,7 +4463,7 @@ _bfd_dwarf2_find_symbol_bias (asymbol **
+ 
+   stash = (struct dwarf2_debug *) *pinfo;
+ 
+-  if (stash == NULL)
++  if (stash == NULL || symbols == NULL)
+     return 0;
+ 
+   for (unit = stash->all_comp_units; unit; unit = unit->next_unit)
+Only in binutils-2.31.1/bfd: dwarf2.c.orig
