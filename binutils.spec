@@ -80,7 +80,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -192,6 +192,10 @@ Patch16: binutils-CVE-2019-9075.patch
 # Purpose:  Stop illegal memory access parsing a corrupt MIPS binary.
 # Lifetime: Fixed in 2.33
 Patch17: binutils-CVE-2019-9077.patch
+
+# Purpose:  Stop a seg-fault when disassembling an EFI binary.
+# Lifetime: Fixed in 2.33
+Patch18: binutils-disassembling-efi-files.patch
 
 #----------------------------------------------------------------------------
 
@@ -335,6 +339,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -739,6 +744,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Mar 06 2019 Nick Clifton  <nickc@redhat.com> - 2.32-9
+- Stop potential illegal memory access when disassembling an EFI binary.  (#1685727)
+
 * Wed Feb 27 2019 Nick Clifton  <nickc@redhat.com> - 2.32-8
 - Fix requirements and use of the alternatives mechanism.  (#1683408, #1683466)
 
