@@ -31,7 +31,12 @@
 # Use "--without gold" to exclude the gold linker.
 # The default is to include it.
 # Note - in the future the gold linker may become deprecated.
+%ifnarch riscv64
 %bcond_without gold
+%else
+# RISC-V does not have ld.gold thus disable by default.
+%bcond_with gold
+%endif
 
 # Enable thread support in the GOLD linker.  This is particularly
 # important if plugins to the linker intend to use threads themselves.
@@ -80,7 +85,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -313,10 +318,11 @@ BuildRequires: libstdc++-static
 Conflicts: gcc-c++ < 4.0.0
 
 # The higher of these two numbers determines the default ld.
-%{!?ld_bfd_priority: %global ld_bfd_priority    50}
 %{!?ld_gold_priority:%global ld_gold_priority   30}
 
 %endif # with gold
+
+%{!?ld_bfd_priority: %global ld_bfd_priority    50}
 
 #----------------------------------------------------------------------------
 
@@ -703,6 +709,7 @@ exit 0
 %if %{with gold}
 %{_bindir}/%{?cross}ld*
 %else
+%{_bindir}/%{?cross}ld
 %{_bindir}/%{?cross}ld.bfd
 %endif
 
@@ -712,6 +719,7 @@ exit 0
 %{_infodir}/binutils.info.gz
 %{_infodir}/gprof.info.gz
 %{_infodir}/ld.info.gz
+%{_infodir}/bfd.info.gz
 %endif
 
 %if %{enable_shared}
@@ -721,12 +729,6 @@ exit 0
 %endif
 
 %if %{isnative}
-
-%if %{with docs}
-%{_infodir}/[^b]*info*
-%{_infodir}/binutils*info*
-%{_infodir}/bfd*info*
-%endif
 
 %files devel
 %{_prefix}/include/*
@@ -739,11 +741,15 @@ exit 0
 %if %{with gold}
 %files gold
 %{_bindir}/%{?cross}ld.gold
-%ghost %{_bindir}/%{?cross}ld
 %endif
+
+# %%ghost %%{_bindir}/%%{?cross}ld
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Mar 18 2019 David Abdurachmanov  <david.abdurachmanov@gmail.com> - 2.32-10
+- Disable ld.gold on RISC-V and fix file installation issues.
+
 * Wed Mar 06 2019 Nick Clifton  <nickc@redhat.com> - 2.32-9
 - Stop potential illegal memory access when disassembling an EFI binary.  (#1685727)
 
