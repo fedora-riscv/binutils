@@ -69,7 +69,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -231,6 +231,10 @@ Patch27: binutils-disassembling-efi-files.patch
 # Lifetime: Fixed in 2.32
 Patch28: binutils-x86-no-scale-8bit-displacements.patch
 
+# Purpose:  Fix a stack exhaustion problem in libiberty's name demangling code.
+# Lifetime: Fixed in 2.33
+Patch29: binutils-CVE-2019-9071.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -382,6 +386,7 @@ using libelf instead of BFD.
 %patch26 -p1
 %patch27 -p1
 %patch28 -p1
+%patch29 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 
@@ -789,6 +794,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Apr 10 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-26
+- Fix a stack exhaustion problem in libiberty's name demangling code.  (#1680658)
+
 * Wed Apr 10 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-25
 - Fix a bug handling 8-bit displacements in x86 insns.  (PR 23465)
 
