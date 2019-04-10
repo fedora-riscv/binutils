@@ -85,7 +85,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -201,6 +201,10 @@ Patch17: binutils-CVE-2019-9077.patch
 # Purpose:  Stop a seg-fault when disassembling an EFI binary.
 # Lifetime: Fixed in 2.33
 Patch18: binutils-disassembling-efi-files.patch
+
+# Purpose:  Fix a stack exhaustion problem in libiberty's name demangling code.
+# Lifetime: Fixed in 2.33
+Patch19: binutils-CVE-2019-9071.patch
 
 #----------------------------------------------------------------------------
 
@@ -346,6 +350,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -747,6 +752,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Apr 10 2019 Nick Clifton  <nickc@redhat.com> - 2.32-11
+- Fix a stack exhaustion problem in libiberty's name demangling code.  (#1680658)
+
 * Mon Mar 18 2019 David Abdurachmanov  <david.abdurachmanov@gmail.com> - 2.32-10
 - Disable ld.gold on RISC-V and fix file installation issues.
 
