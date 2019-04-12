@@ -1,0 +1,38 @@
+Only in binutils-2.31.1/gas: ChangeLog.orig
+diff -rup binutils.orig/gas/config/tc-i386.c binutils-2.31.1/gas/config/tc-i386.c
+--- binutils.orig/gas/config/tc-i386.c	2019-04-10 10:31:32.788961110 +0100
++++ binutils-2.31.1/gas/config/tc-i386.c	2019-04-10 10:31:57.669774802 +0100
+@@ -7857,7 +7857,8 @@ output_disp (fragS *insn_start_frag, off
+ 	      int size = disp_size (n);
+ 	      offsetT val = i.op[n].disps->X_add_number;
+ 
+-	      val = offset_in_range (val >> i.memshift, size);
++	      val = offset_in_range (val >> (size == 1 ? i.memshift : 0),
++				     size);
+ 	      p = frag_more (size);
+ 	      md_number_to_chars (p, val, size);
+ 	    }
+Only in binutils-2.31.1/gas/config: tc-i386.c.orig
+Only in binutils-2.31.1/gas/testsuite/gas/i386: evex-no-scale-32.d
+Only in binutils-2.31.1/gas/testsuite/gas/i386: evex-no-scale-64.d
+Only in binutils-2.31.1/gas/testsuite/gas/i386: evex-no-scale.s
+diff -rup binutils.orig/gas/testsuite/gas/i386/i386.exp binutils-2.31.1/gas/testsuite/gas/i386/i386.exp
+--- binutils.orig/gas/testsuite/gas/i386/i386.exp	2019-04-10 10:31:32.160965768 +0100
++++ binutils-2.31.1/gas/testsuite/gas/i386/i386.exp	2019-04-10 10:31:57.670774795 +0100
+@@ -224,6 +224,7 @@ if [expr ([istarget "i*86-*-*"] ||  [ist
+     run_dump_test "evex-lig512-intel"
+     run_dump_test "evex-wig1"
+     run_dump_test "evex-wig1-intel"
++    run_dump_test "evex-no-scale-32"
+     run_dump_test "sse2avx"
+     run_list_test "inval-avx" "-al"
+     run_list_test "inval-avx512f" "-al"
+@@ -733,6 +734,7 @@ if [expr ([istarget "i*86-*-*"] || [ista
+     run_dump_test "x86-64-evex-lig512-intel"
+     run_dump_test "x86-64-evex-wig1"
+     run_dump_test "x86-64-evex-wig1-intel"
++    run_dump_test "evex-no-scale-64"
+     run_dump_test "x86-64-sse2avx"
+     run_list_test "x86-64-inval-avx" "-al"
+     run_list_test "x86-64-inval-avx512f" "-al"
+Only in binutils-2.31.1/gas/testsuite/gas/i386: i386.exp.orig
