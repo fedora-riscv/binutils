@@ -85,7 +85,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -720,11 +720,11 @@ exit 0
 
 %if %{with docs}
 %{_mandir}/man1/*
-%{_infodir}/as.info.gz
-%{_infodir}/binutils.info.gz
-%{_infodir}/gprof.info.gz
-%{_infodir}/ld.info.gz
-%{_infodir}/bfd.info.gz
+%{_infodir}/as.info.*
+%{_infodir}/binutils.info.*
+%{_infodir}/gprof.info.*
+%{_infodir}/ld.info.*
+%{_infodir}/bfd.info.*
 %endif
 
 %if %{enable_shared}
@@ -752,6 +752,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Apr 24 2019 Björn Esser <besser82@fedoraproject.org> - 2.32-12
+- Remove hardcoded gzip suffix from GNU info pages
+
 * Wed Apr 10 2019 Nick Clifton  <nickc@redhat.com> - 2.32-11
 - Fix a stack exhaustion problem in libiberty's name demangling code.  (#1680658)
 
