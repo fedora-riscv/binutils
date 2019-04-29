@@ -85,7 +85,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -439,7 +439,7 @@ esac
 %endif
 
 %if 0%{?_with_debug:1}
-CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
+export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %define enable_shared 0
 %endif
 
@@ -710,13 +710,8 @@ exit 0
 %license COPYING COPYING3 COPYING3.LIB COPYING.LIB
 %doc README
 %{_bindir}/%{?cross}[!l]*
-
-%if %{with gold}
-%{_bindir}/%{?cross}ld*
-%else
 %{_bindir}/%{?cross}ld
 %{_bindir}/%{?cross}ld.bfd
-%endif
 
 %if %{with docs}
 %{_mandir}/man1/*
@@ -752,6 +747,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Apr 29 2019 Nick Clifton  <nickc@redhat.com> - 2.32-13
+- Do not include ld.gold in the base binutils package.  (#1703714)
+
 * Wed Apr 24 2019 Björn Esser <besser82@fedoraproject.org> - 2.32-12
 - Remove hardcoded gzip suffix from GNU info pages
 
