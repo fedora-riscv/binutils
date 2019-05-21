@@ -85,7 +85,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -205,6 +205,11 @@ Patch18: binutils-disassembling-efi-files.patch
 # Purpose:  Fix a stack exhaustion problem in libiberty's name demangling code.
 # Lifetime: Fixed in 2.33
 Patch19: binutils-CVE-2019-9071.patch
+
+# Purpose:  Have the GOLD linker for AArch64 generate PLT entries for MOVW_ABS
+#           relocations if necessary.
+# Lifetime: Fixed in 2.33
+Patch20: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
 
 #----------------------------------------------------------------------------
 
@@ -351,6 +356,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch17 -p1
 %patch18 -p1
 %patch19 -p1
+%patch20 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -747,6 +753,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 21 2019 Nick Clifton  <nickc@redhat.com> - 2.32-14
+- Import fix for PR 23870 in order to help building Go binaries.
+
 * Mon Apr 29 2019 Nick Clifton  <nickc@redhat.com> - 2.32-13
 - Do not include ld.gold in the base binutils package.  (#1703714)
 
