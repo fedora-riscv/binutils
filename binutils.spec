@@ -75,7 +75,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 30%{?dist}
+Release: 31%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -257,6 +257,11 @@ Patch34: binutils-x86-no-scale-8bit-displacements.patch
 # Lifetime: Fixed in 2.33
 Patch35: binutils-CVE-2019-9071.patch
 
+# Purpose:  Have the GOLD linker for AArch64 generate PLT entries for MOVW_ABS
+#           relocations if necessary.
+# Lifetime: Fixed in 2.33
+Patch36: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -409,6 +414,7 @@ using libelf instead of BFD.
 %patch33 -p1
 %patch34 -p1
 %patch35 -p1
+%patch36 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -810,6 +816,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 21 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-31
+- Import fix for PR 23870 in order to help building Go binaries.
+
 * Wed Apr 10 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-30
 - Fix a stack exhaustion problem in libiberty's name demangling code.  (#1680658)
 - Fix a bug handling 8-bit displacements in x86 insns.  (PR 23465)
