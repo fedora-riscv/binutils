@@ -85,7 +85,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -210,6 +210,11 @@ Patch19: binutils-CVE-2019-9071.patch
 #           relocations if necessary.
 # Lifetime: Fixed in 2.33
 Patch20: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
+
+# Purpose:  Stop gold from aborting when input sections with the same name
+#            have different flags.
+# Lifetime: 2.33 (probably)
+Patch21: binutils-gold-mismatched-section-flags.patch
 
 #----------------------------------------------------------------------------
 
@@ -357,6 +362,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch18 -p1
 %patch19 -p1
 %patch20 -p1
+%patch21 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -753,6 +759,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jun 24 2019 Nick Clifton  <nickc@redhat.com> - 2.32-15
+- Stop gold from aborting when it encounters input sections with the same name and different flags.  (#1722715)
+
 * Tue May 21 2019 Nick Clifton  <nickc@redhat.com> - 2.32-14
 - Import fix for PR 23870 in order to help building Go binaries.
 
