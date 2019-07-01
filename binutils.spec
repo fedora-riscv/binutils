@@ -1,3 +1,13 @@
+
+Summary: A GNU collection of binary utilities
+Name: %{?cross}binutils%{?_with_debug:-debug}
+Version: 2.32
+Release: 16%{?dist}
+License: GPLv3+
+URL: https://sourceware.org/binutils
+
+#----------------------------------------------------------------------------
+
 # Binutils SPEC file.  Can be invoked with the following parameters:
 
 # --define "binutils_target arm-linux-gnu" to create arm-linux-gnu-binutils.
@@ -81,13 +91,6 @@
 %undefine _strict_symbol_defs_build
 
 #----------------------------------------------------------------------------
-
-Summary: A GNU collection of binary utilities
-Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.32
-Release: 15%{?dist}
-License: GPLv3+
-URL: https://sourceware.org/binutils
 
 # Note - the Linux Kernel binutils releases are too unstable and contain
 # too many controversial patches so we stick with the official FSF version
@@ -215,6 +218,11 @@ Patch20: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
 #            have different flags.
 # Lifetime: 2.33 (probably)
 Patch21: binutils-gold-mismatched-section-flags.patch
+
+# Purpose:  Corrcect a memory corruption when generating relocs for build
+#            notes in the assembler.
+# Lifetime: 2.33
+Patch22: binutils-gas-build-note-relocs.patch
 
 #----------------------------------------------------------------------------
 
@@ -363,6 +371,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch19 -p1
 %patch20 -p1
 %patch21 -p1
+%patch22 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -759,6 +768,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jul 01 2019 Nick Clifton  <nickc@redhat.com> - 2.32-16
+- Stop gas from triggering a seg-fault when creating relocs for build notes.  (PR 24748)
+
 * Mon Jun 24 2019 Nick Clifton  <nickc@redhat.com> - 2.32-15
 - Stop gold from aborting when it encounters input sections with the same name and different flags.  (#1722715)
 

@@ -1,0 +1,55 @@
+--- binutils.orig/gas/write.c	2019-07-01 16:23:28.133707500 +0100
++++ binutils-2.32/gas/write.c	2019-07-01 16:24:50.699130611 +0100
+@@ -1891,7 +1891,8 @@ create_obj_attrs_section (void)
+ static void
+ create_note_reloc (segT           sec,
+ 		   symbolS *      sym,
+-		   bfd_size_type  offset,
++		   bfd_size_type  note_offset,
++		   bfd_size_type  desc2_offset,
+ 		   int            reloc_type,
+ 		   bfd_vma        addend,
+ 		   char *         note)
+@@ -1901,10 +1902,10 @@ create_note_reloc (segT           sec,
+   reloc = XNEW (struct reloc_list);
+ 
+   /* We create a .b type reloc as resolve_reloc_expr_symbols() has already been called.  */
+-  reloc->u.b.sec   = sec;
+-  reloc->u.b.s     = symbol_get_bfdsym (sym);
++  reloc->u.b.sec           = sec;
++  reloc->u.b.s             = symbol_get_bfdsym (sym);
+   reloc->u.b.r.sym_ptr_ptr = & reloc->u.b.s;
+-  reloc->u.b.r.address     = offset;
++  reloc->u.b.r.address     = note_offset + desc2_offset;
+   reloc->u.b.r.addend      = addend;
+   reloc->u.b.r.howto       = bfd_reloc_type_lookup (stdoutput, reloc_type);
+ 
+@@ -1929,12 +1930,12 @@ create_note_reloc (segT           sec,
+       if (target_big_endian)
+ 	{
+ 	  if (bfd_arch_bits_per_address (stdoutput) <= 32)
+-	    note[offset + 3] = addend;
++	    note[desc2_offset + 3] = addend;
+ 	  else
+-	    note[offset + 7] = addend;
++	    note[desc2_offset + 7] = addend;
+ 	}
+       else
+-	note[offset] = addend;
++	note[desc2_offset] = addend;
+     }
+ }
+ 
+@@ -2037,10 +2038,10 @@ maybe_generate_build_notes (void)
+ 	memcpy (note + 12, "GA$3a1", 8);
+ 
+ 	/* Create a relocation to install the start address of the note...  */
+-	create_note_reloc (sec, sym, total_size + 20, desc_reloc, 0, note);
++	create_note_reloc (sec, sym, total_size, 20, desc_reloc, 0, note);
+ 
+ 	/* ...and another one to install the end address.  */
+-	create_note_reloc (sec, sym, total_size + desc2_offset, desc_reloc,
++	create_note_reloc (sec, sym, total_size, desc2_offset, desc_reloc,
+ 			   bfd_get_section_size (bsym->section),
+ 			   note);
+ 
