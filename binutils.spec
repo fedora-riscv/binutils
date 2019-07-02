@@ -1,3 +1,13 @@
+
+Summary: A GNU collection of binary utilities
+Name: %{?cross}binutils%{?_with_debug:-debug}
+Version: 2.31.1
+Release: 32%{?dist}
+License: GPLv3+
+URL: https://sourceware.org/binutils
+
+#----------------------------------------------------------------------------
+
 # Binutils SPEC file.  Can be invoked with the following parameters:
 
 # --define "binutils_target arm-linux-gnu" to create arm-linux-gnu-binutils.
@@ -71,13 +81,6 @@
 %undefine _strict_symbol_defs_build
 
 #----------------------------------------------------------------------------
-
-Summary: A GNU collection of binary utilities
-Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.31.1
-Release: 31%{?dist}
-License: GPLv3+
-URL: https://sourceware.org/binutils
 
 # Note - the Linux Kernel binutils releases are too unstable and contain
 # too many controversial patches so we stick with the official FSF version
@@ -262,6 +265,12 @@ Patch35: binutils-CVE-2019-9071.patch
 # Lifetime: Fixed in 2.33
 Patch36: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
 
+# Purpose:  Stop the BFD library from issueing warning messages about allocated
+#            sections being found outside of loadable segments, if they are
+#            found inside debuginfo files.
+# Lifetime: Fixed in 2.33
+Patch37: binutils-do-not-warn-about-debuginfo-files.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -415,6 +424,7 @@ using libelf instead of BFD.
 %patch34 -p1
 %patch35 -p1
 %patch36 -p1
+%patch37 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -816,6 +826,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jul 02 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-32
+- Stop the BFD library from complaining about sections found inside debuginfo files.  (PR 24717)
+
 * Tue May 21 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-31
 - Import fix for PR 23870 in order to help building Go binaries.
 
