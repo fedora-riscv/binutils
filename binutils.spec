@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -216,13 +216,19 @@ Patch20: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
-# Lifetime: 2.33 (probably)
+# Lifetime: Fixed in 2.33 (probably)
 Patch21: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Corrcect a memory corruption when generating relocs for build
 #            notes in the assembler.
-# Lifetime: 2.33
+# Lifetime: Fixed in 2.33
 Patch22: binutils-gas-build-note-relocs.patch
+
+# Purpose:  Stop the BFD library from issueing warning messages about allocated
+#            sections being found outside of loadable segments, if they are
+#            found inside debuginfo files.
+# Lifetime: Fixed in 2.33
+Patch23: binutils-do-not-warn-about-debuginfo-files.patch
 
 #----------------------------------------------------------------------------
 
@@ -372,6 +378,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch20 -p1
 %patch21 -p1
 %patch22 -p1
+%patch23 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -768,6 +775,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jul 02 2019 Nick Clifton  <nickc@redhat.com> - 2.32-17
+- Stop the BFD library from complaining about sections found inside debuginfo files.  (PR 24717)
+
 * Mon Jul 01 2019 Nick Clifton  <nickc@redhat.com> - 2.32-16
 - Stop gas from triggering a seg-fault when creating relocs for build notes.  (PR 24748)
 
