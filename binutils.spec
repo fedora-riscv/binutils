@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -230,6 +230,10 @@ Patch22: binutils-gas-build-note-relocs.patch
 # Lifetime: Fixed in 2.33
 Patch23: binutils-do-not-warn-about-debuginfo-files.patch
 
+# Purpose:  Stops the linker from merging section groups with different exclusion flags.
+# Lifetime: Fixed in 2.33
+Patch24: binutils-do-not-merge-differing-SHF_EXCLUDE-groups.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -379,6 +383,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch21 -p1
 %patch22 -p1
 %patch23 -p1
+%patch24 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -775,6 +780,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jul 22 2019 Nick Clifton  <nickc@redhat.com> - 2.32-18
+- Stops the linker from merging section groups with different SHF_EXCLUDE flags.  (#1730906)
+
 * Tue Jul 02 2019 Nick Clifton  <nickc@redhat.com> - 2.32-17
 - Stop the BFD library from complaining about sections found inside debuginfo files.  (PR 24717)
 
