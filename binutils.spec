@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -780,6 +780,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.32-19
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
 * Mon Jul 22 2019 Nick Clifton  <nickc@redhat.com> - 2.32-18
 - Stops the linker from merging section groups with different SHF_EXCLUDE flags.  (#1730906)
 
