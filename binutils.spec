@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -234,6 +234,10 @@ Patch23: binutils-do-not-warn-about-debuginfo-files.patch
 # Lifetime: Fixed in 2.33
 Patch24: binutils-do-not-merge-differing-SHF_EXCLUDE-groups.patch
 
+# Purpose: Fix -Map and property merging
+# Lifetime: Fixed in 2.33
+Patch25: binutils-rh1736114.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -384,6 +388,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch22 -p1
 %patch23 -p1
 %patch24 -p1
+%patch25 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -780,6 +785,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Aug  2 2019 Florian Weimer <fweimer@redhat.com> - 2.32-20
+- Fix ld -Map not to produce corrupt ELF notes (#1736114)
+
 * Wed Jul 24 2019 Fedora Release Engineering <releng@fedoraproject.org> - 2.32-19
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 
