@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -238,6 +238,11 @@ Patch24: binutils-do-not-merge-differing-SHF_EXCLUDE-groups.patch
 # Lifetime: Fixed in 2.33
 Patch25: binutils-rh1736114.patch
 
+# Purpose: Change objcopy/strip so that they do not complain if the
+#  first note in a sequence of build notes is not a version note.
+# Lifetime: Fixed in 2.33
+Patch26: binutils-objcopy-gnu-build-version-notes.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -389,6 +394,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch23 -p1
 %patch24 -p1
 %patch25 -p1
+%patch26 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -785,6 +791,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Aug 05 2019 Nick Clifton  <nickc@redhat.com> - 2.32-21
+- Stop strip from complaining if the first build note is not a version note.  (#1736114)
+
 * Fri Aug  2 2019 Florian Weimer <fweimer@redhat.com> - 2.32-20
 - Fix ld -Map not to produce corrupt ELF notes (#1736114)
 
