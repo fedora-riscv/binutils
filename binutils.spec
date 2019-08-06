@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -243,6 +243,11 @@ Patch25: binutils-rh1736114.patch
 # Lifetime: Fixed in 2.33
 Patch26: binutils-objcopy-gnu-build-version-notes.patch
 
+# Purpose: Add a check to the GOLD linker for a corrupt input file
+#  with a fuzzed section offset.
+# Lifetime: Fixed in 2.33
+Patch27: binutils-CVE-2019-1010204.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -395,6 +400,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch24 -p1
 %patch25 -p1
 %patch26 -p1
+%patch27 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -791,6 +797,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 06 2019 Nick Clifton  <nickc@redhat.com> - 2.32-22
+- Stop GOLD from seg-faulting on a corrupt input with a fuzzed section offset.  (#1735605)
+
 * Mon Aug 05 2019 Nick Clifton  <nickc@redhat.com> - 2.32-21
 - Stop strip from complaining if the first build note is not a version note.  (#1736114)
 
