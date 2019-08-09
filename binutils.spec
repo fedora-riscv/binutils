@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -248,6 +248,10 @@ Patch26: binutils-objcopy-gnu-build-version-notes.patch
 # Lifetime: Fixed in 2.33
 Patch27: binutils-CVE-2019-1010204.patch
 
+# Purpose: Add check to libiberty library in order to prevent an integer overflow in the gold linker.
+# Lifetime: Fixed in 2.33
+Patch28: binutils-CVE-2019-14250.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -401,6 +405,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch25 -p1
 %patch26 -p1
 %patch27 -p1
+%patch28 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -797,6 +802,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Aug 09 2019 Nick Clifton  <nickc@redhat.com> - 2.32-23
+- Fix potential integer overflow in GOLD.  (#1739491)
+
 * Tue Aug 06 2019 Nick Clifton  <nickc@redhat.com> - 2.32-22
 - Stop GOLD from seg-faulting on a corrupt input with a fuzzed section offset.  (#1735605)
 
