@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 32%{?dist}
+Release: 33%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -271,6 +271,10 @@ Patch36: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
 # Lifetime: Fixed in 2.33
 Patch37: binutils-do-not-warn-about-debuginfo-files.patch
 
+# Purpose: Add check to libiberty library in order to prevent an integer overflow in the gold linker.
+# Lifetime: Fixed in 2.33
+Patch38: binutils-CVE-2019-14250.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -425,6 +429,7 @@ using libelf instead of BFD.
 %patch35 -p1
 %patch36 -p1
 %patch37 -p1
+%patch38 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -826,6 +831,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Aug 09 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-33
+- Fix potential integer overflow in GOLD.  (#1739491)
+
 * Tue Jul 02 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-32
 - Stop the BFD library from complaining about sections found inside debuginfo files.  (PR 24717)
 
