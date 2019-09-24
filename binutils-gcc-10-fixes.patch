@@ -1,0 +1,10 @@
+--- binutils.orig/gold/descriptors.cc	2019-09-24 09:43:51.200071784 +0100
++++ binutils-2.32/gold/descriptors.cc	2019-09-24 09:44:24.028874593 +0100
+@@ -26,6 +26,7 @@
+ #include <cstdio>
+ #include <cstring>
+ #include <fcntl.h>
++#include <string>
+ #include <unistd.h>
+ 
+ #include "debug.h"

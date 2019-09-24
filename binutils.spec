@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -256,6 +256,10 @@ Patch28: binutils-CVE-2019-14250.patch
 # Lifetime: Fixed in 2.33
 Patch29: binutils-CVE-2019-14444.patch
 
+# Purpose: Fix for building with gcc-10.
+# Lifetime: Fixed in 2.34
+Patch30: binutils-gcc-10-fixes.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -411,6 +415,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch27 -p1
 %patch28 -p1
 %patch29 -p1
+%patch30 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -807,6 +812,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Sep 24 2019 Nick Clifton  <nickc@redhat.com> - 2.32-25
+- Fix building with gcc-10.
+
 * Tue Aug 13 2019 Nick Clifton  <nickc@redhat.com> - 2.32-24
 - Fix potential integer overflow in readelf.  (#1740470)
 
