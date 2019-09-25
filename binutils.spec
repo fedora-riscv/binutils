@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -11,35 +11,52 @@ URL: https://sourceware.org/binutils
 # Binutils SPEC file.  Can be invoked with the following parameters:
 
 # --define "binutils_target arm-linux-gnu" to create arm-linux-gnu-binutils.
-# --with=bootstrap: Build with minimal dependencies.
-# --with=debug: Build without optimizations and without splitting the debuginfo.
-# --without=docs: Skip building documentation.
-# --without=testsuite: Do not run the testsuite.  Default is to run it.
-# --with=testsuite: Run the testsuite.  Default when --with=debug is not to run it.
+# --with=bootstrap      Build with minimal dependencies.
+# --with=debug          Build without optimizations and without splitting
+#                        the debuginfo into a separate file.
+# --without=docs        Skip building documentation.
+# --without=testsuite   Do not run the testsuite.  Default is to run it.
+# --with=testsuite      Run the testsuite.  Default when --with=debug is not
+#                        to run it.
+# --without=gold        Disable building of the GOLD linker.
 
 #---Start of Configure Options-----------------------------------------------
 
-# Do not create deterministic archives by default  (cf: BZ 1195883)
+# Use clang as the build time compiler rather than gcc.
+%define build_using_clang 0
+
+# Create deterministic archives (ie ones without timestamps).
+# Default is off because of BZ 1195883.
 %define enable_deterministic_archives 0
 
 # Enable support for GCC LTO compilation.
+# Disable if it is necessary to work around bugs in LTO.
 %define enable_lto 1
 
-# Disable the default generation of compressed debug sections.
+# Enable the compression of debug sections as default behaviour of the
+# assembler and linker.  This option is disabled for now.  The assembler and
+# linker have command line options to override the default behaviour.
 %define default_compress_debug 0
 
 # Default to read-only-relocations (relro) in shared binaries.
+# This is enabled as a security feature.
 %define default_relro 1
 
-# Disable the default generation of GNU Build notes by the assembler.
-# This has turned out to be problematic for the i686 architecture.
-# although the exact reason has not been determined.  (See BZ 1572485)
-# It also breaks building EFI binaries on AArch64, as these cannot have
-# relocations against absolute symbols.
+# Enable the default generation of GNU Build notes by the assembler.
+# This option is disabled as it has turned out to be problematic for the i686
+# architecture, although the exact reason has not been determined.  (See
+# BZ 1572485).  It also breaks building EFI binaries on AArch64, as these
+# cannot have relocations against absolute symbols.
 %define default_generate_notes 0
 
-# Use "--without gold" to exclude the gold linker.
-# The default is to include it.
+# Enable thread support in the GOLD linker (if it is being built).  This is
+# particularly important if plugins to the linker intend to use threads
+# themselves.  See BZ 1636479 for more details.  This option is made
+# configurable in case there is ever a need to disable thread support.
+%define enable_threading 1
+
+#----End of Configure Options------------------------------------------------
+
 # Note - in the future the gold linker may become deprecated.
 %ifnarch riscv64
 %bcond_without gold
@@ -47,14 +64,6 @@ URL: https://sourceware.org/binutils
 # RISC-V does not have ld.gold thus disable by default.
 %bcond_with gold
 %endif
-
-# Enable thread support in the GOLD linker.  This is particularly
-# important if plugins to the linker intend to use threads themselves.
-# See BZ 1636479 for more details.  This option is made configurable
-# in case there is ever a need to disable thread support.
-%define enable_threading 1
-
-#----End of Configure Options------------------------------------------------
 
 # Default: Not bootstrapping.
 %bcond_with bootstrap
@@ -230,33 +239,35 @@ Patch22: binutils-gas-build-note-relocs.patch
 # Lifetime: Fixed in 2.33
 Patch23: binutils-do-not-warn-about-debuginfo-files.patch
 
-# Purpose:  Stops the linker from merging section groups with different exclusion flags.
+# Purpose:  Stops the linker from merging section groups with different
+#            exclusion flags.
 # Lifetime: Fixed in 2.33
 Patch24: binutils-do-not-merge-differing-SHF_EXCLUDE-groups.patch
 
-# Purpose: Fix -Map and property merging
+# Purpose:  Fix -Map and property merging
 # Lifetime: Fixed in 2.33
 Patch25: binutils-rh1736114.patch
 
-# Purpose: Change objcopy/strip so that they do not complain if the
-#  first note in a sequence of build notes is not a version note.
+# Purpose:  Change objcopy/strip so that they do not complain if the
+#            first note in a sequence of build notes is not a version note.
 # Lifetime: Fixed in 2.33
 Patch26: binutils-objcopy-gnu-build-version-notes.patch
 
-# Purpose: Add a check to the GOLD linker for a corrupt input file
-#  with a fuzzed section offset.
+# Purpose:  Add a check to the GOLD linker for a corrupt input file
+#            with a fuzzed section offset.
 # Lifetime: Fixed in 2.33
 Patch27: binutils-CVE-2019-1010204.patch
 
-# Purpose: Add check to libiberty library in order to prevent an integer overflow in the gold linker.
+# Purpose: Add check to libiberty library in order to prevent an integer
+#           overflow in the gold linker.
 # Lifetime: Fixed in 2.33
 Patch28: binutils-CVE-2019-14250.patch
 
-# Purpose: Add check to readelf in order to prevent an integer overflow.
+# Purpose:  Add check to readelf in order to prevent an integer overflow.
 # Lifetime: Fixed in 2.33
 Patch29: binutils-CVE-2019-14444.patch
 
-# Purpose: Fix for building with gcc-10.
+# Purpose:  Fix for building with gcc-10.
 # Lifetime: Fixed in 2.34
 Patch30: binutils-gcc-10-fixes.patch
 
@@ -281,7 +292,13 @@ Requires: binutils-gold >= %{version}
 %endif
 
 # Perl, sed and touch are all used in the %%prep section of this spec file.
-BuildRequires: gcc, perl, sed, coreutils
+BuildRequires: perl, sed, coreutils
+
+%if %{build_using_clang}
+BuildRequires: clang
+%else
+BuildRequires: gcc
+%endif
 
 %if %{without bootstrap}
 BuildRequires: gettext, flex, zlib-devel
@@ -373,7 +390,10 @@ BuildRequires: bison, m4, gcc-c++
 # The GOLD testsuite needs a static libc++
 BuildRequires: libstdc++-static
 
+%if ! %{build_using_clang}
+BuildRequires: gcc-c++
 Conflicts: gcc-c++ < 4.0.0
+%endif
 
 # The higher of these two numbers determines the default ld.
 %{!?ld_gold_priority:%global ld_gold_priority   30}
@@ -459,6 +479,11 @@ touch */configure
 %build
 echo target is %{binutils_target}
 
+%if %{build_using_clang}
+# Clang does not support the -fstack-clash-protection option.
+%global optflags %(echo %{optflags} | sed 's/-fstack-clash-protection//')
+%endif
+
 %ifarch %{power64}
 export CFLAGS="$RPM_OPT_FLAGS -Wno-error"
 %else
@@ -514,6 +539,10 @@ export LDFLAGS=$RPM_LD_FLAGS
 # We could optimize the cross builds size by --enable-shared but the produced
 # binaries may be less convenient in the embedded environment.
 %configure \
+%if %{build_using_clang}
+   CC=clang \
+   CXX=clang++ \
+%endif
   --quiet \
   --build=%{_target_platform} --host=%{_target_platform} \
   --target=%{binutils_target} \
@@ -812,6 +841,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Sep 25 2019 Nick Clifton  <nickc@redhat.com> - 2.32-26
+- Add an option to build using clang instead of gcc.
+
 * Tue Sep 24 2019 Nick Clifton  <nickc@redhat.com> - 2.32-25
 - Fix building with gcc-10.
 
