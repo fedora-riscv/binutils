@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 26%{?dist}
+Release: 27%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -271,6 +271,10 @@ Patch29: binutils-CVE-2019-14444.patch
 # Lifetime: Fixed in 2.34
 Patch30: binutils-gcc-10-fixes.patch
 
+# Purpose:  Remove support for old file formats (ihex, tekhex, verilog)
+# Lifetime: Permanent.
+Patch31: binutils-remove-old-formats.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -436,6 +440,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch28 -p1
 %patch29 -p1
 %patch30 -p1
+%patch31 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -841,6 +846,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Oct 04 2019 Nick Clifton  <nickc@redhat.com> - 2.32-27
+- Remove support for old file formats (ihex, tekhex, verilog) as they are a constant source of CVEs.
+
 * Wed Sep 25 2019 Nick Clifton  <nickc@redhat.com> - 2.32-26
 - Add an option to build using clang instead of gcc.
 
