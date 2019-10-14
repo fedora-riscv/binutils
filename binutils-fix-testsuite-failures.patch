@@ -8,16 +8,6 @@ diff -rup binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-10.d binutils-2.32/ld
 +#...
  hook called: cleanup.
  #...
-diff -rup binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-12.d binutils-2.32/ld/testsuite/ld-plugin/plugin-12.d
---- binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-12.d	2019-02-15 13:33:21.976627309 +0000
-+++ binutils-2.32/ld/testsuite/ld-plugin/plugin-12.d	2019-02-15 13:47:04.060076132 +0000
-@@ -1,5 +1,5 @@
- #...
--.*: symbol `func' definition: 0, visibility: 0, resolution: 2
-+.*: symbol `func' definition: 0, visibility: 0, resolution: .
- .*: symbol `func1' definition: 0, visibility: 1, resolution: 3
- .*: symbol `func2' definition: 0, visibility: 2, resolution: 3
- .*: symbol `func3' definition: 0, visibility: 3, resolution: 3
 diff -rup binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-13.d binutils-2.32/ld/testsuite/ld-plugin/plugin-13.d
 --- binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-13.d	2019-02-15 13:33:21.980627277 +0000
 +++ binutils-2.32/ld/testsuite/ld-plugin/plugin-13.d	2019-02-15 13:41:30.189692800 +0000
@@ -289,20 +279,6 @@ diff -rup binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-11.d binutils-2.32/ld
 +#...
  hook called: cleanup.
  #...
-diff -rup binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-12.d binutils-2.32/ld/testsuite/ld-plugin/plugin-12.d
---- binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-12.d	2019-02-15 14:10:58.912710532 +0000
-+++ binutils-2.32/ld/testsuite/ld-plugin/plugin-12.d	2019-02-15 14:13:18.464583848 +0000
-@@ -1,6 +1,6 @@
- #...
--.*: symbol `func' definition: 0, visibility: 0, resolution: .
--.*: symbol `func1' definition: 0, visibility: 1, resolution: 3
--.*: symbol `func2' definition: 0, visibility: 2, resolution: 3
--.*: symbol `func3' definition: 0, visibility: 3, resolution: 3
-+.*: symbol `_?func' definition: 0, visibility: 0, resolution: .
-+.*: symbol `_?func1' definition: 0, visibility: 1, resolution: 3
-+.*: symbol `_?func2' definition: 0, visibility: 2, resolution: 3
-+.*: symbol `_?func3' definition: 0, visibility: 3, resolution: 3
- #pass
 diff -rup binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-18.d binutils-2.32/ld/testsuite/ld-plugin/plugin-18.d
 --- binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-18.d	2019-02-15 14:10:58.942710289 +0000
 +++ binutils-2.32/ld/testsuite/ld-plugin/plugin-18.d	2019-02-15 14:15:20.030602369 +0000

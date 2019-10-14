@@ -1,8 +1,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.32
-Release: 27%{?dist}
+Version: 2.33.1
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -183,97 +183,26 @@ Patch10: binutils-attach-to-group.patch
 
 # Purpose:  Stop gold from complaining about relocs in the .gnu.build.attribute
 #           section that reference symbols in discarded sections.
-# Lifetime: Fixed in 2.33 (maybe)
+# Lifetime: Fixed in 2.34 (maybe)
 Patch11: binutils-gold-ignore-discarded-note-relocs.patch
 
 # Purpose:  Allow OS specific sections in section groups.
-# Lifetime: Might be fixed in 2.33
+# Lifetime: Might be fixed in 2.34 (maybe)
 Patch12: binutils-special-sections-in-groups.patch
 
 # Purpose:  Fix linker testsuite failures.
-# Lifetime: Fixed in 2.33 (possibly)
+# Lifetime: Fixed in 2.34 (maybe)
 Patch13: binutils-fix-testsuite-failures.patch
-
-# Purpose:  Improve objdump's handling of corrupt input files.
-# Lifetime: Fixed in 2.33
-Patch14: binutils-CVE-2019-9073.patch
-
-# Purpose:  Stop illegal memory access parsing corrupt PE files.
-# Lifetime: Fixed in 2.33
-Patch15: binutils-CVE-2019-9074.patch
-
-# Purpose:  Stop illegal memory access parsing corrupt archives.
-# Lifetime: Fixed in 2.33
-Patch16: binutils-CVE-2019-9075.patch
-
-# Purpose:  Stop illegal memory access parsing a corrupt MIPS binary.
-# Lifetime: Fixed in 2.33
-Patch17: binutils-CVE-2019-9077.patch
-
-# Purpose:  Stop a seg-fault when disassembling an EFI binary.
-# Lifetime: Fixed in 2.33
-Patch18: binutils-disassembling-efi-files.patch
-
-# Purpose:  Fix a stack exhaustion problem in libiberty's name demangling code.
-# Lifetime: Fixed in 2.33
-Patch19: binutils-CVE-2019-9071.patch
-
-# Purpose:  Have the GOLD linker for AArch64 generate PLT entries for MOVW_ABS
-#           relocations if necessary.
-# Lifetime: Fixed in 2.33
-Patch20: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
-# Lifetime: Fixed in 2.33 (probably)
-Patch21: binutils-gold-mismatched-section-flags.patch
-
-# Purpose:  Corrcect a memory corruption when generating relocs for build
-#            notes in the assembler.
-# Lifetime: Fixed in 2.33
-Patch22: binutils-gas-build-note-relocs.patch
-
-# Purpose:  Stop the BFD library from issueing warning messages about allocated
-#            sections being found outside of loadable segments, if they are
-#            found inside debuginfo files.
-# Lifetime: Fixed in 2.33
-Patch23: binutils-do-not-warn-about-debuginfo-files.patch
-
-# Purpose:  Stops the linker from merging section groups with different
-#            exclusion flags.
-# Lifetime: Fixed in 2.33
-Patch24: binutils-do-not-merge-differing-SHF_EXCLUDE-groups.patch
-
-# Purpose:  Fix -Map and property merging
-# Lifetime: Fixed in 2.33
-Patch25: binutils-rh1736114.patch
-
-# Purpose:  Change objcopy/strip so that they do not complain if the
-#            first note in a sequence of build notes is not a version note.
-# Lifetime: Fixed in 2.33
-Patch26: binutils-objcopy-gnu-build-version-notes.patch
+# Lifetime: Fixed in 2.34 (maybe)
+Patch14: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Add a check to the GOLD linker for a corrupt input file
 #            with a fuzzed section offset.
-# Lifetime: Fixed in 2.33
-Patch27: binutils-CVE-2019-1010204.patch
-
-# Purpose: Add check to libiberty library in order to prevent an integer
-#           overflow in the gold linker.
-# Lifetime: Fixed in 2.33
-Patch28: binutils-CVE-2019-14250.patch
-
-# Purpose:  Add check to readelf in order to prevent an integer overflow.
-# Lifetime: Fixed in 2.33
-Patch29: binutils-CVE-2019-14444.patch
-
-# Purpose:  Fix for building with gcc-10.
-# Lifetime: Fixed in 2.34
-Patch30: binutils-gcc-10-fixes.patch
-
-# Purpose:  Remove support for old file formats (ihex, tekhex, verilog)
-# Lifetime: Permanent.
-Patch31: binutils-remove-old-formats.patch
+# Lifetime: Fixed in 2.34 (maybe)
+Patch15: binutils-CVE-2019-1010204.patch
 
 #----------------------------------------------------------------------------
 
@@ -425,22 +354,6 @@ Conflicts: gcc-c++ < 4.0.0
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
-%patch16 -p1
-%patch17 -p1
-%patch18 -p1
-%patch19 -p1
-%patch20 -p1
-%patch21 -p1
-%patch22 -p1
-%patch23 -p1
-%patch24 -p1
-%patch25 -p1
-%patch26 -p1
-%patch27 -p1
-%patch28 -p1
-%patch29 -p1
-%patch30 -p1
-%patch31 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -846,6 +759,25 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Oct 14 2019 Nick Clifton  <nickc@redhat.com> - 2.33-1
+- Rebase to GNU Binutils 2.33.1.
+- Retire: binutils-CVE-2019-9073.patch
+- Retire: binutils-CVE-2019-9074.patch
+- Retire: binutils-CVE-2019-9075.patch
+- Retire: binutils-CVE-2019-9077.patch
+- Retire: binutils-disassembling-efi-files.patch
+- Retire: binutils-CVE-2019-9071.patch
+- Retire: binutils-gas-build-note-relocs.patch
+- Retire: binutils-do-not-warn-about-debuginfo-files.patch
+- Retire: binutils-do-not-merge-differing-SHF_EXCLUDE-groups.patch
+- Retire: binutils-rh1736114.patch
+- Retire: binutils-objcopy-gnu-build-version-notes.patch
+- Retire: binutils-CVE-2019-14250.patch
+- Retire: binutils-CVE-2019-14444.patch
+- Retire: binutils-gcc-10-fixes.patch
+- Retire: binutils-remove-old-formats.patch
+- Retire: binutils-aarch64-gold-PLT-for-MOVW_ABS.patch
+
 * Fri Oct 04 2019 Nick Clifton  <nickc@redhat.com> - 2.32-27
 - Remove support for old file formats (ihex, tekhex, verilog) as they are a constant source of CVEs.
 
