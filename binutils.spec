@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -204,6 +204,10 @@ Patch14: binutils-gold-mismatched-section-flags.patch
 # Lifetime: Fixed in 2.34 (maybe)
 Patch15: binutils-CVE-2019-1010204.patch
 
+# Purpose:  Improve objdump's ability to merge GNU build attribute notes.
+# Lifetime: Fixed in 2.34 
+Patch16: binutils-improved-note-merging.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -354,6 +358,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -759,6 +764,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Oct 28 2019 Nick Clifton  <nickc@redhat.com> - 2.33-2
+- Improve objdump's ability to merge GNU build attribute notes.
+
 * Mon Oct 14 2019 Nick Clifton  <nickc@redhat.com> - 2.33-1
 - Rebase to GNU Binutils 2.33.1.
 - Retire: binutils-CVE-2019-9073.patch
