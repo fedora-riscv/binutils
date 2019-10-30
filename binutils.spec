@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -770,7 +770,8 @@ exit 0
 %license COPYING COPYING3 COPYING3.LIB COPYING.LIB
 %doc README
 %{_bindir}/%{?cross}[!l]*
-%{_bindir}/%{?cross}ld
+# %%verify(symlink) does not work for some reason, so using "owner" instead.
+%verify(owner) %{_bindir}/%{?cross}ld
 %{_bindir}/%{?cross}ld.bfd
 
 %if %{with docs}
@@ -807,6 +808,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Oct 30 2019 Nick Clifton  <nickc@redhat.com> - 2.32-25
+- Fix the verification of the installed linker symlink.  (#1767000)
+
 * Tue Aug 13 2019 Nick Clifton  <nickc@redhat.com> - 2.32-24
 - Fix potential integer overflow in readelf.  (#1740470)
 
