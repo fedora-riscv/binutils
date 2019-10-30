@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -335,7 +335,7 @@ Conflicts: gcc-c++ < 4.0.0
 # The higher of these two numbers determines the default ld.
 %{!?ld_gold_priority:%global ld_gold_priority   30}
 
-%endif # with gold
+%endif %%# with gold
 
 %{!?ld_bfd_priority: %global ld_bfd_priority    50}
 
@@ -727,7 +727,8 @@ exit 0
 %license COPYING COPYING3 COPYING3.LIB COPYING.LIB
 %doc README
 %{_bindir}/%{?cross}[!l]*
-%{_bindir}/%{?cross}ld
+# %%verify(symlink) does not work for some reason, so using "owner" instead.
+%verify(owner) %{_bindir}/%{?cross}ld
 %{_bindir}/%{?cross}ld.bfd
 
 %if %{with docs}
@@ -764,6 +765,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Oct 30 2019 Nick Clifton  <nickc@redhat.com> - 2.33-3
+- Fix the verification of the installed linker symlink.  (#1767000)
+
 * Mon Oct 28 2019 Nick Clifton  <nickc@redhat.com> - 2.33-2
 - Improve objdump's ability to merge GNU build attribute notes.
 
