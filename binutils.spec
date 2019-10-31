@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 33%{?dist}
+Release: 34%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -275,6 +275,10 @@ Patch37: binutils-do-not-warn-about-debuginfo-files.patch
 # Lifetime: Fixed in 2.33
 Patch38: binutils-CVE-2019-14250.patch
 
+# Purpose: Improve objcopy's ability to merge GNU build attribute notes.
+# Lifetime: Fixed in 2.34
+Patch39: binutils-improved-note-merging.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -430,6 +434,7 @@ using libelf instead of BFD.
 %patch36 -p1
 %patch37 -p1
 %patch38 -p1
+%patch39 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -831,6 +836,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Oct 31 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-34
+- Improve objcopy's ability to merge GNU build attribute notes.
+
 * Fri Aug 09 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-33
 - Fix potential integer overflow in GOLD.  (#1739491)
 
