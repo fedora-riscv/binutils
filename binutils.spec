@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -256,6 +256,10 @@ Patch28: binutils-CVE-2019-14250.patch
 # Lifetime: Fixed in 2.33
 Patch29: binutils-CVE-2019-14444.patch
 
+# Purpose: Improve objcopy's ability to merge GNU build attribute notes.
+# Lifetime: Fixed in 2.34
+Patch30: binutils-improved-note-merging.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -411,6 +415,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch27 -p1
 %patch28 -p1
 %patch29 -p1
+%patch30 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -808,6 +813,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Oct 31 2019 Nick Clifton  <nickc@redhat.com> - 2.32-26
+- Improve objcopy's ability to merge GNU build attribute notes.
+
 * Wed Oct 30 2019 Nick Clifton  <nickc@redhat.com> - 2.32-25
 - Fix the verification of the installed linker symlink.  (#1767000)
 
