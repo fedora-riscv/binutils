@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -765,6 +765,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Nov 05 2019 Nick Clifton  <nickc@redhat.com> - 2.33-4
+- Objcopy: Do not generate a failure exit status if note merging fails.  (#1767937)
+
 * Wed Oct 30 2019 Nick Clifton  <nickc@redhat.com> - 2.33-3
 - Fix the verification of the installed linker symlink.  (#1767000)
 

@@ -1863,3 +1863,14 @@ diff -rupN binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.
 +	.asciz "GA$hello world"
 +
 +	.popsection
+--- binutils.orig/binutils/objcopy.c	2019-11-05 12:01:47.440187230 +0000
++++ binutils-2.33.1/binutils/objcopy.c	2019-11-05 12:02:51.346706812 +0000
+@@ -2526,7 +2526,7 @@ merge_gnu_build_notes (bfd *          ab
+     {
+       bfd_set_error (bfd_error_bad_value);
+       bfd_nonfatal_message (NULL, abfd, sec, err);
+-      status = 1;
++      /* status = 1; */
+     }
+ 
+   free (pnotes);
