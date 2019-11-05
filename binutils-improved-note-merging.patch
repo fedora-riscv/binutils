@@ -1867,3 +1867,14 @@ diff -rupN binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.
      }
      run_dump_test "note-5"
  }
+--- binutils.orig/binutils/objcopy.c	2019-11-05 13:50:14.829576934 +0000
++++ binutils-2.32/binutils/objcopy.c	2019-11-05 13:50:36.942417054 +0000
+@@ -2511,7 +2511,7 @@ merge_gnu_build_notes (bfd *          ab
+     {
+       bfd_set_error (bfd_error_bad_value);
+       bfd_nonfatal_message (NULL, abfd, sec, err);
+-      status = 1;
++      /* status = 1; */
+     }
+ 
+   free (pnotes);
