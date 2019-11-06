@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -765,6 +765,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Nov 06 2019 Nick Clifton  <nickc@redhat.com> - 2.33-6
+- Stop objcopy from creating null filled note sections when merging notes.
+
 * Wed Nov 06 2019 Nick Clifton  <nickc@redhat.com> - 2.33-5
 - Strip: Do not merge notes unless explicitly requested to do so.
 
