@@ -1867,3 +1867,86 @@ diff -rupN binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.
      run_dump_test "note-5"
  }
 
+--- binutils.orig/binutils/objcopy.c	2019-11-07 07:15:33.069964957 +0000
++++ binutils-2.31.1/binutils/objcopy.c	2019-11-07 07:18:16.372969783 +0000
+@@ -2498,7 +2498,7 @@ merge_gnu_build_notes (bfd *          ab
+     {
+       bfd_set_error (bfd_error_bad_value);
+       bfd_nonfatal_message (NULL, abfd, sec, err);
+-      status = 1;
++      /* status = 1; */
+     }
+ 
+   free (pnotes);
+@@ -2841,6 +2841,11 @@ copy_object (bfd *ibfd, bfd *obfd, const
+ 	  if (! is_mergeable_note_section (ibfd, osec))
+ 	    continue;
+ 
++	  /* If the section is going to be completly deleted then
++	     do not bother to merge it.  */
++	  if (osec->output_section == NULL)
++	    continue;
++
+ 	  bfd_size_type size = bfd_section_size (ibfd, osec);
+ 	  if (size == 0)
+ 	    {
+@@ -2855,25 +2860,18 @@ copy_object (bfd *ibfd, bfd *obfd, const
+ 	    {
+ 	      bfd_nonfatal_message (NULL, ibfd, osec,
+ 				    _("warning: could not load note section"));
+-	      free (merged->contents);
+ 	      free (merged);
+ 	      continue;
+ 	    }
+ 
+ 	  merged->size = merge_gnu_build_notes (ibfd, osec, size,
+ 						merged->contents);
+-	  if (merged->size == size)
+-	    {
+-	      /* Merging achieves nothing.  */
+-	      merge_debug ("Merge of section %s achieved nothing - skipping\n",
+-			   bfd_section_name (obfd, osec));
+-	      free (merged->contents);
+-	      free (merged);
+-	      continue;
+-	    }
++	  /* FIXME: Once we have read the contents in, we must write
++	     them out again.  So even if the mergeing has achieved
++	     nothing we still add this entry to the merge list.  */
+ 
+-	  if (osec->output_section == NULL
+-	      || !bfd_set_section_size (obfd, osec->output_section, merged->size))
++	  if (size != merged->size
++	      && !bfd_set_section_size (obfd, osec->output_section, merged->size))
+ 	    {
+ 	      bfd_nonfatal_message (NULL, obfd, osec,
+ 				    _("warning: failed to set merged notes size"));
+@@ -3232,16 +3230,16 @@ copy_object (bfd *ibfd, bfd *obfd, const
+ 		{
+ 		  bfd_nonfatal_message
+ 		    (NULL, obfd, osec,
+-		     _("error: failed to copy merged notes into output"));
++		     _("error: failed to locate merged notes"));
+ 		  continue;
+ 		}
+ 	    }
+ 
+-	  if (! is_mergeable_note_section (obfd, osec))
++	  if (merged->contents == NULL)
+ 	    {
+ 	      bfd_nonfatal_message
+ 		(NULL, obfd, osec,
+-		 _("error: failed to copy merged notes into output"));
++		 _("error: failed to merge notes"));
+ 	      continue;
+ 	    }
+ 
+@@ -4484,7 +4482,7 @@ strip_main (int argc, char *argv[])
+   int i;
+   char *output_file = NULL;
+ 
+-  merge_notes = TRUE;
++  /* merge_notes = TRUE; */
+ 
+   while ((c = getopt_long (argc, argv, "I:O:F:K:MN:R:o:sSpdgxXHhVvwDU",
+ 			   strip_options, (int *) 0)) != EOF)
