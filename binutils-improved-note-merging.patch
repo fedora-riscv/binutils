@@ -1878,3 +1878,61 @@ diff -rupN binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.
      }
  
    free (pnotes);
+--- binutils.orig/binutils/objcopy.c	2019-11-07 07:09:26.862161037 +0000
++++ binutils-2.32/binutils/objcopy.c	2019-11-07 07:12:35.885021824 +0000
+@@ -2854,6 +2854,11 @@ copy_object (bfd *ibfd, bfd *obfd, const
+ 	  if (! is_mergeable_note_section (ibfd, osec))
+ 	    continue;
+ 
++	  /* If the section is going to be completly deleted then
++	     do not bother to merge it.  */
++	  if (osec->output_section == NULL)
++	    continue;
++
+ 	  bfd_size_type size = bfd_section_size (ibfd, osec);
+ 	  if (size == 0)
+ 	    {
+@@ -2875,18 +2880,12 @@ copy_object (bfd *ibfd, bfd *obfd, const
+ 
+ 	  merged->size = merge_gnu_build_notes (ibfd, osec, size,
+ 						merged->contents);
+-	  if (merged->size == size)
+-	    {
+-	      /* Merging achieves nothing.  */
+-	      merge_debug ("Merge of section %s achieved nothing - skipping\n",
+-			   bfd_section_name (obfd, osec));
+-	      free (merged->contents);
+-	      free (merged);
+-	      continue;
+-	    }
++	  /* FIXME: Once we have read the contents in, we must write
++	     them out again.  So even if the mergeing has achieved
++	     nothing we still add this entry to the merge list.  */
+ 
+-	  if (osec->output_section == NULL
+-	      || !bfd_set_section_size (obfd, osec->output_section, merged->size))
++	  if (size != merged->size
++	      && !bfd_set_section_size (obfd, osec->output_section, merged->size))
+ 	    {
+ 	      bfd_nonfatal_message (NULL, obfd, osec,
+ 				    _("warning: failed to set merged notes size"));
+@@ -3253,16 +3252,16 @@ copy_object (bfd *ibfd, bfd *obfd, const
+ 		{
+ 		  bfd_nonfatal_message
+ 		    (NULL, obfd, osec,
+-		     _("error: failed to copy merged notes into output"));
++		     _("error: failed to locate merged notes"));
+ 		  continue;
+ 		}
+ 	    }
+ 
+-	  if (! is_mergeable_note_section (obfd, osec))
++	  if (merged->contents == NULL)
+ 	    {
+ 	      bfd_nonfatal_message
+ 		(NULL, obfd, osec,
+-		 _("error: failed to copy merged notes into output"));
++		 _("error: failed to merge notes"));
+ 	      continue;
+ 	    }
+ 

@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 27%{?dist}
+Release: 28%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -813,6 +813,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Nov 07 2019 Nick Clifton  <nickc@redhat.com> - 2.32-28
+- Strip: Do not fill note sections with zero bytes if not merging.
+
 * Tue Nov 05 2019 Nick Clifton  <nickc@redhat.com> - 2.32-27
 - Objcopy: Do not generate a failure exit status if note merging fails.  (#1767937)
 
