@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -208,6 +208,16 @@ Patch15: binutils-CVE-2019-1010204.patch
 # Lifetime: Fixed in 2.34 
 Patch16: binutils-improved-note-merging.patch
 
+# Purpose:  Fix a potential seg-fault in the BFD library when parsing
+#            pathalogical debug_info sections.
+# Lifetime: Fixed in 2.34 
+Patch17: binutils-CVE-2019-17451.patch
+
+# Purpose:  Fix a memory exhaustion bug in the BFD library when parsing
+#            corrupt DWARF debug information.
+# Lifetime: Fixed in 2.34 
+Patch18: binutils-CVE-2019-17450.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -359,6 +369,8 @@ Conflicts: gcc-c++ < 4.0.0
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -765,6 +777,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Nov 13 2019 Nick Clifton  <nickc@redhat.com> - 2.33-7
+- Fix a potential seg-fault in the BFD library when parsing pathalogical debug_info sections.  (#1771669)
+- Fix a potential memory exhaustion in the BFD library when parsing corrupt DWARF debug information.  (#1771678)
+
 * Wed Nov 06 2019 Nick Clifton  <nickc@redhat.com> - 2.33-6
 - Stop objcopy from creating null filled note sections when merging notes.
 
