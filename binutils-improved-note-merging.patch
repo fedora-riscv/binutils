@@ -1936,3 +1936,56 @@ diff -rupN binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.
  	      continue;
  	    }
  
+--- binutils.orig/binutils/objcopy.c	2019-11-20 16:14:55.143684285 +0000
++++ binutils-2.32/binutils/objcopy.c	2019-11-20 16:47:59.007527124 +0000
+@@ -2435,7 +2435,9 @@ merge_gnu_build_notes (bfd *          ab
+   bfd_vma        prev_start = 0;
+   bfd_vma        prev_end = 0;
+ 
+-  new = new_contents = xmalloc (size);
++  /* Not sure how, but the notes might grow in size.
++     (eg see PR 1774507).  Allow for this here.  */
++  new = new_contents = xmalloc (size * 2);
+   for (pnote = pnotes, old = contents;
+        pnote < pnotes_end;
+        pnote ++)
+@@ -2502,8 +2504,11 @@ merge_gnu_build_notes (bfd *          ab
+ #endif
+   
+   new_size = new - new_contents;
+-  memcpy (contents, new_contents, new_size);
+-  size = new_size;
++  if (new_size < size)
++    {
++      memcpy (contents, new_contents, new_size);
++      size = new_size;
++    }
+   free (new_contents);
+ 
+  done:
+@@ -4120,7 +4125,7 @@ copy_relocations_in_section (bfd *ibfd,
+   long relcount;
+   sec_ptr osection;
+ 
+- if (skip_section (ibfd, isection, FALSE))
++  if (skip_section (ibfd, isection, FALSE))
+     return;
+ 
+   osection = isection->output_section;
+@@ -4201,6 +4206,7 @@ copy_relocations_in_section (bfd *ibfd,
+ 	}
+ 
+       bfd_set_reloc (obfd, osection, relcount == 0 ? NULL : relpp, relcount);
++
+       if (relcount == 0)
+ 	{
+ 	  osection->flags &= ~SEC_RELOC;
+@@ -4520,8 +4526,6 @@ strip_main (int argc, char *argv[])
+   int i;
+   char *output_file = NULL;
+ 
+-  merge_notes = TRUE;
+-
+   while ((c = getopt_long (argc, argv, "I:O:F:K:MN:R:o:sSpdgxXHhVvwDU",
+ 			   strip_options, (int *) 0)) != EOF)
+     {
