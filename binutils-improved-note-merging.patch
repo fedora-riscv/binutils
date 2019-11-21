@@ -1950,3 +1950,50 @@ diff -rupN binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.
  
    while ((c = getopt_long (argc, argv, "I:O:F:K:MN:R:o:sSpdgxXHhVvwDU",
  			   strip_options, (int *) 0)) != EOF)
+--- binutils.orig/binutils/objcopy.c	2019-11-20 16:51:44.353747138 +0000
++++ binutils-2.31.1/binutils/objcopy.c	2019-11-20 16:54:59.100208859 +0000
+@@ -2321,7 +2321,7 @@ merge_gnu_build_notes (bfd *          ab
+ 	    other note then if they are both of the same type (open
+ 	    or func) then they can be merged and one deleted.  If
+ 	    they are of different types then they cannot be merged.  */
+-  for (pnote = pnotes + 1; pnote < pnotes_end; pnote ++)
++  for (pnote = pnotes; pnote < pnotes_end; pnote ++)
+     {
+       /* Skip already deleted notes.
+ 	 FIXME: Can this happen ?  We are scanning forwards and
+@@ -2424,7 +2424,9 @@ merge_gnu_build_notes (bfd *          ab
+   bfd_vma        prev_start = 0;
+   bfd_vma        prev_end = 0;
+ 
+-  new = new_contents = xmalloc (size);
++  /* Not sure how, but the notes might grow in size.
++     (eg see PR 1774507).  Allow for this here.  */
++  new = new_contents = xmalloc (size * 2);
+   for (pnote = pnotes, old = contents;
+        pnote < pnotes_end;
+        pnote ++)
+@@ -2472,8 +2474,9 @@ merge_gnu_build_notes (bfd *          ab
+ 	      prev_start = pnote->start;
+ 	      prev_end = pnote->end;
+ 	    }
+-	  old += note_size;
+ 	}
++
++      old += note_size;
+     }
+ 
+ #if DEBUG_MERGE
+@@ -2489,8 +2492,11 @@ merge_gnu_build_notes (bfd *          ab
+ #endif
+ 
+   new_size = new - new_contents;
+-  memcpy (contents, new_contents, new_size);
+-  size = new_size;
++  if (new_size < size)
++    {
++      memcpy (contents, new_contents, new_size);
++      size = new_size;
++    }
+   free (new_contents);
+ 
+  done:

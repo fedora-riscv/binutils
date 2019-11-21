@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.31.1
-Release: 35%{?dist}
+Release: 36%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -836,6 +836,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Nov 21 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-36
+- Fix a buffer overrun in the note merging code.  (#1774507)
+
 * Thu Nov 07 2019 Nick Clifton  <nickc@redhat.com> - 2.31.1-35
 - Strip: Do not fill note sections with zero bytes if not merging.
 
