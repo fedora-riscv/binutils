@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -777,6 +777,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Nov 21 2019 Nick Clifton  <nickc@redhat.com> - 2.33-8
+- Fix a buffer overrun in the note merging code.  (#1774507)
+
 * Wed Nov 13 2019 Nick Clifton  <nickc@redhat.com> - 2.33-7
 - Fix a potential seg-fault in the BFD library when parsing pathalogical debug_info sections.  (#1771669)
 - Fix a potential memory exhaustion in the BFD library when parsing corrupt DWARF debug information.  (#1771678)
