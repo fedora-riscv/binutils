@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 29%{?dist}
+Release: 30%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -813,6 +813,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Nov 25 2019 Nick Clifton  <nickc@redhat.com> - 2.32-30
+- Fix snafu left in previous gold patch.  (#1775750)
+
 * Thu Nov 21 2019 Nick Clifton  <nickc@redhat.com> - 2.32-29
 - Fix a buffer overrun in the note merging code.  (#1774507)
 
