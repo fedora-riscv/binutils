@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -777,29 +777,32 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Thu Nov 21 2019 Nick Clifton  <nickc@redhat.com> - 2.33-8
+* Mon Nov 25 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-9
+- Remove spurious code left in gold-mimatched-section-flags patch.  (#1775750)
+
+* Thu Nov 21 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-8
 - Fix a buffer overrun in the note merging code.  (#1774507)
 
-* Wed Nov 13 2019 Nick Clifton  <nickc@redhat.com> - 2.33-7
+* Wed Nov 13 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-7
 - Fix a potential seg-fault in the BFD library when parsing pathalogical debug_info sections.  (#1771669)
 - Fix a potential memory exhaustion in the BFD library when parsing corrupt DWARF debug information.  (#1771678)
 
-* Wed Nov 06 2019 Nick Clifton  <nickc@redhat.com> - 2.33-6
+* Wed Nov 06 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-6
 - Stop objcopy from creating null filled note sections when merging notes.
 
-* Wed Nov 06 2019 Nick Clifton  <nickc@redhat.com> - 2.33-5
+* Wed Nov 06 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-5
 - Strip: Do not merge notes unless explicitly requested to do so.
 
-* Tue Nov 05 2019 Nick Clifton  <nickc@redhat.com> - 2.33-4
+* Tue Nov 05 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-4
 - Objcopy: Do not generate a failure exit status if note merging fails.  (#1767937)
 
-* Wed Oct 30 2019 Nick Clifton  <nickc@redhat.com> - 2.33-3
+* Wed Oct 30 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-3
 - Fix the verification of the installed linker symlink.  (#1767000)
 
-* Mon Oct 28 2019 Nick Clifton  <nickc@redhat.com> - 2.33-2
+* Mon Oct 28 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-2
 - Improve objdump's ability to merge GNU build attribute notes.
 
-* Mon Oct 14 2019 Nick Clifton  <nickc@redhat.com> - 2.33-1
+* Mon Oct 14 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-1
 - Rebase to GNU Binutils 2.33.1.
 - Retire: binutils-CVE-2019-9073.patch
 - Retire: binutils-CVE-2019-9074.patch

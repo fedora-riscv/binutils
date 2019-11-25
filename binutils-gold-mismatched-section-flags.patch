@@ -17,20 +17,3 @@ diff -rup binutils.orig/gold/layout.cc binutils-2.32/gold/layout.cc
  	}
  
        if (os == NULL)
-diff -rup binutils.orig/gold/object.cc binutils-2.32/gold/object.cc
---- binutils.orig/gold/object.cc	2019-06-24 14:37:36.012086906 +0100
-+++ binutils-2.32/gold/object.cc	2019-06-24 14:39:59.287165501 +0100
-@@ -1644,6 +1644,13 @@ Sized_relobj_file<size, big_endian>::do_
- 	      omit[i] = true;
- 	    }
- 
-+	  // Skip empty sections without flags.
-+	  if (!(shdr.get_sh_flags() & ~elfcpp::SHF_GROUP)
-+	      && !shdr.get_sh_size())
-+	    {
-+	      omit[i] = true;
-+	    }
-+
- 	  bool discard = omit[i];
- 	  if (!discard)
- 	    {
