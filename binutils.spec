@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -777,6 +777,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Dec 02 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-10
+- Re-enable strip merging build notes.  (#1777760)
+
 * Mon Nov 25 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-9
 - Remove spurious code left in gold-mimatched-section-flags patch.  (#1775750)
 

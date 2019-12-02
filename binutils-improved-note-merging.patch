@@ -1874,26 +1874,6 @@ diff -rupN binutils.orig/binutils/testsuite/binutils-all/objcopy.exp binutils-2.
      }
  
    free (pnotes);
---- binutils.orig/binutils/objcopy.c	2019-11-06 13:37:33.952297613 +0000
-+++ binutils-2.33.1/binutils/objcopy.c	2019-11-06 13:38:23.751933043 +0000
-@@ -4660,7 +4660,7 @@ strip_main (int argc, char *argv[])
- 	  strip_usage (stderr, 1);
- 	}
-     }
--
-+#if 0
-   /* If the user has not expressly chosen to merge/not-merge ELF notes
-      then enable the merging unless we are stripping debug or dwo info.  */
-   if (! merge_notes_set
-@@ -4670,7 +4670,7 @@ strip_main (int argc, char *argv[])
- 	  || strip_symbols == STRIP_NONDEBUG
- 	  || strip_symbols == STRIP_NONDWO))
-     merge_notes = TRUE;
--
-+#endif
-   if (formats_info)
-     {
-       display_info ();
 --- binutils.orig/binutils/objcopy.c	2019-11-06 21:57:19.772862679 +0000
 +++ binutils-2.33.1/binutils/objcopy.c	2019-11-06 22:00:00.206626724 +0000
 @@ -2869,6 +2869,11 @@ copy_object (bfd *ibfd, bfd *obfd, const
