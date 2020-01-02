@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -218,6 +218,10 @@ Patch17: binutils-CVE-2019-17451.patch
 # Lifetime: Fixed in 2.34 
 Patch18: binutils-CVE-2019-17450.patch
 
+# Purpose: Improve addr2line's ability to translate addresses into file/line numbers.
+# Lifetime: Fixed in 2.34
+Patch19: binutils-addr2line-fixes.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -371,6 +375,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -777,6 +782,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 02 2020 Nick Clifton  <nickc@redhat.com> - 2.33.1-11
+- Improve the accuracy of addr2line.  (#1760967)
+
 * Mon Dec 02 2019 Nick Clifton  <nickc@redhat.com> - 2.33.1-10
 - Re-enable strip merging build notes.  (#1777760)
 
