@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -432,7 +432,7 @@ export CFLAGS="$RPM_OPT_FLAGS"
 
 CARGS=
 
-case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*)
+case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
   CARGS="$CARGS --enable-64-bit-bfd"
   ;;
 esac
@@ -457,7 +457,7 @@ case %{binutils_target} in ppc64le*)
     ;;
 esac
 
-case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*)
+case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*|riscv*)
   CARGS="$CARGS --enable-targets=x86_64-pep"
   ;;
 esac
@@ -782,6 +782,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 23 2020 David Abdurachmanov  <david.abdurachmanov@sifive.com> - 2.33.1-12
+- Enable 64-bit BFD and PEP support for riscv.  (#1794343)
+
 * Thu Jan 02 2020 Nick Clifton  <nickc@redhat.com> - 2.33.1-11
 - Improve the accuracy of addr2line.  (#1760967)
 
