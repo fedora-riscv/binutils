@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.33.1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -782,6 +782,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 2.33.1-13
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
+
 * Thu Jan 23 2020 David Abdurachmanov  <david.abdurachmanov@sifive.com> - 2.33.1-12
 - Enable 64-bit BFD and PEP support for riscv.  (#1794343)
 
