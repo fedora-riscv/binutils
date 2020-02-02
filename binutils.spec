@@ -1,8 +1,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.33.1
-Release: 13%{?dist}
+Version: 2.34
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -204,24 +204,6 @@ Patch14: binutils-gold-mismatched-section-flags.patch
 # Lifetime: Fixed in 2.34 (maybe)
 Patch15: binutils-CVE-2019-1010204.patch
 
-# Purpose:  Improve objdump's ability to merge GNU build attribute notes.
-# Lifetime: Fixed in 2.34 
-Patch16: binutils-improved-note-merging.patch
-
-# Purpose:  Fix a potential seg-fault in the BFD library when parsing
-#            pathalogical debug_info sections.
-# Lifetime: Fixed in 2.34 
-Patch17: binutils-CVE-2019-17451.patch
-
-# Purpose:  Fix a memory exhaustion bug in the BFD library when parsing
-#            corrupt DWARF debug information.
-# Lifetime: Fixed in 2.34 
-Patch18: binutils-CVE-2019-17450.patch
-
-# Purpose: Improve addr2line's ability to translate addresses into file/line numbers.
-# Lifetime: Fixed in 2.34
-Patch19: binutils-addr2line-fixes.patch
-
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -349,7 +331,7 @@ Conflicts: gcc-c++ < 4.0.0
 # The higher of these two numbers determines the default ld.
 %{!?ld_gold_priority:%global ld_gold_priority   30}
 
-%endif %%# with gold
+%endif # with gold
 
 %{!?ld_bfd_priority: %global ld_bfd_priority    50}
 
@@ -372,10 +354,6 @@ Conflicts: gcc-c++ < 4.0.0
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
-%patch16 -p1
-%patch17 -p1
-%patch18 -p1
-%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -759,6 +737,7 @@ exit 0
 
 %if %{enable_shared}
 %{_libdir}/lib*.so
+%{_libdir}/libctf*
 %exclude %{_libdir}/libbfd.so
 %exclude %{_libdir}/libopcodes.so
 %endif
@@ -782,6 +761,13 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Sun Feb 02 2020 Nick Clifton  <nickc@redhat.com> - 2.34-1
+- Rebase to GNU Binutils 2.34.  (#1793098)
+- Retire: binutils-improved-note-merging.patch
+- Retire: binutils-CVE-2019-17451.patch
+- Retire: binutils-CVE-2019-17450.patch
+- Retire: binutils-addr2line-fixes.patch
+
 * Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 2.33.1-13
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
