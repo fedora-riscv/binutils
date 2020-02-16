@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -183,26 +183,31 @@ Patch10: binutils-attach-to-group.patch
 
 # Purpose:  Stop gold from complaining about relocs in the .gnu.build.attribute
 #           section that reference symbols in discarded sections.
-# Lifetime: Fixed in 2.34 (maybe)
+# Lifetime: Fixed in 2.35 (maybe)
 Patch11: binutils-gold-ignore-discarded-note-relocs.patch
 
 # Purpose:  Allow OS specific sections in section groups.
-# Lifetime: Might be fixed in 2.34 (maybe)
+# Lifetime: Fixed in 2.35 (maybe)
 Patch12: binutils-special-sections-in-groups.patch
 
 # Purpose:  Fix linker testsuite failures.
-# Lifetime: Fixed in 2.34 (maybe)
+# Lifetime: Fixed in 2.35 (maybe)
 Patch13: binutils-fix-testsuite-failures.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
-# Lifetime: Fixed in 2.34 (maybe)
+# Lifetime: Fixed in 2.35 (maybe)
 Patch14: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Add a check to the GOLD linker for a corrupt input file
 #            with a fuzzed section offset.
-# Lifetime: Fixed in 2.34 (maybe)
+# Lifetime: Fixed in 2.35 (maybe)
 Patch15: binutils-CVE-2019-1010204.patch
+
+# Purpose:  Fix the LTO plugin so that it passes full symbol information
+#            to the linker.
+# Lifetime: Fixed in 2.35
+Patch16: binutils-nm-lto-plugin.patch
 
 #----------------------------------------------------------------------------
 
@@ -354,6 +359,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch13 -p1
 %patch14 -p1
 %patch15 -p1
+%patch16 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -761,6 +767,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Sun Feb 16 2020 Nick Clifton  <nickc@redhat.com> - 2.34-2
+- Fix the plugin support architecture to allow proper symbol info handling.  (PR 25355)
+
 * Sun Feb 02 2020 Nick Clifton  <nickc@redhat.com> - 2.34-1
 - Rebase to GNU Binutils 2.34.  (#1793098)
 - Retire: binutils-improved-note-merging.patch
