@@ -2,28 +2,26 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
 #----------------------------------------------------------------------------
 
-# Binutils SPEC file.  Can be invoked with the following parameters:
+# Binutils SPEC file.  Can be invoked with the following parameters to change
+#  the default behaviour:
 
 # --define "binutils_target arm-linux-gnu" to create arm-linux-gnu-binutils.
+#
 # --with=bootstrap      Build with minimal dependencies.
 # --with=debug          Build without optimizations and without splitting
 #                        the debuginfo into a separate file.
 # --without=docs        Skip building documentation.
 # --without=testsuite   Do not run the testsuite.  Default is to run it.
-# --with=testsuite      Run the testsuite.  Default when --with=debug is not
-#                        to run it.
 # --without=gold        Disable building of the GOLD linker.
+# --with=clang          Build with the CLANG compiler.
 
 #---Start of Configure Options-----------------------------------------------
-
-# Use clang as the build time compiler rather than gcc.
-%define build_using_clang 0
 
 # Create deterministic archives (ie ones without timestamps).
 # Default is off because of BZ 1195883.
@@ -73,6 +71,9 @@ URL: https://sourceware.org/binutils
 %bcond_without docs
 # Default: Always run the testsuite.
 %bcond_without testsuite
+# Use clang as the build time compiler.  Default: gcc
+%bcond_with clang 
+
 
 %if %{with bootstrap}
 %undefine with_docs
@@ -209,6 +210,12 @@ Patch15: binutils-CVE-2019-1010204.patch
 # Lifetime: Fixed in 2.35
 Patch16: binutils-nm-lto-plugin.patch
 
+# Purpose:  Change the gold configuration script to only warn about
+#            unsupported targets.  This allows the binutils to be built with
+#            BPF support enabled.
+# Lifetime: Permanent.
+Patch17: binutils-gold-warn-unsupported.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -232,8 +239,8 @@ Requires: binutils-gold >= %{version}
 # Perl, sed and touch are all used in the %%prep section of this spec file.
 BuildRequires: perl, sed, coreutils
 
-%if %{build_using_clang}
-BuildRequires: clang
+%if %{with clang}
+BuildRequires: clang compiler-rt
 %else
 BuildRequires: gcc
 %endif
@@ -328,7 +335,7 @@ BuildRequires: bison, m4, gcc-c++
 # The GOLD testsuite needs a static libc++
 BuildRequires: libstdc++-static
 
-%if ! %{build_using_clang}
+%if ! %{with clang}
 BuildRequires: gcc-c++
 Conflicts: gcc-c++ < 4.0.0
 %endif
@@ -336,7 +343,7 @@ Conflicts: gcc-c++ < 4.0.0
 # The higher of these two numbers determines the default ld.
 %{!?ld_gold_priority:%global ld_gold_priority   30}
 
-%endif # with gold
+%endif
 
 %{!?ld_bfd_priority: %global ld_bfd_priority    50}
 
@@ -360,6 +367,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -403,11 +411,6 @@ touch */configure
 %build
 echo target is %{binutils_target}
 
-%if %{build_using_clang}
-# Clang does not support the -fstack-clash-protection option.
-%global optflags %(echo %{optflags} | sed 's/-fstack-clash-protection//')
-%endif
-
 %ifarch %{power64}
 export CFLAGS="$RPM_OPT_FLAGS -Wno-error"
 %else
@@ -421,28 +424,31 @@ case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
   ;;
 esac
 
+# Extra targets to build along with the default one.
+# We add the BPF target so that strip will work on bpf files.
+
 case %{binutils_target} in ia64*)
-  CARGS="$CARGS --enable-targets=i386-linux"
+  CARGS="$CARGS --enable-targets=ia64-linux,bpf-unknown-none"
   ;;
 esac
 
 case %{binutils_target} in ppc*|ppc64*)
-  CARGS="$CARGS --enable-targets=spu"
+  CARGS="$CARGS --enable-targets=spu,bpf-unknown-none"
   ;;
 esac
 
 case %{binutils_target} in ppc64-*)
-  CARGS="$CARGS --enable-targets=powerpc64le-linux"
+  CARGS="$CARGS --enable-targets=powerpc64le-linux,bpf-unknown-none"
   ;;
 esac
 
 case %{binutils_target} in ppc64le*)
-    CARGS="$CARGS --enable-targets=powerpc-linux"
+    CARGS="$CARGS --enable-targets=powerpc-linux,bpf-unknown-none"
     ;;
 esac
 
 case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*|riscv*)
-  CARGS="$CARGS --enable-targets=x86_64-pep"
+  CARGS="$CARGS --enable-targets=x86_64-pep,bpf-unknown-none"
   ;;
 esac
 
@@ -460,13 +466,13 @@ export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 # BZ 1541027 - include the linker flags from redhat-rpm-config as well.
 export LDFLAGS=$RPM_LD_FLAGS
 
+%if %{with clang}
+%define _with_cc_clang 1
+%endif
+
 # We could optimize the cross builds size by --enable-shared but the produced
 # binaries may be less convenient in the embedded environment.
 %configure \
-%if %{build_using_clang}
-   CC=clang \
-   CXX=clang++ \
-%endif
   --quiet \
   --build=%{_target_platform} --host=%{_target_platform} \
   --target=%{binutils_target} \
@@ -511,7 +517,8 @@ export LDFLAGS=$RPM_LD_FLAGS
 %endif
   $CARGS \
   --enable-plugins \
-  --with-bugurl=http://bugzilla.redhat.com/bugzilla/
+  --with-bugurl=http://bugzilla.redhat.com/bugzilla/ \
+  || cat config.log
 
 %if %{with docs}
 %make_build %{_smp_mflags} tooldir=%{_prefix} all
@@ -551,7 +558,7 @@ if [ -f gold/testsuite/test-suite.log ]; then
   rm -f    binutils-%{_target_platform}-gold.log.tar.xz
 fi
 %endif
-%endif # with testsuite
+%endif
 
 #----------------------------------------------------------------------------
 
@@ -570,16 +577,19 @@ make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
 # Rebuild libiberty.a with -fPIC.
 # Future: Remove it together with its header file, projects should bundle it.
 %make_build -C libiberty clean
+%set_build_flags
 %make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
 
 # Rebuild libbfd.a with -fPIC.
 # Without the hidden visibility the 3rd party shared libraries would export
 # the bfd non-stable ABI.
 %make_build -C bfd clean
+%set_build_flags
 %make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
 
 # Rebuild libopcodes.a with -fPIC.
 %make_build -C opcodes clean
+%set_build_flags
 %make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
 
 install -m 644 bfd/libbfd.a %{buildroot}%{_libdir}
@@ -648,14 +658,14 @@ $OUTPUT_FORMAT
 INPUT ( %{_libdir}/libopcodes.a -lbfd )
 EOH
 
-%else # !isnative
+%else
 # For cross-binutils we drop the documentation.
 rm -rf %{buildroot}%{_infodir}
 # We keep these as one can have native + cross binutils of different versions.
 #rm -rf {buildroot}{_prefix}/share/locale
 #rm -rf {buildroot}{_mandir}
 rm -rf %{buildroot}%{_libdir}/libiberty.a
-%endif # !isnative
+%endif
 
 # This one comes from gcc
 rm -f %{buildroot}%{_infodir}/dir
@@ -756,7 +766,7 @@ exit 0
 %{_libdir}/libbfd.so
 %{_libdir}/libopcodes.so
 
-%endif # isnative
+%endif
 
 %if %{with gold}
 %files gold
@@ -767,6 +777,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Apr 17 2020 Nick Clifton  <nickc@redhat.com> - 2.34-3
+- Add support for the BPF target.  (#1825193)
+
 * Sun Feb 16 2020 Nick Clifton  <nickc@redhat.com> - 2.34-2
 - Fix the plugin support architecture to allow proper symbol info handling.  (PR 25355)
 
