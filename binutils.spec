@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -777,6 +777,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Apr 28 2020 Nick Clifton  <nickc@redhat.com> - 2.34-4
+- Fix seg fault when loading plugins via symlinks.  (#1828587)
+
 * Fri Apr 17 2020 Nick Clifton  <nickc@redhat.com> - 2.34-3
 - Add support for the BPF target.  (#1825193)
 
