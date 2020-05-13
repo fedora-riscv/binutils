@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 31%{?dist}
+Release: 32%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -264,6 +264,10 @@ Patch30: binutils-improved-note-merging.patch
 # Lifetime: Fixed in 2.34
 Patch31: binutils-addr2line-fixes.patch
 
+# Purpose: Fix a potential illegal memory access parsing corrupt ELF files.
+# Lifetime: Fixed in 2.34
+Patch32: binutils-CVE-2019-12972.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -421,6 +425,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch29 -p1
 %patch30 -p1
 %patch31 -p1
+%patch32 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -818,6 +823,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed May 13 2020 Nick Clifton  <nickc@redhat.com> - 2.32-32
+- Fix a potential illegal memorty access parsing a corrupt ELF file.  (#1835138)
+
 * Thu Jan 02 2020 Nick Clifton  <nickc@redhat.com> - 2.32-31
 - Improve the accuracy of addr2line.  (#1760967)
 
