@@ -1,8 +1,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.34
-Release: 4%{?dist}
+Version: 2.34.0
+Release: 5%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -13,13 +13,13 @@ URL: https://sourceware.org/binutils
 
 # --define "binutils_target arm-linux-gnu" to create arm-linux-gnu-binutils.
 #
-# --with=bootstrap      Build with minimal dependencies.
-# --with=debug          Build without optimizations and without splitting
-#                        the debuginfo into a separate file.
-# --without=docs        Skip building documentation.
-# --without=testsuite   Do not run the testsuite.  Default is to run it.
-# --without=gold        Disable building of the GOLD linker.
-# --with=clang          Build with the CLANG compiler.
+# --with bootstrap       Build with minimal dependencies.
+# --with debug           Build without optimizations and without splitting
+#                         the debuginfo into a separate file.
+# --without docs         Skip building documentation.
+# --without testsuite    Do not run the testsuite.  Default is to run it.
+# --without gold         Disable building of the GOLD linker.
+# --with clang           To force building with the CLANG.
 
 #---Start of Configure Options-----------------------------------------------
 
@@ -106,7 +106,22 @@ URL: https://sourceware.org/binutils
 # too many controversial patches so we stick with the official FSF version
 # instead.
 
-Source: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
+# The source for the binutils are normally retrieved from the official
+# GNU repository.  IE:
+#   Source: https://ftp.gnu.org/gnu/binutils/binutils-%%{version}.tar.xz
+#
+# But we have a need in this rawhide release to pull in the latest version
+# on the 2.34 branch.  So the tarball was created using the following
+# commands:
+#
+#   git clone git://sourceware.org/git/binutils-gdb.git -b binutils-2_34-branch
+#   git checkout 5dfc0c955dbe912cd328fc2688e5fceb3239ac2a
+#   ./src-release -x binutils
+#   mv binutils-2.34.0.tar.xz binutils-2.34.0-5dfc0c955dbe912cd328fc2688e5fceb3239ac2a.tar.xz
+#
+# FIXME: Undo this change once the next official binutils release is made.
+
+Source: binutils-2.34.0-5dfc0c955dbe912cd328fc2688e5fceb3239ac2a.tar.xz
 
 Source2: binutils-2.19.50.0.1-output-format.sed
 
@@ -205,10 +220,9 @@ Patch14: binutils-gold-mismatched-section-flags.patch
 # Lifetime: Fixed in 2.35 (maybe)
 Patch15: binutils-CVE-2019-1010204.patch
 
-# Purpose:  Fix the LTO plugin so that it passes full symbol information
-#            to the linker.
+# Purpose:  Fix a potential use of an initialised field by readelf.
 # Lifetime: Fixed in 2.35
-Patch16: binutils-nm-lto-plugin.patch
+Patch16: binutils-readelf-compression-header-size.patch
 
 # Purpose:  Change the gold configuration script to only warn about
 #            unsupported targets.  This allows the binutils to be built with
@@ -458,7 +472,7 @@ esac
   CARGS="$CARGS --enable-relro=no"
 %endif
 
-%if 0%{?_with_debug:1}
+%if %{with debug}
 export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %define enable_shared 0
 %endif
@@ -777,6 +791,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri May 22 2020 Nick Clifton  <nickc@redhat.com> - 2.34-5
+- Rebase to tip of GNU Binutils 2.34 branch, brining in LTO fixes.
+- Retire: binutils-nm-lto-plugin.patch
+
 * Tue Apr 28 2020 Nick Clifton  <nickc@redhat.com> - 2.34-4
 - Fix seg fault when loading plugins via symlinks.  (#1828587)
 
