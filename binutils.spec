@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34.0
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -230,6 +230,11 @@ Patch16: binutils-readelf-compression-header-size.patch
 # Lifetime: Permanent.
 Patch17: binutils-gold-warn-unsupported.patch
 
+# Purpose:  Enhance the error message displayed by the BFD library when
+#            to fails to load a plugin.
+# Lifetime: Should be fixed in 2.35.
+Patch18: binutils-bad-plugin-err-message.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -382,6 +387,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -791,6 +797,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 26 2020 Nick Clifton  <nickc@redhat.com> - 2.34-6
+- Enhance the error message displayed by the BFD library when it fails to load a plugin.  (#1836618)
+
 * Fri May 22 2020 Nick Clifton  <nickc@redhat.com> - 2.34-5
 - Rebase to tip of GNU Binutils 2.34 branch, brining in LTO fixes.
 - Retire: binutils-nm-lto-plugin.patch

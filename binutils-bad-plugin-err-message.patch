@@ -1,0 +1,12 @@
+--- binutils.orig/bfd/plugin.c	2020-05-26 12:48:41.604021632 +0100
++++ binutils-2.34.0/bfd/plugin.c	2020-05-26 12:50:02.553762744 +0100
+@@ -273,7 +273,8 @@ try_load_plugin (const char *pname,
+   plugin_handle = dlopen (pname, RTLD_NOW);
+   if (!plugin_handle)
+     {
+-      _bfd_error_handler ("%s\n", dlerror ());
++      _bfd_error_handler ("Failed to load plugin '%s', reason: %s\n",
++			  pname, dlerror ());
+       return 0;
+     }
+ 
