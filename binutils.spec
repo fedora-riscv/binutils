@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -767,6 +767,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 26 2020 Nick Clifton  <nickc@redhat.com> - 2.34-3
+- Fix seg-fault when accessing symlinked plugins.  (#1839346)
+
 * Mon Feb 17 2020 Nick Clifton  <nickc@redhat.com> - 2.34-2
 - Fix the plugin support architecture to allow proper symbol info handling.  (PR 25355)
 

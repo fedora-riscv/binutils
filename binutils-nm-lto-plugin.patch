@@ -856,3 +856,91 @@ index 6752a76483..e276bb589d 100644
  	} elseif { [regexp ".*\\.a$" $binfile] } {
  	    if { ![ar_simple_create $ar $ldflags $binfile "$objfiles"] } {
  		set failed 1
+--- binutils.orig/bfd/plugin.c	2020-04-28 10:49:15.297127841 +0100
++++ binutils-2.34/bfd/plugin.c	2020-04-28 13:30:08.722175980 +0100
+@@ -601,17 +601,13 @@ try_load_plugin (const char *pname,
+   int i;
+   ld_plugin_onload onload;
+   enum ld_plugin_status status;
++  int result = 0;
+ 
+   /* NB: Each object is independent.  Reuse the previous plugin from
+      the last run will lead to wrong result.  */
+   if (current_plugin)
+-    {
+-      if (current_plugin->handle)
+-	dlclose (current_plugin->handle);
+-      memset (current_plugin, 0,
+-	      offsetof (struct plugin_list_entry, next));
+-      current_plugin = NULL;
+-    }
++    memset (current_plugin, 0,
++	    offsetof (struct plugin_list_entry, next));
+ 
+   if (plugin_list_iter)
+     pname = plugin_list_iter->plugin_name;
+@@ -627,14 +623,16 @@ try_load_plugin (const char *pname,
+     {
+       size_t length_plugin_name = strlen (pname) + 1;
+       char *plugin_name = bfd_malloc (length_plugin_name);
++
+       if (plugin_name == NULL)
+-	return 0;
++	goto short_circuit;
+       plugin_list_iter = bfd_malloc (sizeof *plugin_list_iter);
+       if (plugin_list_iter == NULL)
+ 	{
+ 	  free (plugin_name);
+-	  return 0;
++	  goto short_circuit;
+ 	}
++
+       /* Make a copy of PNAME since PNAME from load_plugin () will be
+ 	 freed.  */
+       memcpy (plugin_name, pname, length_plugin_name);
+@@ -646,11 +644,11 @@ try_load_plugin (const char *pname,
+ 
+   plugin_list_iter->handle = plugin_handle;
+   if (build_list_p)
+-    return 0;
++    goto short_circuit;
+ 
+   onload = dlsym (plugin_handle, "onload");
+   if (!onload)
+-    return 0;
++    goto short_circuit;
+ 
+   i = 0;
+   tv[i].tv_tag = LDPT_MESSAGE;
+@@ -709,22 +707,26 @@ try_load_plugin (const char *pname,
+   status = (*onload)(tv);
+ 
+   if (status != LDPS_OK)
+-    return 0;
++    goto short_circuit;
+ 
+   if (current_plugin->lto_wrapper
+       && setup_lto_wrapper_env (current_plugin))
+-    return 0;
++    goto short_circuit;
+ 
+   abfd->plugin_format = bfd_plugin_no;
+ 
+   if (!current_plugin->claim_file)
+-    return 0;
++    goto short_circuit;
+ 
+   if (!try_claim (abfd))
+-    return 0;
++    goto short_circuit;
+ 
+   abfd->plugin_format = bfd_plugin_yes;
+-  return 1;
++  result = 1;
++
++ short_circuit:
++  dlclose (plugin_handle);
++  return result;
+ }
+ 
+ /* There may be plugin libraries in lib/bfd-plugins.  */
