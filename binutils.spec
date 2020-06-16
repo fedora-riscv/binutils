@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34.0
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -235,6 +235,8 @@ Patch17: binutils-gold-warn-unsupported.patch
 # Lifetime: Should be fixed in 2.35.
 Patch18: binutils-bad-plugin-err-message.patch
 
+Patch19: binutils-s390-build.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -388,6 +390,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch16 -p1
 %patch17 -p1
 %patch18 -p1
+%patch19 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -464,6 +467,15 @@ esac
 
 case %{binutils_target} in ppc64le*)
     CARGS="$CARGS --enable-targets=powerpc-linux,bpf-unknown-none"
+    ;;
+esac
+
+case %{binutils_target} in s390*)
+    # FIXME: For some unknown reason settting --enable-targets=bpf-unknown-none
+    # here breaks the building of GOLD.  I have no idea why, and not enough
+    # knowledge of how gold is configured to fix quickly.  So instead I have
+    # found that supporting "all" targets works.
+    CARGS="$CARGS --enable-targets=all"
     ;;
 esac
 
@@ -797,6 +809,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jun 16 2020 Nick Clifton  <nickc@redhat.com> - 2.34-7
+- Add BPF support to the s390x target.  (#1825193)
+
 * Tue May 26 2020 Nick Clifton  <nickc@redhat.com> - 2.34-6
 - Enhance the error message displayed by the BFD library when it fails to load a plugin.  (#1836618)
 
