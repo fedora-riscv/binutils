@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34.0
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -371,26 +371,7 @@ Conflicts: gcc-c++ < 4.0.0
 #----------------------------------------------------------------------------
 
 %prep
-%setup -q -n binutils-%{version}
-%patch01 -p1
-%patch02 -p1
-%patch03 -p1
-%patch04 -p1
-%patch05 -p1
-%patch06 -p1
-%patch07 -p1
-%patch08 -p1
-%patch09 -p1
-%patch10 -p1
-%patch11 -p1
-%patch12 -p1
-%patch13 -p1
-%patch14 -p1
-%patch15 -p1
-%patch16 -p1
-%patch17 -p1
-%patch18 -p1
-%patch19 -p1
+%autosetup -p1 -n binutils-%{version}
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -809,6 +790,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jul 07 2020 Jeff Law  <law@redhat.com> - 2.34-8
+- Switch to using %%autosetup.
+
 * Tue Jun 16 2020 Nick Clifton  <nickc@redhat.com> - 2.34-7
 - Add BPF support to the s390x target.  (#1825193)
 
