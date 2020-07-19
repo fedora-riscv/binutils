@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34.0
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -237,9 +237,12 @@ Patch18: binutils-bad-plugin-err-message.patch
 
 Patch19: binutils-s390-build.patch
 
+Patch20: binutils-config.patch
+Patch21: binutils-warnings.patch
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
+BuildRequires: autoconf automake
 
 %if %{with gold}
 # For now we make the binutils package require the gold sub-package.
@@ -482,6 +485,14 @@ export LDFLAGS=$RPM_LD_FLAGS
 %if %{with clang}
 %define _with_cc_clang 1
 %endif
+
+# Dependencies are not set up to rebuild the configure files
+# in the subdirectories.  So we just rebuild the ones we care
+# about after applying the configure patches
+pushd libiberty
+autoreconf -ivf
+popd
+
 
 # We could optimize the cross builds size by --enable-shared but the produced
 # binaries may be less convenient in the embedded environment.
@@ -790,6 +801,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+- Sun Jul 19 2020 Jeff Law  <law@redhat.com> - 2.34-9
+- Fix configure test compromised by LTO.  Add appropriate BuildRequires
+  and force rebuliding the configure files in the appropriate dirs
+- Fix various warnings exposed by LTO.
+
 * Tue Jul 07 2020 Jeff Law  <law@redhat.com> - 2.34-8
 - Switch to using %%autosetup.
 

@@ -1,0 +1,12 @@
+diff -Nrup a/libiberty/aclocal.m4 b/libiberty/aclocal.m4
+--- a/libiberty/aclocal.m4	2019-01-19 09:01:34.000000000 -0700
++++ b/libiberty/aclocal.m4	2020-01-09 22:00:27.183312982 -0700
+@@ -147,7 +147,7 @@ if test $ac_cv_os_cray = yes; then
+ fi
+ 
+ AC_CACHE_CHECK(stack direction for C alloca, ac_cv_c_stack_direction,
+-[AC_TRY_RUN([find_stack_direction ()
++[AC_TRY_RUN([__attribute__ ((noclone,noinline)) find_stack_direction ()
+ {
+   static char *addr = 0;
+   auto char dummy;
