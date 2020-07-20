@@ -490,7 +490,10 @@ export LDFLAGS=$RPM_LD_FLAGS
 # in the subdirectories.  So we just rebuild the ones we care
 # about after applying the configure patches
 pushd libiberty
-autoreconf -ivf
+autoconf
+popd
+pushd intl
+autoconf
 popd
 
 
@@ -801,7 +804,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-- Sun Jul 19 2020 Jeff Law  <law@redhat.com> - 2.34-9
+* Mon Jul 20 2020 Jeff Law  <law@redhat.com> - 2.34-9
+- Fix more configure tests compromised by LTO.
+
+* Sun Jul 19 2020 Jeff Law  <law@redhat.com> - 2.34-9
 - Fix configure test compromised by LTO.  Add appropriate BuildRequires
   and force rebuliding the configure files in the appropriate dirs
 - Fix various warnings exposed by LTO.
