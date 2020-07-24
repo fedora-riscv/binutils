@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -11,14 +11,15 @@ URL: https://sourceware.org/binutils
 # Binutils SPEC file.  Can be invoked with the following parameters:
 
 # --define "binutils_target arm-linux-gnu" to create arm-linux-gnu-binutils.
-# --with=bootstrap      Build with minimal dependencies.
-# --with=debug          Build without optimizations and without splitting
+# --with bootstrap      Build with minimal dependencies.
+# --with debug          Build without optimizations and without splitting
 #                        the debuginfo into a separate file.
-# --without=docs        Skip building documentation.
-# --without=testsuite   Do not run the testsuite.  Default is to run it.
-# --with=testsuite      Run the testsuite.  Default when --with=debug is not
+# --without docs        Skip building documentation.
+# --without testsuite   Do not run the testsuite.  Default is to run it.
+# --with testsuite      Run the testsuite.  Default when --with=debug is not
 #                        to run it.
-# --without=gold        Disable building of the GOLD linker.
+# --without gold        Disable building of the GOLD linker.
+# --without debuginfod  Disable support for debuginfod.
 
 #---Start of Configure Options-----------------------------------------------
 
@@ -73,6 +74,8 @@ URL: https://sourceware.org/binutils
 %bcond_without docs
 # Default: Always run the testsuite.
 %bcond_without testsuite
+# Default: support debuginfod.
+%bcond_without debuginfod
 
 %if %{with bootstrap}
 %undefine with_docs
@@ -268,6 +271,10 @@ Requires(post): coreutils
 %define _gnu %{nil}
 %endif
 
+%if %{with debuginfod}
+BuildRequires: elfutils-debuginfod-client-devel
+%endif
+
 #----------------------------------------------------------------------------
 
 %description
@@ -415,6 +422,10 @@ export CFLAGS="$RPM_OPT_FLAGS"
 %endif
 
 CARGS=
+
+%if %{with debuginfod}
+CARGS="$CARGS --with-debuginfod"
+%endif
 
 case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
   CARGS="$CARGS --enable-64-bit-bfd"
@@ -767,6 +778,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jul 24 2020 Nick Clifton  <nickc@redhat.com> - 2.34-4
+- Enable debuginfod support.  (#1860234)
+
 * Tue May 26 2020 Nick Clifton  <nickc@redhat.com> - 2.34-3
 - Fix seg-fault when accessing symlinked plugins.  (#1839346)
 
