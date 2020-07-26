@@ -11,19 +11,6 @@ index 6ecfab5d..f8698213 100644
  		}
  
  	      if (!do_wide || (fileNameLength <= MAX_FILENAME_LENGTH))
-diff --git a/gold/target-reloc.h b/gold/target-reloc.h
-index 071f211e..0f81dd13 100644
---- a/gold/target-reloc.h
-+++ b/gold/target-reloc.h
-@@ -259,7 +259,7 @@ issue_discarded_error(
- 							     &is_ordinary);
-   if (orig_shndx != elfcpp::SHN_UNDEF)
-     {
--      unsigned int key_symndx;
-+      unsigned int key_symndx = 0;
-       Relobj* kept_obj = object->find_kept_section_object(orig_shndx,
- 							  &key_symndx);
-       if (key_symndx != 0)
 diff --git a/libiberty/cp-demangle.c b/libiberty/cp-demangle.c
 index 3639bfbf..ed080a1a 100644
 --- a/libiberty/cp-demangle.c

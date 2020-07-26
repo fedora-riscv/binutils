@@ -223,35 +223,6 @@ diff -rup binutils-2.32.orig/ld/testsuite/ld-srec/srec.exp binutils-2.32/ld/test
  proc srec_off { l } {
      if [string match "S1*" $l] {
  	return 8
-diff -rup binutils-2.32.orig/ld/testsuite/ld-x86-64/x86-64.exp binutils-2.32/ld/testsuite/ld-x86-64/x86-64.exp
---- binutils-2.32.orig/ld/testsuite/ld-x86-64/x86-64.exp	2019-02-15 13:33:22.030626874 +0000
-+++ binutils-2.32/ld/testsuite/ld-x86-64/x86-64.exp	2019-02-15 13:57:34.295106041 +0000
-@@ -1275,25 +1275,6 @@ if { [isnative] && [which $CC] != 0 } {
- 		"$NOPIE_CFLAGS" \
- 	    ] \
- 	]
--    } else {
--	run_cc_link_tests [list \
--	    [list \
--		"Build pr22001-1b" \
--		"$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
--		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
--		{ pr22001-1c.c } \
--		{{error_output "pr22001-1b.err"}} \
--		"pr22001-1b" \
--	    ] \
--	    [list \
--		"Build pr21997-1b" \
--		"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr21997-1.so" \
--		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
--		{ pr21997-1c.c } \
--		{{error_output "pr21997-1b.err"}} \
--		"pr21997-1b" \
--	    ] \
--	]
-     }
- 
-     run_ld_link_exec_tests [list \
 diff -rup binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-10.d binutils-2.32/ld/testsuite/ld-plugin/plugin-10.d
 --- binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-10.d	2019-02-15 14:10:59.038709514 +0000
 +++ binutils-2.32/ld/testsuite/ld-plugin/plugin-10.d	2019-02-15 14:13:53.532300721 +0000
@@ -326,3 +297,34 @@ diff -rup binutils-2.32.orig/ld/testsuite/ld-plugin/plugin-8.d binutils-2.32/ld/
  Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
  #...
  hook called: cleanup.
+diff -rup binutils.orig/ld/testsuite/ld-elfvers/vers24.rd binutils-2.30/ld/testsuite/ld-elfvers/vers24.rd
+--- binutils.orig/ld/testsuite/ld-elfvers/vers24.rd	2018-09-05 09:45:44.013108697 +0100
++++ binutils-2.30/ld/testsuite/ld-elfvers/vers24.rd	2018-09-05 12:06:17.287425232 +0100
+@@ -7,9 +7,9 @@ Symbol table '.dynsym' contains [0-9]+ e
+ # And ensure the dynamic symbol table contains at least x@VERS.0
+ # and foo@@VERS.0 symbols
+ #...
+- +[0-9]+: [0-9a-f]+ +(4 +OBJECT +GLOBAL +DEFAULT +[0-9]+ _?x|[0-9]+ +FUNC +GLOBAL +DEFAULT .* [0-9]+ _?foo@)@VERS\.0
++ +[0-9]+: [0-9a-f]+ +(4 +OBJECT +GLOBAL +DEFAULT +[0-9]+ _?x|[0-9]+ +FUNC +GLOBAL +DEFAULT .* [0-9]+ _?foo@)@VERS\.0.*
+ #...
+- +[0-9]+: [0-9a-f]+ +(4 +OBJECT +GLOBAL +DEFAULT +[0-9]+ _?x|[0-9]+ +FUNC +GLOBAL +DEFAULT .* [0-9]+ _?foo@)@VERS\.0
++ +[0-9]+: [0-9a-f]+ +(4 +OBJECT +GLOBAL +DEFAULT +[0-9]+ _?x|[0-9]+ +FUNC +GLOBAL +DEFAULT .* [0-9]+ _?foo@)@VERS\.0.*
+ #...
+ Symbol table '.symtab' contains [0-9]+ entries:
+ #pass
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin.exp binutils-2.30/ld/testsuite/ld-plugin/plugin.exp
+--- binutils.orig/ld/testsuite/ld-plugin/plugin.exp	2018-09-05 09:45:44.023108605 +0100
++++ binutils-2.30/ld/testsuite/ld-plugin/plugin.exp	2018-09-05 11:18:53.997202105 +0100
+@@ -118,6 +118,12 @@ if { $can_compile && !$failed_compile }
+     }
+ }
+ 
++# I do not know why, but the underscore prefix test is going
++# wrong on ppc64le targets.  So override it here.
++if { [istarget powerpc*-*-linux*] || [istarget x86_64*-*-linux*] } {
++    set _ ""
++}
++
+ set testobjfiles "tmpdir/main.o tmpdir/func.o tmpdir/text.o"
+ set testobjfiles_notext "tmpdir/main.o tmpdir/func.o"
+ set testsrcfiles "tmpdir/main.o $srcdir/$subdir/func.c tmpdir/text.o"

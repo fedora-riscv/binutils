@@ -1,8 +1,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.34.0
-Release: 10%{?dist}
+Version: 2.35
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -109,23 +109,7 @@ URL: https://sourceware.org/binutils
 # too many controversial patches so we stick with the official FSF version
 # instead.
 
-# The source for the binutils are normally retrieved from the official
-# GNU repository.  IE:
-#   Source: https://ftp.gnu.org/gnu/binutils/binutils-%%{version}.tar.xz
-#
-# But we have a need in this rawhide release to pull in the latest version
-# on the 2.34 branch.  So the tarball was created using the following
-# commands:
-#
-#   git clone git://sourceware.org/git/binutils-gdb.git -b binutils-2_34-branch
-#   git checkout 5dfc0c955dbe912cd328fc2688e5fceb3239ac2a
-#   ./src-release -x binutils
-#   mv binutils-2.34.0.tar.xz binutils-2.34.0-5dfc0c955dbe912cd328fc2688e5fceb3239ac2a.tar.xz
-#
-# FIXME: Undo this change once the next official binutils release is made.
-
-Source: binutils-2.34.0-5dfc0c955dbe912cd328fc2688e5fceb3239ac2a.tar.xz
-
+Source: https://ftp.gnu.org/gnu/binutils/binutils-%%{version}.tar.xz
 Source2: binutils-2.19.50.0.1-output-format.sed
 
 #----------------------------------------------------------------------------
@@ -200,11 +184,6 @@ Patch09: binutils-do-not-link-with-static-libstdc++.patch
 # Lifetime: Permanent.
 Patch10: binutils-attach-to-group.patch
 
-# Purpose:  Stop gold from complaining about relocs in the .gnu.build.attribute
-#           section that reference symbols in discarded sections.
-# Lifetime: Fixed in 2.35 (maybe)
-Patch11: binutils-gold-ignore-discarded-note-relocs.patch
-
 # Purpose:  Allow OS specific sections in section groups.
 # Lifetime: Fixed in 2.35 (maybe)
 Patch12: binutils-special-sections-in-groups.patch
@@ -223,26 +202,25 @@ Patch14: binutils-gold-mismatched-section-flags.patch
 # Lifetime: Fixed in 2.35 (maybe)
 Patch15: binutils-CVE-2019-1010204.patch
 
-# Purpose:  Fix a potential use of an initialised field by readelf.
-# Lifetime: Fixed in 2.35
-Patch16: binutils-readelf-compression-header-size.patch
-
 # Purpose:  Change the gold configuration script to only warn about
 #            unsupported targets.  This allows the binutils to be built with
 #            BPF support enabled.
 # Lifetime: Permanent.
 Patch17: binutils-gold-warn-unsupported.patch
 
-# Purpose:  Enhance the error message displayed by the BFD library when
-#            to fails to load a plugin.
-# Lifetime: Should be fixed in 2.35.
-Patch18: binutils-bad-plugin-err-message.patch
-
+# Purpose:  Fix compile time warning messages building s390 target with gcc-10.
+# Lifetime: Should be fixed in 2.36.
 Patch19: binutils-s390-build.patch
+
+# Purpose:  Fix LTO problems running config mini-builds.
+# Lifetime: Should be fixed in 2.36.
 Patch20: binutils-config.patch
+
+# Purpose:  Fix compile time warning messages building with gcc-10.
+# Lifetime: Should be fixed in 2.36.
 Patch21: binutils-warnings.patch
 
-# Purpose:  Fix problems exposed by compiling with gcc-10.
+# Purpose:  Fix compile time warning messages building with gcc-10. (part 2).
 # Lifetime: Should be fixed in 2.36.
 Patch22: binutils-gcc-10-fixes.patch
 #----------------------------------------------------------------------------
@@ -818,8 +796,8 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Fri Jul 24 2020 Nick Clifton  <nickc@redhat.com> - 2.34-10
-- Add support for debuginfod.  (#1860234)
+* Sun Jul 26 2020 Nick Clifton  <nickc@redhat.com> - 2.35-1
+- Rebase to GNU Binutils 2.35.  (#1854613)
 
 * Mon Jul 20 2020 Jeff Law  <law@redhat.com> - 2.34-9
 - Fix more configure tests compromised by LTO.

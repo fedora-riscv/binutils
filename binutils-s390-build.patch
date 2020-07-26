@@ -74,24 +74,6 @@ diff -rup binutils.orig/libctf/ctf-create.c binutils-2.34.0/libctf/ctf-create.c
  
    dtd->dtd_data.ctt_info = CTF_TYPE_INFO (CTF_K_ENUM, flag, 0);
    dtd->dtd_data.ctt_size = fp->ctf_dmodel->ctd_int;
-@@ -1230,6 +1245,8 @@ ctf_add_forward (ctf_file_t *fp, uint32_
- 
-   if ((type = ctf_add_generic (fp, flag, name, CTF_K_FORWARD,&dtd)) == CTF_ERR)
-     return CTF_ERR;		/* errno is set for us.  */
-+  if (dtd == NULL)
-+    return CTF_ERR;
- 
-   dtd->dtd_data.ctt_info = CTF_TYPE_INFO (CTF_K_FORWARD, flag, 0);
-   dtd->dtd_data.ctt_type = kind;
-@@ -1254,6 +1271,8 @@ ctf_add_typedef (ctf_file_t *fp, uint32_
-   if ((type = ctf_add_generic (fp, flag, name, CTF_K_TYPEDEF,
- 			       &dtd)) == CTF_ERR)
-     return CTF_ERR;		/* errno is set for us.  */
-+  if (dtd == NULL)
-+    return CTF_ERR;
- 
-   dtd->dtd_data.ctt_info = CTF_TYPE_INFO (CTF_K_TYPEDEF, flag, 0);
-   dtd->dtd_data.ctt_type = (uint32_t) ref;
 diff -rup binutils.orig/libctf/ctf-types.c binutils-2.34.0/libctf/ctf-types.c
 --- binutils.orig/libctf/ctf-types.c	2020-06-16 12:06:28.466468753 +0100
 +++ binutils-2.34.0/libctf/ctf-types.c	2020-06-16 12:10:58.033563365 +0100
@@ -128,18 +110,6 @@ diff -rup binutils.orig/libctf/ctf-create.c binutils-2.34.0/libctf/ctf-create.c
  
    if (flag != CTF_ADD_NONROOT && flag != CTF_ADD_ROOT)
      return (ctf_set_errno (fp, EINVAL));
-diff -rup binutils.orig/opcodes/arc-dis.c binutils-2.34.0/opcodes/arc-dis.c
---- binutils.orig/opcodes/arc-dis.c	2020-06-16 14:49:06.077801330 +0100
-+++ binutils-2.34.0/opcodes/arc-dis.c	2020-06-16 15:34:37.985624520 +0100
-@@ -420,7 +420,7 @@ find_format (bfd_vma
-              struct arc_operand_iterator * iter)
- {
-   const struct arc_opcode *opcode = NULL;
--  bfd_boolean needs_limm;
-+  bfd_boolean needs_limm = FALSE;
-   const extInstruction_t *einsn, *i;
-   unsigned limm = 0;
-   struct arc_disassemble_info *arc_infop = info->private_data;
 diff -rup binutils.orig/opcodes/fr30-ibld.c binutils-2.34.0/opcodes/fr30-ibld.c
 --- binutils.orig/opcodes/fr30-ibld.c	2020-06-16 14:49:06.074801341 +0100
 +++ binutils-2.34.0/opcodes/fr30-ibld.c	2020-06-16 16:43:31.428324833 +0100
@@ -590,15 +560,6 @@ Only in binutils-2.34.0/opcodes: fr30-ibld.c~
          length = extract_normal (cd, ex_info, insn_value, 0|(1<<CGEN_IFLD_SIGNED), 32, 0, 16, 32, total_length, pc, & value);
          value = EXTHISI (((HI) (INT) (((((((UINT) (value) >> (8))) & (255))) | (((((value) & (255))) << (8)))))));
          fields->f_dsp_32_s16 = value;
-@@ -2478,7 +2478,7 @@ m32c_cgen_extract_operand (CGEN_CPU_DESC
-       break;
-     case M32C_OPERAND_IMM_32_SI :
-       {
--        long value;
-+        long value = 0;
-         length = extract_normal (cd, ex_info, insn_value, 0|(1<<CGEN_IFLD_SIGNED), 32, 0, 32, 32, total_length, pc, & value);
-         value = EXTSISI (((((((((UINT) (value) >> (24))) & (255))) | (((((UINT) (value) >> (8))) & (65280))))) | (((((((value) << (8))) & (16711680))) | (((((value) << (24))) & (0xff000000)))))));
-         fields->f_dsp_32_s32 = value;
 @@ -2486,7 +2486,7 @@ m32c_cgen_extract_operand (CGEN_CPU_DESC
        break;
      case M32C_OPERAND_IMM_40_HI :
@@ -643,15 +604,6 @@ Only in binutils-2.34.0/opcodes: fr30-ibld.c~
          length = extract_normal (cd, ex_info, insn_value, 0, 64, 0, 16, 32, total_length, pc, & value);
          value = ((((((UHI) (value) >> (8))) & (255))) | (((((value) & (255))) << (8))));
          fields->f_dsp_64_u16 = value;
-@@ -2559,7 +2559,7 @@ m32c_cgen_extract_operand (CGEN_CPU_DESC
-       break;
-     case M32C_OPERAND_IMM_64_HI :
-       {
--        long value;
-+        long value = 0;
-         length = extract_normal (cd, ex_info, insn_value, 0|(1<<CGEN_IFLD_SIGNED), 64, 0, 16, 32, total_length, pc, & value);
-         value = EXTHISI (((HI) (INT) (((((((UINT) (value) >> (8))) & (255))) | (((((value) << (8))) & (65280)))))));
-         fields->f_dsp_64_s16 = value;
 @@ -2567,7 +2567,7 @@ m32c_cgen_extract_operand (CGEN_CPU_DESC
        break;
      case M32C_OPERAND_IMM_8_HI :
@@ -796,17 +748,6 @@ Only in binutils-2.34.0/opcodes: fr30-ibld.c~
          length = extract_normal (cd, ex_info, insn_value, 0, 0, 10, 2, 32, total_length, pc, & value);
          value = ((value) - (2));
          fields->f_src32_rn_unprefixed_SI = value;
---- binutils.orig/binutils/coffdump.c	2020-06-16 17:10:22.259564445 +0100
-+++ binutils-2.34.0/binutils/coffdump.c	2020-06-16 17:38:11.060608576 +0100
-@@ -456,7 +456,7 @@ coff_dump (struct coff_ofile *ptr)
-     dump_coff_section (ptr->sections + i);
- }
- 
--char * program_name;
-+extern char * program_name;
- 
- static void
- show_usage (FILE *file, int status)
 --- binutils.orig/binutils/srconv.c	2020-06-16 17:10:22.251564474 +0100
 +++ binutils-2.34.0/binutils/srconv.c	2020-06-16 20:07:51.670025912 +0100
 @@ -492,6 +492,8 @@ wr_rl (struct coff_ofile *ptr ATTRIBUTE_
@@ -818,23 +759,14 @@ Only in binutils-2.34.0/opcodes: fr30-ibld.c~
  
        /* What sort of reloc ? Look in the section to find out.  */
        ref = r->symbol;
-@@ -1687,7 +1689,7 @@ prescan (struct coff_ofile *otree)
-     }
- }
+--- binutils.orig/libctf/ctf-create.c	2020-07-24 15:33:26.100996335 +0100
++++ binutils-2.35/libctf/ctf-create.c	2020-07-24 15:33:29.042977475 +0100
+@@ -1257,6 +1257,8 @@ ctf_add_forward (ctf_file_t *fp, uint32_
  
--char *program_name;
-+extern char *program_name;
+   if ((type = ctf_add_generic (fp, flag, name, kind, &dtd)) == CTF_ERR)
+     return CTF_ERR;		/* errno is set for us.  */
++  if (dtd == NULL)
++    return CTF_ERR;
  
- ATTRIBUTE_NORETURN static void
- show_usage (FILE *ffile, int status)
---- binutils.orig/binutils/sysdump.c	2020-06-16 17:10:22.251564474 +0100
-+++ binutils-2.34.0/binutils/sysdump.c	2020-06-16 20:09:09.924753464 +0100
-@@ -633,7 +633,7 @@ module (void)
-     }
- }
- 
--char *program_name;
-+extern char *program_name;
- 
- ATTRIBUTE_NORETURN static void
- show_usage (FILE *ffile, int status)
+   dtd->dtd_data.ctt_info = CTF_TYPE_INFO (CTF_K_FORWARD, flag, 0);
+   dtd->dtd_data.ctt_type = kind;
