@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -224,7 +224,7 @@ Patch21: binutils-warnings.patch
 # Lifetime: Should be fixed in 2.36.
 Patch22: binutils-gcc-10-fixes.patch
 
-# Purpose:  Default to DWARF level 4 in the assembler.
+# Purpose:  Default to DWARF level 3 in the assembler.
 # Lifetime: Fixed in 2.36.
 Patch23: binutils-gas-dwarf-level-4.patch
 #----------------------------------------------------------------------------
@@ -805,8 +805,8 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Thu Jul 30 2020 Nick Clifton  <nickc@redhat.com> - 2.35-4
-- Default to DWARF level 4 in the assembler.
+* Thu Jul 30 2020 Nick Clifton  <nickc@redhat.com> - 2.35-5
+- Default to DWARF level 3 in the assembler.
 
 * Mon Jul 27 2020 Fedora Release Engineering <releng@fedoraproject.org> - 2.35-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
