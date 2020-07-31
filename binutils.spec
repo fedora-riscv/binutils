@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -421,7 +421,7 @@ touch */configure
 # LTO is triggering a bug in ld which in turn causes ld to create incorrect
 # binaries.  It is not yet clear how serious this bug is (still debugging).
 # Until that analysis is finished I am disabling LTO
-#define _lto_cflags %%{nil}
+%define _lto_cflags %{nil}
 
 echo target is %{binutils_target}
 
@@ -815,6 +815,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jul 31 2020 Jeff Law  <nickc@redhat.com> - 2.35-9
+- Disable LTO for bootstrapping purposes
+
 * Fri Jul 31 2020 Nick Clifton  <nickc@redhat.com> - 2.35-8
 - Fix building with LTO enabled.
 
