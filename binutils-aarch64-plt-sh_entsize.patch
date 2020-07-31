@@ -1,0 +1,27 @@
+diff -rup binutils.orig/bfd/elfnn-aarch64.c binutils-2.35/bfd/elfnn-aarch64.c
+--- binutils.orig/bfd/elfnn-aarch64.c	2020-07-30 17:20:30.607580720 +0100
++++ binutils-2.35/bfd/elfnn-aarch64.c	2020-07-30 17:22:45.629741124 +0100
+@@ -9513,8 +9513,10 @@ elfNN_aarch64_init_small_plt0_entry (bfd
+ 
+   memcpy (htab->root.splt->contents, htab->plt0_entry,
+ 	  htab->plt_header_size);
+-  elf_section_data (htab->root.splt->output_section)->this_hdr.sh_entsize =
+-    htab->plt_header_size;
++  /* PR 26312: Explicitly set the sh_entsize to 0 so that
++     consumers do not think that the section contains fixed
++     sized objects.  */
++  elf_section_data (htab->root.splt->output_section)->this_hdr.sh_entsize = 0;
+ 
+   plt_got_2nd_ent = (htab->root.sgotplt->output_section->vma
+ 		  + htab->root.sgotplt->output_offset
+@@ -9616,10 +9618,6 @@ elfNN_aarch64_finish_dynamic_sections (b
+     {
+       elfNN_aarch64_init_small_plt0_entry (output_bfd, htab);
+ 
+-      elf_section_data (htab->root.splt->output_section)->
+-	this_hdr.sh_entsize = htab->plt_entry_size;
+-
+-
+       if (htab->root.tlsdesc_plt && !(info->flags & DF_BIND_NOW))
+ 	{
+ 	  BFD_ASSERT (htab->root.tlsdesc_got != (bfd_vma)-1);

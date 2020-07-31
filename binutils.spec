@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -227,6 +227,11 @@ Patch22: binutils-gcc-10-fixes.patch
 # Purpose:  Default to DWARF level 3 in the assembler.
 # Lifetime: Fixed in 2.36.
 Patch23: binutils-gas-dwarf-level-4.patch
+
+# Purpose:  Set the sh_entsize of the AArch64's PLT section to 0.
+# Lifetime: Fixed in 2.36.
+Patch24: binutils-aarch64-plt-sh_entsize.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -805,6 +810,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jul 31 2020 Nick Clifton  <nickc@redhat.com> - 2.35-7
+- Set the sh_entsize field of the AArch64's PLT section to 0.  (PR 26312)
+
 * Thu Jul 30 2020 Richard W.M. Jones <rjones@redhat.com> - 2.35-6
 - Disable LTO again, it causes "ar" to segfault.
 
