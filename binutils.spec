@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -232,6 +232,11 @@ Patch23: binutils-gas-dwarf-level-4.patch
 # Lifetime: Fixed in 2.36.
 Patch24: binutils-aarch64-plt-sh_entsize.patch
 
+# Purpose:  Fixes for linking LTO objects.
+# Lifetime: Fixed in 2.36
+Patch25: binutils-add-sym-cache-to-elf-link-hash.patch
+Patch26: binutils-elf-add-objects.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -416,7 +421,7 @@ touch */configure
 # LTO is triggering a bug in ld which in turn causes ld to create incorrect
 # binaries.  It is not yet clear how serious this bug is (still debugging).
 # Until that analysis is finished I am disabling LTO
-%define _lto_cflags %{nil}
+#define _lto_cflags %%{nil}
 
 echo target is %{binutils_target}
 
@@ -810,6 +815,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jul 31 2020 Nick Clifton  <nickc@redhat.com> - 2.35-8
+- Fix building with LTO enabled.
+
 * Fri Jul 31 2020 Nick Clifton  <nickc@redhat.com> - 2.35-7
 - Set the sh_entsize field of the AArch64's PLT section to 0.  (PR 26312)
 
