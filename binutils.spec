@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -185,21 +185,21 @@ Patch09: binutils-do-not-link-with-static-libstdc++.patch
 Patch10: binutils-attach-to-group.patch
 
 # Purpose:  Allow OS specific sections in section groups.
-# Lifetime: Fixed in 2.35 (maybe)
+# Lifetime: Fixed in 2.36 (maybe)
 Patch12: binutils-special-sections-in-groups.patch
 
 # Purpose:  Fix linker testsuite failures.
-# Lifetime: Fixed in 2.35 (maybe)
+# Lifetime: Fixed in 2.36 (maybe)
 Patch13: binutils-fix-testsuite-failures.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
-# Lifetime: Fixed in 2.35 (maybe)
+# Lifetime: Fixed in 2.36 (maybe)
 Patch14: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Add a check to the GOLD linker for a corrupt input file
 #            with a fuzzed section offset.
-# Lifetime: Fixed in 2.35 (maybe)
+# Lifetime: Fixed in 2.36 (maybe)
 Patch15: binutils-CVE-2019-1010204.patch
 
 # Purpose:  Change the gold configuration script to only warn about
@@ -236,6 +236,10 @@ Patch24: binutils-aarch64-plt-sh_entsize.patch
 # Lifetime: Fixed in 2.36
 Patch25: binutils-add-sym-cache-to-elf-link-hash.patch
 Patch26: binutils-elf-add-objects.patch
+
+# Purpose:  Rename the PPC xvcvbf16sp instruction to xvcvbf16spn
+# Lifetime: Fixed in 2.36
+Patch27: binutils-ppc-rename-xvcvbf16sp-to-xvcvbf16spn.patch
 
 #----------------------------------------------------------------------------
 
@@ -810,6 +814,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Aug 24 2020 Nick Clifton  <nickc@redhat.com> - 2.35-11
+- Rename the PPC xvcvbf16sp instruction to xvcvbf16spn.
+
 * Fri Jul 31 2020 Jeff Law  <nickc@redhat.com> - 2.35-10
 - Re-enable LTO
 
