@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -240,6 +240,10 @@ Patch26: binutils-elf-add-objects.patch
 # Purpose:  Rename the PPC xvcvbf16sp instruction to xvcvbf16spn
 # Lifetime: Fixed in 2.36
 Patch27: binutils-ppc-rename-xvcvbf16sp-to-xvcvbf16spn.patch
+
+# Purpose:  Fixes for handling DWARF-5 debug information.
+# Lifetime: Fixed in 2.36
+Patch28: binutils-dwarf-5-fixes.patch
 
 #----------------------------------------------------------------------------
 
@@ -814,6 +818,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 25 2020 Nick Clifton  <nickc@redhat.com> - 2.35-12
+- Import fixes from GNU binutils mainline for handling DWARF-5 debug information.
+
 * Mon Aug 24 2020 Nick Clifton  <nickc@redhat.com> - 2.35-11
 - Rename the PPC xvcvbf16sp instruction to xvcvbf16spn.
 
