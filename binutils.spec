@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.32
-Release: 32%{?dist}
+Release: 33%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -268,6 +268,10 @@ Patch31: binutils-addr2line-fixes.patch
 # Lifetime: Fixed in 2.34
 Patch32: binutils-CVE-2019-12972.patch
 
+# Purpose: Have the s390 assembler support the -march=z15 option
+# Lifetime: Fixed in 2.33
+Patch33: binutils-s390-gas-accept-march-z15.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -426,6 +430,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
+%patch33 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -823,6 +828,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Sep 07 2020 Nick Clifton  <nickc@redhat.com> - 2.32-33
+- Make the s390 assembler accept the -march=z15 command line option.  (#1876451)
+
 * Wed May 13 2020 Nick Clifton  <nickc@redhat.com> - 2.32-32
 - Fix a potential illegal memorty access parsing a corrupt ELF file.  (#1835138)
 

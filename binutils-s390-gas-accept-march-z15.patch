@@ -1,0 +1,11 @@
+--- binutils.orig/gas/config/tc-s390.c	2020-09-07 13:03:11.452827418 +0100
++++ binutils-2.32/gas/config/tc-s390.c	2020-09-07 13:07:08.659288106 +0100
+@@ -291,7 +291,7 @@ s390_parse_cpu (const char *         arg
+       S390_INSTR_FLAG_HTM | S390_INSTR_FLAG_VX },
+     { STRING_COMMA_LEN ("z14"), STRING_COMMA_LEN ("arch12"),
+       S390_INSTR_FLAG_HTM | S390_INSTR_FLAG_VX },
+-    { STRING_COMMA_LEN (""), STRING_COMMA_LEN ("arch13"),
++    { STRING_COMMA_LEN ("z15"), STRING_COMMA_LEN ("arch13"),
+       S390_INSTR_FLAG_HTM | S390_INSTR_FLAG_VX }
+   };
+   static struct
