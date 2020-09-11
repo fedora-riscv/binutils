@@ -1,5 +1,4 @@
 *.diff
-*.patch
 *.orig
 *.rej
 

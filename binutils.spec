@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 12%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -244,6 +244,14 @@ Patch27: binutils-ppc-rename-xvcvbf16sp-to-xvcvbf16spn.patch
 # Purpose:  Fixes for handling DWARF-5 debug information.
 # Lifetime: Fixed in 2.36
 Patch28: binutils-dwarf-5-fixes.patch
+
+# Purpose:  Fix handling of relocations for AArch64 conditional branches.
+# Lifetime: Fixed in 2.36
+Patch29: binutils-aarch64-condbranch-relocs.patch
+
+# Purpose:  Fix the PowerPC disassembler so that it ignores annobin symbols.
+# Lifetime: Fixed in 2.36
+Patch30: binutils-ppc-annobin-disassembly.patch
 
 #----------------------------------------------------------------------------
 
@@ -818,6 +826,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Sep 11 2020 Nick Clifton  <nickc@redhat.com> - 2.35-14
+- Fix the PowerPC disassembler so that it ignores annobin symbols.
+
+* Thu Sep 10 2020 Nick Clifton  <nickc@redhat.com> - 2.35-13
+- Fix the handling of relocations for AArch64 conditional branches.
+
 * Tue Aug 25 2020 Nick Clifton  <nickc@redhat.com> - 2.35-12
 - Import fixes from GNU binutils mainline for handling DWARF-5 debug information.
 
