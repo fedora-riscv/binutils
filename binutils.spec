@@ -1,8 +1,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
-Version: 2.35
-Release: 14%{?dist}
+Version: 2.35.1
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -224,34 +224,18 @@ Patch21: binutils-warnings.patch
 # Lifetime: Should be fixed in 2.36.
 Patch22: binutils-gcc-10-fixes.patch
 
-# Purpose:  Default to DWARF level 3 in the assembler.
-# Lifetime: Fixed in 2.36.
-Patch23: binutils-gas-dwarf-level-4.patch
-
-# Purpose:  Set the sh_entsize of the AArch64's PLT section to 0.
-# Lifetime: Fixed in 2.36.
-Patch24: binutils-aarch64-plt-sh_entsize.patch
-
 # Purpose:  Fixes for linking LTO objects.
 # Lifetime: Fixed in 2.36
-Patch25: binutils-add-sym-cache-to-elf-link-hash.patch
-Patch26: binutils-elf-add-objects.patch
-
-# Purpose:  Rename the PPC xvcvbf16sp instruction to xvcvbf16spn
-# Lifetime: Fixed in 2.36
-Patch27: binutils-ppc-rename-xvcvbf16sp-to-xvcvbf16spn.patch
-
-# Purpose:  Fixes for handling DWARF-5 debug information.
-# Lifetime: Fixed in 2.36
-Patch28: binutils-dwarf-5-fixes.patch
+Patch23: binutils-add-sym-cache-to-elf-link-hash.patch
+Patch24: binutils-elf-add-objects.patch
 
 # Purpose:  Fix handling of relocations for AArch64 conditional branches.
 # Lifetime: Fixed in 2.36
-Patch29: binutils-aarch64-condbranch-relocs.patch
+Patch25: binutils-aarch64-condbranch-relocs.patch
 
 # Purpose:  Fix the PowerPC disassembler so that it ignores annobin symbols.
 # Lifetime: Fixed in 2.36
-Patch30: binutils-ppc-annobin-disassembly.patch
+Patch26: binutils-ppc-annobin-disassembly.patch
 
 #----------------------------------------------------------------------------
 
@@ -826,6 +810,13 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Sep 21 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-1
+- Rebase to GNU Binutils 2.35.1 release.
+- Retire: binutils-gas-dwarf-level-4.patch
+- Retire: binutils-aarch64-plt-sh_entsize.patch
+- Retire: binutils-ppc-rename-xvcvbf16sp-to-xvcvbf16spn.patch
+- Retire: binutils-dwarf-5-fixes.patch
+
 * Fri Sep 11 2020 Nick Clifton  <nickc@redhat.com> - 2.35-14
 - Fix the PowerPC disassembler so that it ignores annobin symbols.
 
