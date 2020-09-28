@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -212,6 +212,10 @@ Patch15: binutils-CVE-2019-1010204.patch
 # Lifetime: Fixed in 2.35
 Patch16: binutils-nm-lto-plugin.patch
 
+# Purpose:  Fix the assembling of the sysenter & sysexit instructions.
+# Lifetime: Fixed in 2.35
+Patch17: binutils-gas-x86-sysenter.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -367,6 +371,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -778,6 +783,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Sep 28 2020 Nick Clifton  <nickc@redhat.com> - 2.34-5
+- Fix assembly of sysenter and sysexit.  (#1882554)
+
 * Fri Jul 24 2020 Nick Clifton  <nickc@redhat.com> - 2.34-4
 - Enable debuginfod support.  (#1860234)
 
