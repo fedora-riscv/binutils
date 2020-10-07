@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -240,7 +240,7 @@ Patch26: binutils-ppc-annobin-disassembly.patch
 # Purpose:  Fix the strip program to cope when merging multiple same-named
 #            sections.
 # Lifetime: Fixed in 2.36
-# Patch27: binutils-strip-merge.patch
+Patch27: binutils-strip-merge.patch
 
 #----------------------------------------------------------------------------
 
@@ -815,7 +815,7 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Tue Oct 06 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-2
+* Tue Oct 06 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-3
 - Fix strip when merging multiple same-named sections.  (#1885607)
 
 * Mon Sep 21 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-1
