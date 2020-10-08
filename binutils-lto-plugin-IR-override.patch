@@ -1,0 +1,158 @@
+diff -rup binutils.orig/ld/ldlang.c binutils-2.34/ld/ldlang.c
+--- binutils.orig/ld/ldlang.c	2020-10-08 13:11:37.258062686 +0100
++++ binutils-2.34/ld/ldlang.c	2020-10-08 13:12:30.684899141 +0100
+@@ -7670,6 +7670,7 @@ lang_process (void)
+       if (plugin_call_all_symbols_read ())
+ 	einfo (_("%F%P: %s: plugin reported error after all symbols read\n"),
+ 	       plugin_error_plugin ());
++      link_info.lto_all_symbols_read = TRUE;
+       /* Open any newly added files, updating the file chains.  */
+       plugin_undefs = link_info.hash->undefs_tail;
+       open_input_bfds (*added.tail, OPEN_BFD_NORMAL);
+diff -rup binutils.orig/ld/plugin.c binutils-2.34/ld/plugin.c
+--- binutils.orig/ld/plugin.c	2020-10-08 13:11:37.465062052 +0100
++++ binutils-2.34/ld/plugin.c	2020-10-08 13:12:30.684899141 +0100
+@@ -1426,12 +1426,16 @@ plugin_notice (struct bfd_link_info *inf
+ 	 new value from a real BFD.  Weak symbols are not normally
+ 	 overridden by a new weak definition, and strong symbols
+ 	 will normally cause multiple definition errors.  Avoid
+-	 this by making the symbol appear to be undefined.  */
+-      else if (((h->type == bfd_link_hash_defweak
+-		 || h->type == bfd_link_hash_defined)
+-		&& is_ir_dummy_bfd (sym_bfd = h->u.def.section->owner))
+-	       || (h->type == bfd_link_hash_common
+-		   && is_ir_dummy_bfd (sym_bfd = h->u.c.p->section->owner)))
++	 this by making the symbol appear to be undefined.
++
++	 NB: We change the previous definition in the IR object to
++	 undefweak only after all LTO symbols have been read.  */
++      else if (info->lto_all_symbols_read
++	       && (((h->type == bfd_link_hash_defweak
++		     || h->type == bfd_link_hash_defined)
++		    && is_ir_dummy_bfd (sym_bfd = h->u.def.section->owner))
++		   || (h->type == bfd_link_hash_common
++		       && is_ir_dummy_bfd (sym_bfd = h->u.c.p->section->owner))))
+ 	{
+ 	  h->type = bfd_link_hash_undefweak;
+ 	  h->u.undef.abfd = sym_bfd;
+--- /dev/null	2020-10-08 09:15:33.282859415 +0100
++++ binutils-2.34/ld/testsuite/ld-plugin/pr26262a.c	2020-10-08 13:12:30.684899141 +0100
+@@ -0,0 +1,21 @@
++#include <stdio.h>
++
++int counter;
++extern void foo (void);
++extern void xxx (void);
++
++void
++bar (void)
++{
++}
++
++int
++main(void)
++{
++  bar ();
++  foo ();
++  xxx ();
++  if (counter == 1)
++    printf ("PASS\n");
++  return 0;
++}
+--- /dev/null	2020-10-08 09:15:33.282859415 +0100
++++ binutils-2.34/ld/testsuite/ld-plugin/pr26262b.c	2020-10-08 13:12:30.684899141 +0100
+@@ -0,0 +1,16 @@
++#include <stdlib.h>
++
++extern int counter;
++
++void
++foo (void)
++{
++  counter++;
++}
++
++__attribute__((weak))
++void
++bar (void)
++{
++  abort ();
++}
+--- /dev/null	2020-10-08 09:15:33.282859415 +0100
++++ binutils-2.34/ld/testsuite/ld-plugin/pr26262c.c	2020-10-08 13:12:30.684899141 +0100
+@@ -0,0 +1,6 @@
++extern void bar (void);
++void
++xxx (void)
++{
++  bar ();
++}
+--- /dev/null	2020-10-08 09:15:33.282859415 +0100
++++ binutils-2.34/ld/testsuite/ld-plugin/pr26267a.c	2020-10-08 13:12:30.685899138 +0100
+@@ -0,0 +1,21 @@
++#include <stdio.h>
++
++int counter;
++extern void foo (void);
++extern void xxx (void);
++
++void
++bar (void)
++{
++}
++
++int
++main(void)
++{
++  bar ();
++  foo ();
++  xxx ();
++  if (counter == 1)
++    printf ("PASS\n");
++  return 0;
++}
+--- /dev/null	2020-10-08 09:15:33.282859415 +0100
++++ binutils-2.34/ld/testsuite/ld-plugin/pr26267b.c	2020-10-08 13:12:30.685899138 +0100
+@@ -0,0 +1,15 @@
++#include <stdlib.h>
++
++extern int counter;
++
++void
++foo (void)
++{
++  counter++;
++}
++
++void
++bar (void)
++{
++  abort ();
++}
+--- /dev/null	2020-10-08 09:15:33.282859415 +0100
++++ binutils-2.34/ld/testsuite/ld-plugin/pr26267c.c	2020-10-08 13:12:30.685899138 +0100
+@@ -0,0 +1,6 @@
++extern void bar (void);
++void
++xxx (void)
++{
++  bar ();
++}
+--- /dev/null	2020-10-08 09:15:33.282859415 +0100
++++ binutils-2.34/ld/testsuite/ld-plugin/pr26267.err	2020-10-08 13:12:30.684899141 +0100
+@@ -0,0 +1,3 @@
++#...
++.*: multiple definition of `bar'; .*
++#...
+--- binutils.orig/include/bfdlink.h	2020-10-08 13:11:37.194062881 +0100
++++ binutils-2.34/include/bfdlink.h	2020-10-08 13:27:51.793079599 +0100
+@@ -350,6 +350,9 @@ struct bfd_link_info
+   /* TRUE if the LTO plugin is active.  */
+   unsigned int lto_plugin_active: 1;
+ 
++  /* TRUE if all LTO IR symbols have been read.  */
++  unsigned int lto_all_symbols_read : 1;
++ 
+   /* TRUE if global symbols in discarded sections should be stripped.  */
+   unsigned int strip_discarded: 1;
+ 

@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.34
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -216,6 +216,10 @@ Patch16: binutils-nm-lto-plugin.patch
 # Lifetime: Fixed in 2.35
 Patch17: binutils-gas-x86-sysenter.patch
 
+# Purpose:  Properly override the IR definition in the BFD linker.
+# Lifetime: Fixed in 2.35
+Patch18: binutils-lto-plugin-IR-override.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -372,6 +376,7 @@ Conflicts: gcc-c++ < 4.0.0
 %patch15 -p1
 %patch16 -p1
 %patch17 -p1
+%patch18 -p1
 
 # We cannot run autotools as there is an exact requirement of autoconf-2.59.
 # FIXME - this is no longer true.  Maybe try reinstating autotool use ?
@@ -783,6 +788,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Oct 08 2020 Nick Clifton  <nickc@redhat.com> - 2.34-6
+- Properly override the IR definition.  (#1886075)
+
 * Mon Sep 28 2020 Nick Clifton  <nickc@redhat.com> - 2.34-5
 - Fix assembly of sysenter and sysexit.  (#1882554)
 
