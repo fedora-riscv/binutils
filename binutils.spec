@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -241,6 +241,10 @@ Patch26: binutils-ppc-annobin-disassembly.patch
 #            sections.
 # Lifetime: Fixed in 2.36
 Patch27: binutils-strip-merge.patch
+
+# Purpose:  Fix various problems with the PowerPC arch10 extensions.
+# Lifetime: Fixed in 2.36
+Patch28: binutils-Power10-fixes.patch
 
 #----------------------------------------------------------------------------
 
@@ -815,6 +819,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Oct 08 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-4
+- Fix various problems with Power10 support.
+
 * Tue Oct 06 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-3
 - Fix strip when merging multiple same-named sections.  (#1885607)
 
