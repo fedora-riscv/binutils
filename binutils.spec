@@ -427,180 +427,190 @@ touch */configure
 #----------------------------------------------------------------------------
 
 %build
-echo target is %{binutils_target}
+function configure_binutils () {
+    echo target is %{binutils_target}
 
-%ifarch %{power64}
-export CFLAGS="$RPM_OPT_FLAGS -Wno-error"
-%else
-export CFLAGS="$RPM_OPT_FLAGS"
-%endif
+    %ifarch %{power64}
+    export CFLAGS="$RPM_OPT_FLAGS -Wno-error"
+    %else
+    export CFLAGS="$RPM_OPT_FLAGS"
+    %endif
 
-CARGS=
+    CARGS=
 
-%if %{with debuginfod}
-CARGS="$CARGS --with-debuginfod"
-%endif
+    %if %{with debuginfod}
+    CARGS="$CARGS --with-debuginfod"
+    %endif
 
-case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
-  CARGS="$CARGS --enable-64-bit-bfd"
-  ;;
-esac
+    case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
+      CARGS="$CARGS --enable-64-bit-bfd"
+      ;;
+    esac
 
-# Extra targets to build along with the default one.
-# We add the BPF target so that strip will work on bpf files.
+    # Extra targets to build along with the default one.
+    # We add the BPF target so that strip will work on bpf files.
 
-case %{binutils_target} in ia64*)
-  CARGS="$CARGS --enable-targets=ia64-linux,bpf-unknown-none"
-  ;;
-esac
+    case %{binutils_target} in ia64*)
+      CARGS="$CARGS --enable-targets=ia64-linux,bpf-unknown-none"
+      ;;
+    esac
 
-case %{binutils_target} in ppc*|ppc64*)
-  CARGS="$CARGS --enable-targets=spu,bpf-unknown-none"
-  ;;
-esac
+    case %{binutils_target} in ppc*|ppc64*)
+      CARGS="$CARGS --enable-targets=spu,bpf-unknown-none"
+      ;;
+    esac
 
-case %{binutils_target} in ppc64-*)
-  CARGS="$CARGS --enable-targets=powerpc64le-linux,bpf-unknown-none"
-  ;;
-esac
+    case %{binutils_target} in ppc64-*)
+      CARGS="$CARGS --enable-targets=powerpc64le-linux,bpf-unknown-none"
+      ;;
+    esac
 
-case %{binutils_target} in ppc64le*)
-    CARGS="$CARGS --enable-targets=powerpc-linux,bpf-unknown-none"
-    ;;
-esac
+    case %{binutils_target} in ppc64le*)
+        CARGS="$CARGS --enable-targets=powerpc-linux,bpf-unknown-none"
+        ;;
+    esac
 
-case %{binutils_target} in s390*)
-    # FIXME: For some unknown reason settting --enable-targets=bpf-unknown-none
-    # here breaks the building of GOLD.  I have no idea why, and not enough
-    # knowledge of how gold is configured to fix quickly.  So instead I have
-    # found that supporting "all" targets works.
-    CARGS="$CARGS --enable-targets=all"
-    ;;
-esac
+    case %{binutils_target} in s390*)
+        # FIXME: For some unknown reason settting --enable-targets=bpf-unknown-none
+        # here breaks the building of GOLD.  I have no idea why, and not enough
+        # knowledge of how gold is configured to fix quickly.  So instead I have
+        # found that supporting "all" targets works.
+        CARGS="$CARGS --enable-targets=all"
+        ;;
+    esac
 
-case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*|riscv*)
-  CARGS="$CARGS --enable-targets=x86_64-pep,bpf-unknown-none"
-  ;;
-esac
+    case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*|riscv*)
+      CARGS="$CARGS --enable-targets=x86_64-pep,bpf-unknown-none"
+      ;;
+    esac
 
-%if %{default_relro}
-  CARGS="$CARGS --enable-relro=yes"
-%else
-  CARGS="$CARGS --enable-relro=no"
-%endif
+    %if %{default_relro}
+      CARGS="$CARGS --enable-relro=yes"
+    %else
+      CARGS="$CARGS --enable-relro=no"
+    %endif
 
-%if %{with debug}
-export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
-%define enable_shared 0
-%endif
+    %if %{with debug}
+    export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
+    %define enable_shared 0
+    %endif
 
-# BZ 1541027 - include the linker flags from redhat-rpm-config as well.
-export LDFLAGS=$RPM_LD_FLAGS
+    # BZ 1541027 - include the linker flags from redhat-rpm-config as well.
+    export LDFLAGS=$RPM_LD_FLAGS
 
-%if %{with clang}
-%define _with_cc_clang 1
-%endif
+    %if %{with clang}
+    %define _with_cc_clang 1
+    %endif
 
-# Dependencies are not set up to rebuild the configure files
-# in the subdirectories.  So we just rebuild the ones we care
-# about after applying the configure patches
-pushd libiberty
-autoconf
-popd
-pushd intl
-autoconf
-popd
+    # Dependencies are not set up to rebuild the configure files
+    # in the subdirectories.  So we just rebuild the ones we care
+    # about after applying the configure patches
+    pushd libiberty
+    autoconf
+    popd
+    pushd intl
+    autoconf
+    popd
 
 
-# We could optimize the cross builds size by --enable-shared but the produced
-# binaries may be less convenient in the embedded environment.
-%configure \
-  --quiet \
-  --build=%{_target_platform} --host=%{_target_platform} \
-  --target=%{binutils_target} \
-%if %{with gold}
-  --enable-gold=default \
-%endif
-  --enable-ld \
-%if %{isnative}
-  --with-sysroot=/ \
-%else
-  --enable-targets=%{_host} \
-  --with-sysroot=%{_prefix}/%{binutils_target}/sys-root \
-  --program-prefix=%{cross} \
-%endif
-%if %{enable_shared}
-  --enable-shared \
-%else
-  --disable-shared \
-%endif
-%if %{enable_deterministic_archives}
-  --enable-deterministic-archives \
-%else
-  --enable-deterministic-archives=no \
-%endif
-%if %{enable_lto}
-  --enable-lto \
-%endif
-%if %{default_compress_debug}
-  --enable-compressed-debug-sections=all \
-%else
-  --enable-compressed-debug-sections=none \
-%endif
-%if %{default_generate_notes}
-  --enable-generate-build-notes=yes \
-%else
-  --enable-generate-build-notes=no \
-%endif
-%if %{enable_threading}
-  --enable-threads=yes \
-%else
-  --enable-threads=no \
-%endif
-  $CARGS \
-  --enable-plugins \
-  --with-bugurl=http://bugzilla.redhat.com/bugzilla/ \
-  || cat config.log
+    # We could optimize the cross builds size by --enable-shared but the produced
+    # binaries may be less convenient in the embedded environment.
+    %configure \
+      --quiet \
+      --build=%{_target_platform} --host=%{_target_platform} \
+      --target=%{binutils_target} \
+    %if %{with gold}
+      --enable-gold=default \
+    %endif
+      --enable-ld \
+    %if %{isnative}
+      --with-sysroot=/ \
+    %else
+      --enable-targets=%{_host} \
+      --with-sysroot=%{_prefix}/%{binutils_target}/sys-root \
+      --program-prefix=%{cross} \
+    %endif
+    %if %{enable_shared}
+      --enable-shared \
+    %else
+      --disable-shared \
+    %endif
+    %if %{enable_deterministic_archives}
+      --enable-deterministic-archives \
+    %else
+      --enable-deterministic-archives=no \
+    %endif
+    %if %{enable_lto}
+      --enable-lto \
+    %endif
+    %if %{default_compress_debug}
+      --enable-compressed-debug-sections=all \
+    %else
+      --enable-compressed-debug-sections=none \
+    %endif
+    %if %{default_generate_notes}
+      --enable-generate-build-notes=yes \
+    %else
+      --enable-generate-build-notes=no \
+    %endif
+    %if %{enable_threading}
+      --enable-threads=yes \
+    %else
+      --enable-threads=no \
+    %endif
+      $CARGS \
+      --enable-plugins \
+      --with-bugurl=http://bugzilla.redhat.com/bugzilla/ \
+      || cat config.log
+}
 
-%if %{with docs}
-%make_build %{_smp_mflags} tooldir=%{_prefix} all
-%make_build %{_smp_mflags} tooldir=%{_prefix} info
-%else
-%make_build %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
-%endif
+function build_binutils () {
+    %if %{with docs}
+    %make_build %{_smp_mflags} tooldir=%{_prefix} all
+    %make_build %{_smp_mflags} tooldir=%{_prefix} info
+    %else
+    %make_build %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
+    %endif
+}
 
-# Do not use %%check as it is run after %%install where libbfd.so is rebuilt
-# with -fvisibility=hidden no longer being usable in its shared form.
-%if %{without testsuite}
-echo ====================TESTSUITE DISABLED=========================
-%else
-make -k check < /dev/null || :
-echo ====================TESTING=========================
-cat {gas/testsuite/gas,ld/ld,binutils/binutils}.sum
-%if %{with gold}
-if [ -f gold/test-suite.log ]; then
-    cat gold/test-suite.log
-fi
-if [ -f gold/testsuite/test-suite.log ]; then
-    cat gold/testsuite/*.log
-fi
-%endif
-echo ====================TESTING END=====================
-for file in {gas/testsuite/gas,ld/ld,binutils/binutils}.{sum,log}
-do
-  ln $file binutils-%{_target_platform}-$(basename $file) || :
-done
-tar cjf binutils-%{_target_platform}.tar.xz  binutils-%{_target_platform}-*.{sum,log}
-uuencode binutils-%{_target_platform}.tar.xz binutils-%{_target_platform}.tar.xz
-rm -f binutils-%{_target_platform}.tar.xz    binutils-%{_target_platform}-*.{sum,log}
-%if %{with gold}
-if [ -f gold/testsuite/test-suite.log ]; then
-  tar cjf  binutils-%{_target_platform}-gold.log.tar.xz gold/testsuite/*.log
-  uuencode binutils-%{_target_platform}-gold.log.tar.xz binutils-%{_target_platform}-gold.log.tar.xz
-  rm -f    binutils-%{_target_platform}-gold.log.tar.xz
-fi
-%endif
-%endif
+function test_binutils () {
+    # Do not use %%check as it is run after %%install where libbfd.so is rebuilt
+    # with -fvisibility=hidden no longer being usable in its shared form.
+    %if %{without testsuite}
+    echo ====================TESTSUITE DISABLED=========================
+    %else
+    make -k check < /dev/null || :
+    echo ====================TESTING=========================
+    cat {gas/testsuite/gas,ld/ld,binutils/binutils}.sum
+    %if %{with gold}
+    if [ -f gold/test-suite.log ]; then
+        cat gold/test-suite.log
+    fi
+    if [ -f gold/testsuite/test-suite.log ]; then
+        cat gold/testsuite/*.log
+    fi
+    %endif
+    echo ====================TESTING END=====================
+    for file in {gas/testsuite/gas,ld/ld,binutils/binutils}.{sum,log}
+    do
+      ln $file binutils-%{_target_platform}-$(basename $file) || :
+    done
+    tar cjf binutils-%{_target_platform}.tar.xz  binutils-%{_target_platform}-*.{sum,log}
+    uuencode binutils-%{_target_platform}.tar.xz binutils-%{_target_platform}.tar.xz
+    rm -f binutils-%{_target_platform}.tar.xz    binutils-%{_target_platform}-*.{sum,log}
+    %if %{with gold}
+    if [ -f gold/testsuite/test-suite.log ]; then
+      tar cjf  binutils-%{_target_platform}-gold.log.tar.xz gold/testsuite/*.log
+      uuencode binutils-%{_target_platform}-gold.log.tar.xz binutils-%{_target_platform}-gold.log.tar.xz
+      rm -f    binutils-%{_target_platform}-gold.log.tar.xz
+    fi
+    %endif
+    %endif
+}
+
+configure_binutils
+build_binutils
+test_binutils
 
 #----------------------------------------------------------------------------
 
