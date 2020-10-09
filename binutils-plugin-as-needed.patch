@@ -1,0 +1,83 @@
+diff -rup binutils.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.35.1/ld/testsuite/ld-plugin/lto.exp
+--- binutils.orig/ld/testsuite/ld-plugin/lto.exp	2020-10-09 11:46:13.571665439 +0100
++++ binutils-2.35.1/ld/testsuite/ld-plugin/lto.exp	2020-10-09 11:47:59.113302758 +0100
+@@ -319,27 +319,6 @@ set lto_link_elf_tests [list \
+   [list "PR ld/13244" \
+    "-shared -O2 -fPIC -flto -fuse-linker-plugin -nostdlib" "-O2 -fno-early-inlining -flto" \
+    {pr13244.c} {{"readelf" {-s --wide} "pr13244.d"}} "pr13244.so" "c"] \
+-  [list "Build libpr15146a.a" \
+-   "$plug_opt" "-flto -O2" \
+-   {pr15146a.c} {} "lib15146a.a"] \
+-  [list "Build pr15146b.so" \
+-   "-shared" "-O2 -fpic" \
+-   {pr15146b.c} {} "pr15146b.so" "c"] \
+-  [list "Build pr15146c.so" \
+-   "-shared -Wl,--no-as-needed tmpdir/pr15146b.so" "-O2 -fpic" \
+-   {pr15146c.c} {} "pr15146c.so" "c"] \
+-  [list "PR ld/15146 (1)" \
+-   "-O2 -flto -fuse-linker-plugin -Wl,-rpath-link,. -Wl,--no-copy-dt-needed-entries -Wl,--no-as-needed tmpdir/pr15146a.o tmpdir/pr15146c.so" "" \
+-   {dummy.c} {{"readelf" {-d} "pr15146.d"}} "pr15146a.exe"] \
+-  [list "Build libpr15146d.a" \
+-   "$plug_opt" "-flto -O2" \
+-   {pr15146d.c} {} "lib15146d.a"] \
+-  [list "Build libpr16746a.a" \
+-   "" "" \
+-   {pr16746a.c pr16746b.c} {} "lib15146a.a"] \
+-  [list "Build libpr16746b.a" \
+-   "$plug_opt" "-O2 -flto" \
+-   {pr16746c.c pr16746d.c} {} "lib15146b.a"] \
+   [list "PR ld/16746 (1)" \
+    "-O2 -flto -fuse-linker-plugin tmpdir/pr16746a.o tmpdir/pr16746c.o" "-O2 -flto" \
+    {dummy.c} {} "pr16746a.exe"] \
+@@ -602,13 +581,6 @@ run_cc_link_tests $lto_compile_elf_tests
+ # Restrict these to ELF targets that support shared libs and PIC.
+ if { [is_elf_format] && [check_lto_shared_available] } {
+     run_cc_link_tests $lto_link_elf_tests
+-    set testname "PR ld/15146 (2)"
+-    set exec_output [run_host_cmd "$CC" "-O2 -flto -fuse-linker-plugin -Wl,-rpath-link,. -Wl,--no-copy-dt-needed-entries -Wl,--no-as-needed tmpdir/pr15146d.o tmpdir/pr15146c.so"]
+-    if { [ regexp "undefined reference to symbol '\\.?xxx'" $exec_output ] } {
+-	pass $testname
+-    } {
+-	fail $testname
+-    }
+     set testname "PR ld/16746 (3)"
+     set exec_output [run_host_cmd "$CC" "-O2 -flto -fuse-linker-plugin tmpdir/pr16746b.o tmpdir/pr16746d.o"]
+     if { [ regexp "warning: \\.?foobar" $exec_output ] && ![ regexp "symbol from plugin" $exec_output ] } {
+
+diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
+--- binutils.orig/bfd/elflink.c	2020-10-09 11:46:14.151663446 +0100
++++ binutils-2.35.1/bfd/elflink.c	2020-10-09 11:46:27.222618528 +0100
+@@ -4970,11 +4970,7 @@ elf_link_add_object_symbols (bfd *abfd,
+ 	     object and a shared object.  */
+ 	  bfd_boolean dynsym = FALSE;
+ 
+-	  /* Plugin symbols aren't normal.  Don't set def_regular or
+-	     ref_regular for them, or make them dynamic.  */
+-	  if ((abfd->flags & BFD_PLUGIN) != 0)
+-	    ;
+-	  else if (! dynamic)
++	  if (! dynamic)
+ 	    {
+ 	      if (! definition)
+ 		{
+@@ -5155,10 +5151,6 @@ elf_link_add_object_symbols (bfd *abfd,
+ 	      && !bfd_link_relocatable (info))
+ 	    dynsym = FALSE;
+ 
+-	  /* Nor should we make plugin symbols dynamic.  */
+-	  if ((abfd->flags & BFD_PLUGIN) != 0)
+-	    dynsym = FALSE;
+-
+ 	  if (definition)
+ 	    {
+ 	      h->target_internal = isym->st_target_internal;
+@@ -5185,7 +5177,7 @@ elf_link_add_object_symbols (bfd *abfd,
+ 		}
+ 	    }
+ 
+-	  if (dynsym && h->dynindx == -1)
++	  if (dynsym && (abfd->flags & BFD_PLUGIN) == 0 && h->dynindx == -1)
+ 	    {
+ 	      if (! bfd_elf_link_record_dynamic_symbol (info, h))
+ 		goto error_free_vers;
+
