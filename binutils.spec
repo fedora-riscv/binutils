@@ -424,11 +424,23 @@ touch */configure
 %define _target_platform %{_arch}-%{_vendor}-%{_host_os}
 %endif
 
+# Dependencies are not set up to rebuild the configure files
+# in the subdirectories.  So we just rebuild the ones we care
+# about after applying the configure patches
+pushd libiberty
+autoconf
+popd
+pushd intl
+autoconf
+popd
+
 #----------------------------------------------------------------------------
 
 %build
 function configure_binutils () {
-    echo target is %{binutils_target}
+    binutils_target=$1
+
+    echo target is $binutils_target
 
     %ifarch %{power64}
     export CFLAGS="$RPM_OPT_FLAGS -Wno-error"
@@ -442,7 +454,7 @@ function configure_binutils () {
     CARGS="$CARGS --with-debuginfod"
     %endif
 
-    case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
+    case $binutils_target in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
       CARGS="$CARGS --enable-64-bit-bfd"
       ;;
     esac
@@ -450,27 +462,27 @@ function configure_binutils () {
     # Extra targets to build along with the default one.
     # We add the BPF target so that strip will work on bpf files.
 
-    case %{binutils_target} in ia64*)
+    case $binutils_target in ia64*)
       CARGS="$CARGS --enable-targets=ia64-linux,bpf-unknown-none"
       ;;
     esac
 
-    case %{binutils_target} in ppc*|ppc64*)
+    case $binutils_target in ppc*|ppc64*)
       CARGS="$CARGS --enable-targets=spu,bpf-unknown-none"
       ;;
     esac
 
-    case %{binutils_target} in ppc64-*)
+    case $binutils_target in ppc64-*)
       CARGS="$CARGS --enable-targets=powerpc64le-linux,bpf-unknown-none"
       ;;
     esac
 
-    case %{binutils_target} in ppc64le*)
+    case $binutils_target in ppc64le*)
         CARGS="$CARGS --enable-targets=powerpc-linux,bpf-unknown-none"
         ;;
     esac
 
-    case %{binutils_target} in s390*)
+    case $binutils_target in s390*)
         # FIXME: For some unknown reason settting --enable-targets=bpf-unknown-none
         # here breaks the building of GOLD.  I have no idea why, and not enough
         # knowledge of how gold is configured to fix quickly.  So instead I have
@@ -479,7 +491,7 @@ function configure_binutils () {
         ;;
     esac
 
-    case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*|riscv*)
+    case $binutils_target in x86_64*|i?86*|arm*|aarch64*|riscv*)
       CARGS="$CARGS --enable-targets=x86_64-pep,bpf-unknown-none"
       ;;
     esac
@@ -502,23 +514,12 @@ function configure_binutils () {
     %define _with_cc_clang 1
     %endif
 
-    # Dependencies are not set up to rebuild the configure files
-    # in the subdirectories.  So we just rebuild the ones we care
-    # about after applying the configure patches
-    pushd libiberty
-    autoconf
-    popd
-    pushd intl
-    autoconf
-    popd
-
-
     # We could optimize the cross builds size by --enable-shared but the produced
     # binaries may be less convenient in the embedded environment.
     %configure \
       --quiet \
       --build=%{_target_platform} --host=%{_target_platform} \
-      --target=%{binutils_target} \
+      --target=$binutils_target \
     %if %{with gold}
       --enable-gold=default \
     %endif
@@ -527,7 +528,7 @@ function configure_binutils () {
       --with-sysroot=/ \
     %else
       --enable-targets=%{_host} \
-      --with-sysroot=%{_prefix}/%{binutils_target}/sys-root \
+      --with-sysroot=%{_prefix}/$binutils_target}/sys-root \
       --program-prefix=%{cross} \
     %endif
     %if %{enable_shared}
@@ -608,86 +609,68 @@ function test_binutils () {
     %endif
 }
 
-configure_binutils
+configure_binutils %{binutils_target}
 build_binutils
 test_binutils
 
 #----------------------------------------------------------------------------
 
 %install
-%if %{with docs}
-%make_install DESTDIR=%{buildroot}
-%else
-%make_install DESTDIR=%{buildroot} MAKEINFO=true
-%endif
 
-%if %{isnative}
-%if %{with docs}
-make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
-%endif
+function binutils_initial_install () {
+    %if %{with docs}
+    %make_install DESTDIR=%{buildroot}
+    %else
+    %make_install DESTDIR=%{buildroot} MAKEINFO=true
+    %endif
 
-# Rebuild libiberty.a with -fPIC.
-# Future: Remove it together with its header file, projects should bundle it.
-%make_build -C libiberty clean
-%set_build_flags
-%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
+    %if %{isnative}
+    %if %{with docs}
+    make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
+    %endif
+    %endif
+}
 
-# Rebuild libbfd.a with -fPIC.
-# Without the hidden visibility the 3rd party shared libraries would export
-# the bfd non-stable ABI.
-%make_build -C bfd clean
-%set_build_flags
-%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
+function rebuild_and_reinstall_libraries () {
+    # Rebuild libiberty.a with -fPIC.
+    # Future: Remove it together with its header file, projects should bundle it.
+    %make_build -C libiberty clean
+    %set_build_flags
+    %make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
 
-# Rebuild libopcodes.a with -fPIC.
-%make_build -C opcodes clean
-%set_build_flags
-%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
+    # Rebuild libbfd.a with -fPIC.
+    # Without the hidden visibility the 3rd party shared libraries would export
+    # the bfd non-stable ABI.
+    %make_build -C bfd clean
+    %set_build_flags
+    %make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
 
-install -m 644 bfd/libbfd.a %{buildroot}%{_libdir}
-install -m 644 libiberty/libiberty.a %{buildroot}%{_libdir}
-install -m 644 include/libiberty.h %{buildroot}%{_prefix}/include
-install -m 644 opcodes/libopcodes.a %{buildroot}%{_libdir}
-# Remove Windows/Novell only man pages
-rm -f %{buildroot}%{_mandir}/man1/{dlltool,nlmconv,windres,windmc}*
-%if %{without docs}
-rm -f %{buildroot}%{_mandir}/man1/{addr2line,ar,as,c++filt,elfedit,gprof,ld,nm,objcopy,objdump,ranlib,readelf,size,strings,strip}*
-rm -f %{buildroot}%{_infodir}/{as,bfd,binutils,gprof,ld}*
-%endif
+    # Rebuild libopcodes.a with -fPIC.
+    %make_build -C opcodes clean
+    %set_build_flags
+    %make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
 
-%if %{enable_shared}
-chmod +x %{buildroot}%{_libdir}/lib*.so*
-%endif
+    install -m 644 bfd/libbfd.a %{buildroot}%{_libdir}
+    install -m 644 libiberty/libiberty.a %{buildroot}%{_libdir}
+    install -m 644 include/libiberty.h %{buildroot}%{_prefix}/include
+    install -m 644 opcodes/libopcodes.a %{buildroot}%{_libdir}
 
-# Prevent programs from linking against libbfd and libopcodes
-# dynamically, as they are changed far too often.
-rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.so
+    %if %{enable_shared}
+    chmod +x %{buildroot}%{_libdir}/lib*.so*
+    %endif
 
-# Remove libtool files, which reference the .so libs
-rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.la
+    # Prevent programs from linking against libbfd and libopcodes
+    # dynamically, as they are changed far too often.
+    rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.so
 
-# Sanity check --enable-64-bit-bfd really works.
-grep '^#define BFD_ARCH_SIZE 64$' %{buildroot}%{_prefix}/include/bfd.h
-# Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
-%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
-sed -i -e '/^#include "ansidecl.h"/{p;s~^.*$~#include <bits/wordsize.h>~;}' \
-    -e 's/^#define BFD_DEFAULT_TARGET_SIZE \(32\|64\) *$/#define BFD_DEFAULT_TARGET_SIZE __WORDSIZE/' \
-    -e 's/^#define BFD_HOST_64BIT_LONG [01] *$/#define BFD_HOST_64BIT_LONG (__WORDSIZE == 64)/' \
-    -e 's/^#define BFD_HOST_64_BIT \(long \)\?long *$/#if __WORDSIZE == 32\
-#define BFD_HOST_64_BIT long long\
-#else\
-#define BFD_HOST_64_BIT long\
-#endif/' \
-    -e 's/^#define BFD_HOST_U_64_BIT unsigned \(long \)\?long *$/#define BFD_HOST_U_64_BIT unsigned BFD_HOST_64_BIT/' \
-    %{buildroot}%{_prefix}/include/bfd.h
-%endif
-touch -r bfd/bfd-in2.h %{buildroot}%{_prefix}/include/bfd.h
+    # Remove libtool files, which reference the .so libs
+    rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.la
 
-# Generate .so linker scripts for dependencies; imported from glibc/Makerules:
+    # Generate .so linker scripts for dependencies; imported from glibc/Makerules:
 
-# This fragment of linker script gives the OUTPUT_FORMAT statement
-# for the configuration we are building.
-OUTPUT_FORMAT="\
+    # This fragment of linker script gives the OUTPUT_FORMAT statement
+    # for the configuration we are building.
+    OUTPUT_FORMAT="\
 /* Ensure this .so library will not be used by a link for a different format
    on a multi-architecture system.  */
 $(gcc $CFLAGS $LDFLAGS -shared -x c /dev/null -o /dev/null -Wl,--verbose -v 2>&1 | sed -n -f "%{SOURCE2}")"
@@ -709,38 +692,78 @@ $OUTPUT_FORMAT
 
 INPUT ( %{_libdir}/libopcodes.a -lbfd )
 EOH
+}
 
-%else
-# For cross-binutils we drop the documentation.
-rm -rf %{buildroot}%{_infodir}
-# We keep these as one can have native + cross binutils of different versions.
-#rm -rf {buildroot}{_prefix}/share/locale
-#rm -rf {buildroot}{_mandir}
-rm -rf %{buildroot}%{_libdir}/libiberty.a
+function cleanup_documentation () {
+    # Remove Windows/Novell only man pages
+    rm -f %{buildroot}%{_mandir}/man1/{dlltool,nlmconv,windres,windmc}*
+    %if %{without docs}
+    rm -f %{buildroot}%{_mandir}/man1/{addr2line,ar,as,c++filt,elfedit,gprof,ld,nm,objcopy,objdump,ranlib,readelf,size,strings,strip}*
+    rm -f %{buildroot}%{_infodir}/{as,bfd,binutils,gprof,ld}*
+    %endif
+
+    %if ! %{isnative}
+    # For cross-binutils we drop the documentation.
+    rm -rf %{buildroot}%{_infodir}
+    # We keep these as one can have native + cross binutils of different versions.
+    #rm -rf {buildroot}{_prefix}/share/locale
+    #rm -rf {buildroot}{_mandir}
+    rm -rf %{buildroot}%{_libdir}/libiberty.a
+    %endif
+
+    # This one comes from gcc
+    rm -f %{buildroot}%{_infodir}/dir
+    rm -rf %{buildroot}%{_prefix}/%{binutils_target}
+}
+
+
+function fix_headers () {
+    # Sanity check --enable-64-bit-bfd really works.
+    grep '^#define BFD_ARCH_SIZE 64$' %{buildroot}%{_prefix}/include/bfd.h
+    # Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
+    %ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
+    sed -i -e '/^#include "ansidecl.h"/{p;s~^.*$~#include <bits/wordsize.h>~;}' \
+        -e 's/^#define BFD_DEFAULT_TARGET_SIZE \(32\|64\) *$/#define BFD_DEFAULT_TARGET_SIZE __WORDSIZE/' \
+        -e 's/^#define BFD_HOST_64BIT_LONG [01] *$/#define BFD_HOST_64BIT_LONG (__WORDSIZE == 64)/' \
+        -e 's/^#define BFD_HOST_64_BIT \(long \)\?long *$/#if __WORDSIZE == 32\
+    #define BFD_HOST_64_BIT long long\
+    #else\
+    #define BFD_HOST_64_BIT long\
+    #endif/' \
+        -e 's/^#define BFD_HOST_U_64_BIT unsigned \(long \)\?long *$/#define BFD_HOST_U_64_BIT unsigned BFD_HOST_64_BIT/' \
+        %{buildroot}%{_prefix}/include/bfd.h
+    %endif
+    touch -r bfd/bfd-in2.h %{buildroot}%{_prefix}/include/bfd.h
+}
+
+function find_lang_files () {
+    %find_lang %{?cross}binutils
+    %find_lang %{?cross}opcodes
+    %find_lang %{?cross}bfd
+    %find_lang %{?cross}gas
+    %find_lang %{?cross}gprof
+    cat %{?cross}opcodes.lang >> %{?cross}binutils.lang
+    cat %{?cross}bfd.lang >> %{?cross}binutils.lang
+    cat %{?cross}gas.lang >> %{?cross}binutils.lang
+    cat %{?cross}gprof.lang >> %{?cross}binutils.lang
+    
+    if [ -x ld/ld-new ]; then
+      %find_lang %{?cross}ld
+      cat %{?cross}ld.lang >> %{?cross}binutils.lang
+    fi
+    if [ -x gold/ld-new ]; then
+      %find_lang %{?cross}gold
+      cat %{?cross}gold.lang >> %{?cross}binutils.lang
+    fi
+}
+
+binutils_initial_install
+%if %{isnative}
+  rebuild_and_reinstall_libraries
+  fix_headers
 %endif
-
-# This one comes from gcc
-rm -f %{buildroot}%{_infodir}/dir
-rm -rf %{buildroot}%{_prefix}/%{binutils_target}
-
-%find_lang %{?cross}binutils
-%find_lang %{?cross}opcodes
-%find_lang %{?cross}bfd
-%find_lang %{?cross}gas
-%find_lang %{?cross}gprof
-cat %{?cross}opcodes.lang >> %{?cross}binutils.lang
-cat %{?cross}bfd.lang >> %{?cross}binutils.lang
-cat %{?cross}gas.lang >> %{?cross}binutils.lang
-cat %{?cross}gprof.lang >> %{?cross}binutils.lang
-
-if [ -x ld/ld-new ]; then
-  %find_lang %{?cross}ld
-  cat %{?cross}ld.lang >> %{?cross}binutils.lang
-fi
-if [ -x gold/ld-new ]; then
-  %find_lang %{?cross}gold
-  cat %{?cross}gold.lang >> %{?cross}binutils.lang
-fi
+cleanup_documentation
+find_lang_files
 
 #----------------------------------------------------------------------------
 
