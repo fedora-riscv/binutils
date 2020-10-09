@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -245,6 +245,10 @@ Patch27: binutils-strip-merge.patch
 # Purpose:  Fix various problems with the PowerPC arch10 extensions.
 # Lifetime: Fixed in 2.36
 Patch28: binutils-Power10-fixes.patch
+
+# Purpose:  Allow plugin syms to mark as-needed shared libs needed.
+# Lifetime: Fixed in 2.36
+Patch29: binutils-plugin-as-needed.patch
 
 #----------------------------------------------------------------------------
 
@@ -819,6 +823,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Oct 09 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-5
+- Allow plugin syms to mark as-needed shared libs needed
+
 * Thu Oct 08 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-4
 - Fix various problems with Power10 support.
 
