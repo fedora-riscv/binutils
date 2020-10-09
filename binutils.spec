@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -236,6 +236,10 @@ Patch24: binutils-aarch64-plt-sh_entsize.patch
 # Lifetime: Fixed in 2.36
 Patch25: binutils-add-sym-cache-to-elf-link-hash.patch
 Patch26: binutils-elf-add-objects.patch
+
+# Purpose:  Allow plugin syms to mark as-needed shared libs needed.
+# Lifetime: Fixed in 2.36
+Patch27: binutils-plugin-as-needed.patch
 
 #----------------------------------------------------------------------------
 
@@ -810,6 +814,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Oct 09 2020 Nick Clifton  <nickc@redhat.com> - 2.35-11
+- Allow plugin syms to mark as-needed shared libs needed
+
 * Fri Jul 31 2020 Jeff Law  <nickc@redhat.com> - 2.35-10
 - Re-enable LTO
 
