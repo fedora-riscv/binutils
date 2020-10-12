@@ -514,12 +514,18 @@ function configure_binutils () {
     %define _with_cc_clang 1
     %endif
 
+    %_fix_broken_configure_for_lto
+
+    echo %{_target_platform}
+    echo $binutils_target
     # We could optimize the cross builds size by --enable-shared but the produced
     # binaries may be less convenient in the embedded environment.
-    %configure \
+    mkdir $binutils_target
+    pushd $binutils_target
+    ../configure \
       --quiet \
       --build=%{_target_platform} --host=%{_target_platform} \
-      --target=$binutils_target \
+      --target=%{_target_platform}
     %if %{with gold}
       --enable-gold=default \
     %endif
@@ -528,7 +534,7 @@ function configure_binutils () {
       --with-sysroot=/ \
     %else
       --enable-targets=%{_host} \
-      --with-sysroot=%{_prefix}/$binutils_target}/sys-root \
+      --with-sysroot=%{_prefix}/$binutils_target/sys-root \
       --program-prefix=%{cross} \
     %endif
     %if %{enable_shared}
@@ -563,18 +569,26 @@ function configure_binutils () {
       --enable-plugins \
       --with-bugurl=http://bugzilla.redhat.com/bugzilla/ \
       || cat config.log
+
+    popd
 }
 
 function build_binutils () {
+    binutils_target=$1
+
+    pushd $binutils_target
     %if %{with docs}
     %make_build %{_smp_mflags} tooldir=%{_prefix} all
     %make_build %{_smp_mflags} tooldir=%{_prefix} info
     %else
     %make_build %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
     %endif
+    popd
 }
 
 function test_binutils () {
+    binutils_target=$1
+    pushd $binutils_target
     # Do not use %%check as it is run after %%install where libbfd.so is rebuilt
     # with -fvisibility=hidden no longer being usable in its shared form.
     %if %{without testsuite}
@@ -607,17 +621,24 @@ function test_binutils () {
     fi
     %endif
     %endif
+    popd
 }
 
 configure_binutils %{binutils_target}
-build_binutils
-test_binutils
+build_binutils %{binutils_target}
+test_binutils %{binutils_target}
+
+#configure_binutils aarch64-linux-gnu
+#build_binutils aarch64-linux-gnu
+#test_binutils aarch64-linux-gnu
 
 #----------------------------------------------------------------------------
 
 %install
 
 function binutils_initial_install () {
+    binutils_target=$1
+    pushd $binutils_target
     %if %{with docs}
     %make_install DESTDIR=%{buildroot}
     %else
@@ -629,9 +650,13 @@ function binutils_initial_install () {
     make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
     %endif
     %endif
+    popd
+
 }
 
 function rebuild_and_reinstall_libraries () {
+    binutils_target=$1
+    pushd $binutils_target
     # Rebuild libiberty.a with -fPIC.
     # Future: Remove it together with its header file, projects should bundle it.
     %make_build -C libiberty clean
@@ -652,8 +677,8 @@ function rebuild_and_reinstall_libraries () {
 
     install -m 644 bfd/libbfd.a %{buildroot}%{_libdir}
     install -m 644 libiberty/libiberty.a %{buildroot}%{_libdir}
-    install -m 644 include/libiberty.h %{buildroot}%{_prefix}/include
-    install -m 644 opcodes/libopcodes.a %{buildroot}%{_libdir}
+    install -m 644 ../include/libiberty.h %{buildroot}%{_prefix}/include
+    install -m 644 ../opcodes/libopcodes.a %{buildroot}%{_libdir}
 
     %if %{enable_shared}
     chmod +x %{buildroot}%{_libdir}/lib*.so*
@@ -692,9 +717,14 @@ $OUTPUT_FORMAT
 
 INPUT ( %{_libdir}/libopcodes.a -lbfd )
 EOH
+
+    popd
 }
 
+
 function cleanup_documentation () {
+    binutils_target=$1
+    pushd $binutils_target
     # Remove Windows/Novell only man pages
     rm -f %{buildroot}%{_mandir}/man1/{dlltool,nlmconv,windres,windmc}*
     %if %{without docs}
@@ -714,10 +744,13 @@ function cleanup_documentation () {
     # This one comes from gcc
     rm -f %{buildroot}%{_infodir}/dir
     rm -rf %{buildroot}%{_prefix}/%{binutils_target}
+    popd
 }
 
 
 function fix_headers () {
+    binutils_target=$1
+    pushd $binutils_target
     # Sanity check --enable-64-bit-bfd really works.
     grep '^#define BFD_ARCH_SIZE 64$' %{buildroot}%{_prefix}/include/bfd.h
     # Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
@@ -734,9 +767,12 @@ function fix_headers () {
         %{buildroot}%{_prefix}/include/bfd.h
     %endif
     touch -r bfd/bfd-in2.h %{buildroot}%{_prefix}/include/bfd.h
+    popd
 }
 
 function find_lang_files () {
+    binutils_target=$1
+    pushd $binutils_target
     %find_lang %{?cross}binutils
     %find_lang %{?cross}opcodes
     %find_lang %{?cross}bfd
@@ -755,15 +791,16 @@ function find_lang_files () {
       %find_lang %{?cross}gold
       cat %{?cross}gold.lang >> %{?cross}binutils.lang
     fi
+    popd
 }
 
-binutils_initial_install
+binutils_initial_install %{binutils_target}
 %if %{isnative}
-  rebuild_and_reinstall_libraries
-  fix_headers
+  rebuild_and_reinstall_libraries %{binutils_target}
+  fix_headers %{binutils_target}
 %endif
-cleanup_documentation
-find_lang_files
+cleanup_documentation %{binutils_target}
+find_lang_files %{binutils_target}
 
 #----------------------------------------------------------------------------
 
