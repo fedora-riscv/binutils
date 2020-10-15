@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -186,69 +186,73 @@ Patch10: binutils-attach-to-group.patch
 
 # Purpose:  Allow OS specific sections in section groups.
 # Lifetime: Fixed in 2.36 (maybe)
-Patch12: binutils-special-sections-in-groups.patch
+Patch11: binutils-special-sections-in-groups.patch
 
 # Purpose:  Fix linker testsuite failures.
 # Lifetime: Fixed in 2.36 (maybe)
-Patch13: binutils-fix-testsuite-failures.patch
+Patch12: binutils-fix-testsuite-failures.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
 # Lifetime: Fixed in 2.36 (maybe)
-Patch14: binutils-gold-mismatched-section-flags.patch
+Patch13: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Add a check to the GOLD linker for a corrupt input file
 #            with a fuzzed section offset.
 # Lifetime: Fixed in 2.36 (maybe)
-Patch15: binutils-CVE-2019-1010204.patch
+Patch14: binutils-CVE-2019-1010204.patch
 
 # Purpose:  Change the gold configuration script to only warn about
 #            unsupported targets.  This allows the binutils to be built with
 #            BPF support enabled.
 # Lifetime: Permanent.
-Patch17: binutils-gold-warn-unsupported.patch
+Patch15: binutils-gold-warn-unsupported.patch
 
 # Purpose:  Fix compile time warning messages building s390 target with gcc-10.
 # Lifetime: Should be fixed in 2.36.
-Patch19: binutils-s390-build.patch
+Patch16: binutils-s390-build.patch
 
 # Purpose:  Fix LTO problems running config mini-builds.
 # Lifetime: Should be fixed in 2.36.
-Patch20: binutils-config.patch
+Patch17: binutils-config.patch
 
 # Purpose:  Fix compile time warning messages building with gcc-10.
 # Lifetime: Should be fixed in 2.36.
-Patch21: binutils-warnings.patch
+Patch18: binutils-warnings.patch
 
 # Purpose:  Fix compile time warning messages building with gcc-10. (part 2).
 # Lifetime: Should be fixed in 2.36.
-Patch22: binutils-gcc-10-fixes.patch
+Patch19: binutils-gcc-10-fixes.patch
 
 # Purpose:  Fixes for linking LTO objects.
 # Lifetime: Fixed in 2.36
-Patch23: binutils-add-sym-cache-to-elf-link-hash.patch
-Patch24: binutils-elf-add-objects.patch
+Patch20: binutils-add-sym-cache-to-elf-link-hash.patch
+Patch21: binutils-elf-add-objects.patch
 
 # Purpose:  Fix handling of relocations for AArch64 conditional branches.
 # Lifetime: Fixed in 2.36
-Patch25: binutils-aarch64-condbranch-relocs.patch
+Patch22: binutils-aarch64-condbranch-relocs.patch
 
 # Purpose:  Fix the PowerPC disassembler so that it ignores annobin symbols.
 # Lifetime: Fixed in 2.36
-Patch26: binutils-ppc-annobin-disassembly.patch
+Patch23: binutils-ppc-annobin-disassembly.patch
 
 # Purpose:  Fix the strip program to cope when merging multiple same-named
 #            sections.
 # Lifetime: Fixed in 2.36
-Patch27: binutils-strip-merge.patch
+Patch24: binutils-strip-merge.patch
 
 # Purpose:  Fix various problems with the PowerPC arch10 extensions.
 # Lifetime: Fixed in 2.36
-Patch28: binutils-Power10-fixes.patch
+Patch25: binutils-Power10-fixes.patch
 
 # Purpose:  Allow plugin syms to mark as-needed shared libs needed.
 # Lifetime: Fixed in 2.36
-Patch29: binutils-plugin-as-needed.patch
+Patch26: binutils-plugin-as-needed.patch
+
+# Purpose:  Recursively follow .gnu_debuglink and .gnu_debugaltlink sections.
+# Lifetime: Fixed in 2.36
+Patch27: binutils-recursive-debuglink-following.patch
 
 #----------------------------------------------------------------------------
 
@@ -893,6 +897,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Oct 15 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-6
+- Make readelf and objdump recursively follow debug links.  (PR 26595)
+
 * Fri Oct 09 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-5
 - Allow plugin syms to mark as-needed shared libs needed
 
