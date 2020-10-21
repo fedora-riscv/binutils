@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -253,6 +253,11 @@ Patch26: binutils-plugin-as-needed.patch
 # Purpose:  Recursively follow .gnu_debuglink and .gnu_debugaltlink sections.
 # Lifetime: Fixed in 2.36
 Patch27: binutils-recursive-debuglink-following.patch
+
+# Purpose:  Fix the DWARF parser to skip DW_FORM_ref_addr types
+#            when attempting to determine a type's signedness.
+# Lifetime: Fixed in 2.36
+Patch28: binutils-dwarf-type-sign.patch
 
 #----------------------------------------------------------------------------
 
@@ -897,6 +902,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Oct 21 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-7
+- Fix erroneous decoding of LEB128 values.  (#188716)
+
 * Thu Oct 15 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-6
 - Make readelf and objdump recursively follow debug links.  (PR 26595)
 
