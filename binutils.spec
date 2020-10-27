@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -832,6 +832,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Oct 27 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-8
+- Really fix erroneous decoding of LEB128 values.  (#1891171)
+
 * Wed Oct 21 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-7
 - Fix erroneous decoding of LEB128 values.  (#188716)
 
