@@ -81,3 +81,16 @@ diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
  	      if (! bfd_elf_link_record_dynamic_symbol (info, h))
  		goto error_free_vers;
 
+--- binutils.orig/bfd/elflink.c	2020-10-28 15:56:39.444286352 +0000
++++ binutils-2.35.1/bfd/elflink.c	2020-10-28 21:16:49.208917109 +0000
+@@ -4972,7 +4972,9 @@ elf_link_add_object_symbols (bfd *abfd,
+ 
+ 	  if (! dynamic)
+ 	    {
+-	      if (! definition)
++	      if (abfd->flags & BFD_PLUGIN)
++		;
++	      else if (! definition)
+ 		{
+ 		  h->ref_regular = 1;
+ 		  if (bind != STB_WEAK)
