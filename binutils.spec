@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
