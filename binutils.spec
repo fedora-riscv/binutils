@@ -259,9 +259,6 @@ Patch27: binutils-recursive-debuglink-following.patch
 # Lifetime: Fixed in 2.36
 Patch28: binutils-dwarf-type-sign.patch
 
-# XXXX
-Patch29: binutils-debugging.patch
-
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
