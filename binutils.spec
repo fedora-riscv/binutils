@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 11%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -240,6 +240,11 @@ Patch26: binutils-elf-add-objects.patch
 # Purpose:  Allow plugin syms to mark as-needed shared libs needed.
 # Lifetime: Fixed in 2.36
 Patch27: binutils-plugin-as-needed.patch
+
+# Purpose:  Fix the DWARF parser to skip DW_FORM_ref_addr types
+#            when attempting to determine a type's signedness.
+# Lifetime: Fixed in 2.36
+Patch28: binutils-dwarf-type-sign.patch
 
 #----------------------------------------------------------------------------
 
@@ -814,6 +819,15 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Oct 30 2020 Nick Clifton  <nickc@redhat.com> - 2.35-14
+- Correction for plugin as-needed patch.  (#1889763)
+
+* Tue Oct 27 2020 Nick Clifton  <nickc@redhat.com> - 2.35-13
+- Really fix erroneous decoding of LEB128 values.  (#1891171)
+
+* Mon Oct 26 2020 Nick Clifton  <nickc@redhat.com> - 2.35-12
+- Fix erroneous decoding of LEB128 values.  (#188716)
+
 * Fri Oct 09 2020 Nick Clifton  <nickc@redhat.com> - 2.35-11
 - Allow plugin syms to mark as-needed shared libs needed
 
