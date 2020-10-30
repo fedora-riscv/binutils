@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -832,7 +832,7 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Wed Oct 28 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-9
+* Wed Oct 28 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-11
 - Correction for plugin as-needed patch.  (#1889763)
 
 * Tue Oct 27 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-8
