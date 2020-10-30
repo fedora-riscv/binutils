@@ -71,3 +71,184 @@ diff -rup binutils.orig/ld/plugin.c binutils-2.35.1/ld/plugin.c
  	  goto report_symbol;
  	}
        if (blhe->type != bfd_link_hash_defined
+diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
+--- binutils.orig/bfd/elflink.c	2020-10-30 10:31:04.291893073 +0000
++++ binutils-2.35.1/bfd/elflink.c	2020-10-30 10:48:43.793863465 +0000
+@@ -4970,11 +4970,10 @@ elf_link_add_object_symbols (bfd *abfd,
+ 	     object and a shared object.  */
+ 	  bfd_boolean dynsym = FALSE;
+ 
+-	  /* Plugin symbols aren't normal.  Don't set def_regular or
+-	     ref_regular for them, or make them dynamic.  */
++	  /* Plugin symbols aren't normal.  Don't set def/ref flags.  */
+ 	  if ((abfd->flags & BFD_PLUGIN) != 0)
+ 	    ;
+-	  else if (! dynamic)
++	  else if (!dynamic)
+ 	    {
+ 	      if (! definition)
+ 		{
+@@ -4991,14 +4990,6 @@ elf_link_add_object_symbols (bfd *abfd,
+ 		      h->ref_dynamic = 1;
+ 		    }
+ 		}
+-
+-	      /* If the indirect symbol has been forced local, don't
+-		 make the real symbol dynamic.  */
+-	      if ((h == hi || !hi->forced_local)
+-		  && (bfd_link_dll (info)
+-		      || h->def_dynamic
+-		      || h->ref_dynamic))
+-		dynsym = TRUE;
+ 	    }
+ 	  else
+ 	    {
+@@ -5012,14 +5003,25 @@ elf_link_add_object_symbols (bfd *abfd,
+ 		  h->def_dynamic = 1;
+ 		  hi->def_dynamic = 1;
+ 		}
++	    }
+ 
+-	      /* If the indirect symbol has been forced local, don't
+-		 make the real symbol dynamic.  */
+-	      if ((h == hi || !hi->forced_local)
+-		  && (h->def_regular
+-		      || h->ref_regular
+-		      || (h->is_weakalias
+-			  && weakdef (h)->dynindx != -1)))
++	  /* If an indirect symbol has been forced local, don't
++	     make the real symbol dynamic.  */
++	  if (h != hi && hi->forced_local)
++	    ;
++	  else if (!dynamic)
++	    {
++	      if (bfd_link_dll (info)
++		  || h->def_dynamic
++		  || h->ref_dynamic)
++		dynsym = TRUE;
++	    }
++	  else
++	    {
++	      if (h->def_regular
++		  || h->ref_regular
++		  || (h->is_weakalias
++		      && weakdef (h)->dynindx != -1))
+ 		dynsym = TRUE;
+ 	    }
+ 
+@@ -5214,6 +5216,9 @@ elf_link_add_object_symbols (bfd *abfd,
+ 	      && definition
+ 	      && ((dynsym
+ 		   && h->ref_regular_nonweak)
++		  || (old_bfd != NULL
++		      && (old_bfd->flags & BFD_PLUGIN) != 0
++		      && bind != STB_WEAK)
+ 		  || (h->ref_dynamic_nonweak
+ 		      && (elf_dyn_lib_class (abfd) & DYN_AS_NEEDED) != 0
+ 		      && !on_needed_list (elf_dt_name (abfd),
+@@ -5338,55 +5343,33 @@ elf_link_add_object_symbols (bfd *abfd,
+ 	{
+ 	  struct bfd_hash_entry *p;
+ 	  struct elf_link_hash_entry *h;
+-	  bfd_size_type size;
+-	  unsigned int alignment_power;
+-	  struct elf_link_hash_entry preserved_h;
++	  unsigned int non_ir_ref_dynamic;
+ 
+ 	  for (p = htab->root.table.table[i]; p != NULL; p = p->next)
+ 	    {
+-	      h = (struct elf_link_hash_entry *) p;
+-	      if (h->root.type == bfd_link_hash_warning)
+-		h = (struct elf_link_hash_entry *) h->root.u.i.link;
+-
+-	      /* Preserve the maximum alignment and size for common
+-		 symbols even if this dynamic lib isn't on DT_NEEDED
+-		 since it can still be loaded at run time by another
+-		 dynamic lib.  */
+-	      if (h->root.type == bfd_link_hash_common)
+-		{
+-		  size = h->root.u.c.size;
+-		  alignment_power = h->root.u.c.p->alignment_power;
+-		}
+-	      else
+-		{
+-		  size = 0;
+-		  alignment_power = 0;
+-		}
+ 	      /* Preserve non_ir_ref_dynamic so that this symbol
+ 		 will be exported when the dynamic lib becomes needed
+ 		 in the second pass.  */
+-	      preserved_h = *h;
++	      h = (struct elf_link_hash_entry *) p;
++	      if (h->root.type == bfd_link_hash_warning)
++		h = (struct elf_link_hash_entry *) h->root.u.i.link;
++	      non_ir_ref_dynamic = h->root.non_ir_ref_dynamic;
+ 
+-	      memcpy (p, old_ent, htab->root.table.entsize);
+-	      old_ent = (char *) old_ent + htab->root.table.entsize;
+ 	      h = (struct elf_link_hash_entry *) p;
++	      memcpy (h, old_ent, htab->root.table.entsize);
++	      old_ent = (char *) old_ent + htab->root.table.entsize;
+ 	      if (h->root.type == bfd_link_hash_warning)
+ 		{
+-		  memcpy (h->root.u.i.link, old_ent, htab->root.table.entsize);
+-		  old_ent = (char *) old_ent + htab->root.table.entsize;
+ 		  h = (struct elf_link_hash_entry *) h->root.u.i.link;
++		  memcpy (h, old_ent, htab->root.table.entsize);
++		  old_ent = (char *) old_ent + htab->root.table.entsize;
+ 		}
+ 	      if (h->root.type == bfd_link_hash_common)
+ 		{
+-		  if (size > h->root.u.c.size)
+-		    h->root.u.c.size = size;
+-		  if (alignment_power > h->root.u.c.p->alignment_power)
+-		    h->root.u.c.p->alignment_power = alignment_power;
++		  memcpy (h->root.u.c.p, old_ent, sizeof (*h->root.u.c.p));
++		  old_ent = (char *) old_ent + sizeof (*h->root.u.c.p);
+ 		}
+-
+-	      h->root.non_ir_ref_dynamic
+-		= preserved_h.root.non_ir_ref_dynamic;
+-	      h->root.as_needed_def_dynamic |= preserved_h.dynamic_def;
++	      h->root.non_ir_ref_dynamic = non_ir_ref_dynamic;
+ 	    }
+ 	}
+ 
+@@ -5823,11 +5806,6 @@ elf_link_add_archive_symbols (bfd *abfd,
+ 	  if (h == NULL)
+ 	    continue;
+ 
+-	  /* Don't load the archive element after seeing a definition
+-	     in a DT_NEEDED shared object.  */
+-	  if (h->root.as_needed_def_dynamic)
+-	    continue;
+-
+ 	  if (h->root.type == bfd_link_hash_undefined)
+ 	    {
+ 	      /* If the archive element has already been loaded then one
+diff -rup binutils.orig/include/bfdlink.h binutils-2.35.1/include/bfdlink.h
+--- binutils.orig/include/bfdlink.h	2020-10-30 10:31:03.269895974 +0000
++++ binutils-2.35.1/include/bfdlink.h	2020-10-30 10:47:03.087152957 +0000
+@@ -114,9 +114,6 @@ struct bfd_link_hash_entry
+      as distinct from a LTO IR object file.  */
+   unsigned int non_ir_ref_dynamic : 1;
+ 
+-  /* Symbol is defined in a DT_NEEDED dynamic object file.  */
+-  unsigned int as_needed_def_dynamic : 1;
+-
+   /* Symbol is a built-in define.  These will be overridden by PROVIDE
+      in a linker script.  */
+   unsigned int linker_def : 1;
+diff -rup binutils.orig/ld/plugin.c binutils-2.35.1/ld/plugin.c
+--- binutils.orig/ld/plugin.c	2020-10-30 10:31:03.357895725 +0000
++++ binutils-2.35.1/ld/plugin.c	2020-10-30 10:47:23.905093110 +0000
+@@ -794,8 +794,7 @@ get_symbols (const void *handle, int nsy
+       if (blhe->type == bfd_link_hash_undefined
+ 	  || blhe->type == bfd_link_hash_undefweak)
+ 	{
+-	  res = (blhe->as_needed_def_dynamic
+-		 ? LDPR_RESOLVED_DYN : LDPR_UNDEF);
++	  res = LDPR_UNDEF;
+ 	  goto report_symbol;
+ 	}
+       if (blhe->type != bfd_link_hash_defined
