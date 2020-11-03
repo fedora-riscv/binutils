@@ -1,80 +1,54 @@
-diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
---- binutils.orig/bfd/elflink.c	2020-10-29 12:46:32.228618844 +0000
-+++ binutils-2.35.1/bfd/elflink.c	2020-10-29 13:07:58.786847312 +0000
-@@ -5340,7 +5340,7 @@ elf_link_add_object_symbols (bfd *abfd,
- 	  struct elf_link_hash_entry *h;
- 	  bfd_size_type size;
- 	  unsigned int alignment_power;
--	  unsigned int non_ir_ref_dynamic;
-+	  struct elf_link_hash_entry preserved_h;
- 
- 	  for (p = htab->root.table.table[i]; p != NULL; p = p->next)
- 	    {
-@@ -5365,7 +5365,8 @@ elf_link_add_object_symbols (bfd *abfd,
- 	      /* Preserve non_ir_ref_dynamic so that this symbol
- 		 will be exported when the dynamic lib becomes needed
- 		 in the second pass.  */
--	      non_ir_ref_dynamic = h->root.non_ir_ref_dynamic;
-+	      preserved_h = *h;
-+
- 	      memcpy (p, old_ent, htab->root.table.entsize);
- 	      old_ent = (char *) old_ent + htab->root.table.entsize;
+--- binutils.orig/bfd/elflink.c	2020-11-03 11:59:59.966565009 +0000
++++ binutils-2.35.1/bfd/elflink.c	2020-11-03 12:07:34.691991602 +0000
+@@ -4477,7 +4477,12 @@ elf_link_add_object_symbols (bfd *abfd,
  	      h = (struct elf_link_hash_entry *) p;
-@@ -5382,7 +5383,10 @@ elf_link_add_object_symbols (bfd *abfd,
- 		  if (alignment_power > h->root.u.c.p->alignment_power)
- 		    h->root.u.c.p->alignment_power = alignment_power;
- 		}
--	      h->root.non_ir_ref_dynamic = non_ir_ref_dynamic;
-+
-+	      h->root.non_ir_ref_dynamic
-+		= preserved_h.root.non_ir_ref_dynamic;
-+	      h->root.as_needed_def_dynamic |= preserved_h.dynamic_def;
+ 	      entsize += htab->root.table.entsize;
+ 	      if (h->root.type == bfd_link_hash_warning)
+-		entsize += htab->root.table.entsize;
++		{
++		  entsize += htab->root.table.entsize;
++		  h = (struct elf_link_hash_entry *) h->root.u.i.link;
++		}
++	      if (h->root.type == bfd_link_hash_common)
++		entsize += sizeof (*h->root.u.c.p);
  	    }
  	}
  
-@@ -5819,6 +5823,11 @@ elf_link_add_archive_symbols (bfd *abfd,
- 	  if (h == NULL)
- 	    continue;
+@@ -4521,14 +4526,20 @@ elf_link_add_object_symbols (bfd *abfd,
  
-+	  /* Don't load the archive element after seeing a definition
-+	     in a DT_NEEDED shared object.  */
-+	  if (h->root.as_needed_def_dynamic)
-+	    continue;
-+
- 	  if (h->root.type == bfd_link_hash_undefined)
+ 	  for (p = htab->root.table.table[i]; p != NULL; p = p->next)
  	    {
- 	      /* If the archive element has already been loaded then one
-Only in binutils.orig/: binutils-2.35.1
-diff -rup binutils.orig/include/bfdlink.h binutils-2.35.1/include/bfdlink.h
---- binutils.orig/include/bfdlink.h	2020-10-29 12:46:31.611621137 +0000
-+++ binutils-2.35.1/include/bfdlink.h	2020-10-29 13:07:36.833927443 +0000
-@@ -114,6 +114,9 @@ struct bfd_link_hash_entry
-      as distinct from a LTO IR object file.  */
-   unsigned int non_ir_ref_dynamic : 1;
- 
-+  /* Symbol is defined in a DT_NEEDED dynamic object file.  */
-+  unsigned int as_needed_def_dynamic : 1;
-+
-   /* Symbol is a built-in define.  These will be overridden by PROVIDE
-      in a linker script.  */
-   unsigned int linker_def : 1;
-diff -rup binutils.orig/ld/plugin.c binutils-2.35.1/ld/plugin.c
---- binutils.orig/ld/plugin.c	2020-10-29 12:46:31.878620145 +0000
-+++ binutils-2.35.1/ld/plugin.c	2020-10-29 13:07:19.951989072 +0000
-@@ -794,7 +794,8 @@ get_symbols (const void *handle, int nsy
-       if (blhe->type == bfd_link_hash_undefined
- 	  || blhe->type == bfd_link_hash_undefweak)
- 	{
--	  res = LDPR_UNDEF;
-+	  res = (blhe->as_needed_def_dynamic
-+		 ? LDPR_RESOLVED_DYN : LDPR_UNDEF);
- 	  goto report_symbol;
+-	      memcpy (old_ent, p, htab->root.table.entsize);
+-	      old_ent = (char *) old_ent + htab->root.table.entsize;
+ 	      h = (struct elf_link_hash_entry *) p;
++	      memcpy (old_ent, h, htab->root.table.entsize);
++	      old_ent = (char *) old_ent + htab->root.table.entsize;
+ 	      if (h->root.type == bfd_link_hash_warning)
+ 		{
+-		  memcpy (old_ent, h->root.u.i.link, htab->root.table.entsize);
++		  h = (struct elf_link_hash_entry *) h->root.u.i.link;
++		  memcpy (old_ent, h, htab->root.table.entsize);
+ 		  old_ent = (char *) old_ent + htab->root.table.entsize;
+ 		}
++	      if (h->root.type == bfd_link_hash_common)
++		{
++		  memcpy (old_ent, h->root.u.c.p, sizeof (*h->root.u.c.p));
++		  old_ent = (char *) old_ent + sizeof (*h->root.u.c.p);
++		}
+ 	    }
  	}
-       if (blhe->type != bfd_link_hash_defined
-diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
---- binutils.orig/bfd/elflink.c	2020-10-30 10:31:04.291893073 +0000
-+++ binutils-2.35.1/bfd/elflink.c	2020-10-30 10:48:43.793863465 +0000
-@@ -4970,11 +4970,10 @@ elf_link_add_object_symbols (bfd *abfd,
+     }
+@@ -4899,7 +4910,8 @@ elf_link_add_object_symbols (bfd *abfd,
+ 	}
+ 
+       if (! (_bfd_generic_link_add_one_symbol
+-	     (info, abfd, name, flags, sec, value, NULL, FALSE, bed->collect,
++	     (info, abfd, name, flags, sec, value,
++	      NULL, FALSE, bed->collect,
+ 	      (struct bfd_link_hash_entry **) sym_hash)))
+ 	goto error_free_vers;
+ 
+@@ -4970,11 +4982,10 @@ elf_link_add_object_symbols (bfd *abfd,
  	     object and a shared object.  */
  	  bfd_boolean dynsym = FALSE;
  
@@ -88,7 +62,7 @@ diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
  	    {
  	      if (! definition)
  		{
-@@ -4991,14 +4990,6 @@ elf_link_add_object_symbols (bfd *abfd,
+@@ -4991,14 +5002,6 @@ elf_link_add_object_symbols (bfd *abfd,
  		      h->ref_dynamic = 1;
  		    }
  		}
@@ -103,7 +77,7 @@ diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
  	    }
  	  else
  	    {
-@@ -5012,14 +5003,25 @@ elf_link_add_object_symbols (bfd *abfd,
+@@ -5012,14 +5015,25 @@ elf_link_add_object_symbols (bfd *abfd,
  		  h->def_dynamic = 1;
  		  hi->def_dynamic = 1;
  		}
@@ -136,7 +110,7 @@ diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
  		dynsym = TRUE;
  	    }
  
-@@ -5214,6 +5216,9 @@ elf_link_add_object_symbols (bfd *abfd,
+@@ -5214,6 +5228,9 @@ elf_link_add_object_symbols (bfd *abfd,
  	      && definition
  	      && ((dynsym
  		   && h->ref_regular_nonweak)
@@ -146,14 +120,13 @@ diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
  		  || (h->ref_dynamic_nonweak
  		      && (elf_dyn_lib_class (abfd) & DYN_AS_NEEDED) != 0
  		      && !on_needed_list (elf_dt_name (abfd),
-@@ -5338,55 +5343,33 @@ elf_link_add_object_symbols (bfd *abfd,
+@@ -5338,49 +5355,31 @@ elf_link_add_object_symbols (bfd *abfd,
  	{
  	  struct bfd_hash_entry *p;
  	  struct elf_link_hash_entry *h;
 -	  bfd_size_type size;
 -	  unsigned int alignment_power;
--	  struct elf_link_hash_entry preserved_h;
-+	  unsigned int non_ir_ref_dynamic;
+ 	  unsigned int non_ir_ref_dynamic;
  
  	  for (p = htab->root.table.table[i]; p != NULL; p = p->next)
  	    {
@@ -178,14 +151,13 @@ diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
  	      /* Preserve non_ir_ref_dynamic so that this symbol
  		 will be exported when the dynamic lib becomes needed
  		 in the second pass.  */
--	      preserved_h = *h;
 +	      h = (struct elf_link_hash_entry *) p;
 +	      if (h->root.type == bfd_link_hash_warning)
 +		h = (struct elf_link_hash_entry *) h->root.u.i.link;
-+	      non_ir_ref_dynamic = h->root.non_ir_ref_dynamic;
- 
+ 	      non_ir_ref_dynamic = h->root.non_ir_ref_dynamic;
 -	      memcpy (p, old_ent, htab->root.table.entsize);
 -	      old_ent = (char *) old_ent + htab->root.table.entsize;
++
  	      h = (struct elf_link_hash_entry *) p;
 +	      memcpy (h, old_ent, htab->root.table.entsize);
 +	      old_ent = (char *) old_ent + htab->root.table.entsize;
@@ -206,49 +178,5 @@ diff -rup binutils.orig/bfd/elflink.c binutils-2.35.1/bfd/elflink.c
 +		  memcpy (h->root.u.c.p, old_ent, sizeof (*h->root.u.c.p));
 +		  old_ent = (char *) old_ent + sizeof (*h->root.u.c.p);
  		}
--
--	      h->root.non_ir_ref_dynamic
--		= preserved_h.root.non_ir_ref_dynamic;
--	      h->root.as_needed_def_dynamic |= preserved_h.dynamic_def;
-+	      h->root.non_ir_ref_dynamic = non_ir_ref_dynamic;
+ 	      h->root.non_ir_ref_dynamic = non_ir_ref_dynamic;
  	    }
- 	}
- 
-@@ -5823,11 +5806,6 @@ elf_link_add_archive_symbols (bfd *abfd,
- 	  if (h == NULL)
- 	    continue;
- 
--	  /* Don't load the archive element after seeing a definition
--	     in a DT_NEEDED shared object.  */
--	  if (h->root.as_needed_def_dynamic)
--	    continue;
--
- 	  if (h->root.type == bfd_link_hash_undefined)
- 	    {
- 	      /* If the archive element has already been loaded then one
-diff -rup binutils.orig/include/bfdlink.h binutils-2.35.1/include/bfdlink.h
---- binutils.orig/include/bfdlink.h	2020-10-30 10:31:03.269895974 +0000
-+++ binutils-2.35.1/include/bfdlink.h	2020-10-30 10:47:03.087152957 +0000
-@@ -114,9 +114,6 @@ struct bfd_link_hash_entry
-      as distinct from a LTO IR object file.  */
-   unsigned int non_ir_ref_dynamic : 1;
- 
--  /* Symbol is defined in a DT_NEEDED dynamic object file.  */
--  unsigned int as_needed_def_dynamic : 1;
--
-   /* Symbol is a built-in define.  These will be overridden by PROVIDE
-      in a linker script.  */
-   unsigned int linker_def : 1;
-diff -rup binutils.orig/ld/plugin.c binutils-2.35.1/ld/plugin.c
---- binutils.orig/ld/plugin.c	2020-10-30 10:31:03.357895725 +0000
-+++ binutils-2.35.1/ld/plugin.c	2020-10-30 10:47:23.905093110 +0000
-@@ -794,8 +794,7 @@ get_symbols (const void *handle, int nsy
-       if (blhe->type == bfd_link_hash_undefined
- 	  || blhe->type == bfd_link_hash_undefweak)
- 	{
--	  res = (blhe->as_needed_def_dynamic
--		 ? LDPR_RESOLVED_DYN : LDPR_UNDEF);
-+	  res = LDPR_UNDEF;
- 	  goto report_symbol;
- 	}
-       if (blhe->type != bfd_link_hash_defined

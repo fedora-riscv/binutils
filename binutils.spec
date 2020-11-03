@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -77,6 +77,9 @@ URL: https://sourceware.org/binutils
 # Default: support debuginfod.
 %bcond_without debuginfod
 
+# Use the system supplied version of the zlib compress library.
+# Change this to use the binutils builtin version instead.
+%bcond_without systemzlib
 
 %if %{with bootstrap}
 %undefine with_docs
@@ -550,6 +553,9 @@ function configure_binutils () {
       --with-sysroot=%{_prefix}/$binutils_target/sys-root \
       --program-prefix=%{cross} \
     %endif
+    %if %{with systemzlib}
+      --with-system-zlib \
+    %endif
     %if %{enable_shared}
       --enable-shared \
     %else
@@ -902,6 +908,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Nov 03 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-12
+- Another correction for plugin as-needed patch.  (#1889763)
+
 * Wed Oct 28 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-11
 - Correction for plugin as-needed patch.  (#1889763)
 
