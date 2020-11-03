@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -261,6 +261,7 @@ Patch27: binutils-recursive-debuglink-following.patch
 #            when attempting to determine a type's signedness.
 # Lifetime: Fixed in 2.36
 Patch28: binutils-dwarf-type-sign.patch
+Patch29: binutils-dwarf-type-sign-2.patch
 
 #----------------------------------------------------------------------------
 
@@ -838,6 +839,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Nov 03 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-13
+- Extend  fix erroneous decoding of LEB128 values.  (#1893921)
+
 * Tue Nov 03 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-12
 - Another correction for plugin as-needed patch.  (#1889763)
 
