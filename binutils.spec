@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -262,6 +262,7 @@ Patch27: binutils-recursive-debuglink-following.patch
 # Lifetime: Fixed in 2.36
 Patch28: binutils-dwarf-type-sign.patch
 Patch29: binutils-dwarf-type-sign-2.patch
+Patch30: binutils-dwarf-DW_FORM_ref8.patch
 
 #----------------------------------------------------------------------------
 
@@ -839,8 +840,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Nov 10 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-14
+- Add support for DW_FORM_ref8 when parsing DWARF types.  (#1893921)
+
 * Tue Nov 03 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-13
-- Extend  fix erroneous decoding of LEB128 values.  (#1893921)
+- Extend fix for erroneous decoding of LEB128 values.
 
 * Tue Nov 03 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-12
 - Another correction for plugin as-needed patch.  (#1889763)
