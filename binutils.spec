@@ -453,6 +453,9 @@ popd
 
 #----------------------------------------------------------------------------
 
+# We build in a subdirectory, so redefine _configure so that we find it
+%global _configure ../configure
+
 %build
 function configure_binutils () {
     binutils_target=$1
@@ -539,10 +542,10 @@ function configure_binutils () {
     # binaries may be less convenient in the embedded environment.
     mkdir $binutils_target
     pushd $binutils_target
-    ../configure \
+    %configure \
       --quiet \
       --build=%{_target_platform} --host=%{_target_platform} \
-      --target=%{_target_platform}
+      --target=%{_target_platform} \
     %if %{with gold}
       --enable-gold=default \
     %endif
@@ -698,7 +701,7 @@ function rebuild_and_reinstall_libraries () {
     install -m 644 bfd/libbfd.a %{buildroot}%{_libdir}
     install -m 644 libiberty/libiberty.a %{buildroot}%{_libdir}
     install -m 644 ../include/libiberty.h %{buildroot}%{_prefix}/include
-    install -m 644 ../opcodes/libopcodes.a %{buildroot}%{_libdir}
+    install -m 644 opcodes/libopcodes.a %{buildroot}%{_libdir}
 
     %if %{enable_shared}
     chmod +x %{buildroot}%{_libdir}/lib*.so*
@@ -786,7 +789,7 @@ function fix_headers () {
         -e 's/^#define BFD_HOST_U_64_BIT unsigned \(long \)\?long *$/#define BFD_HOST_U_64_BIT unsigned BFD_HOST_64_BIT/' \
         %{buildroot}%{_prefix}/include/bfd.h
     %endif
-    touch -r bfd/bfd-in2.h %{buildroot}%{_prefix}/include/bfd.h
+    touch -r ../bfd/bfd-in2.h %{buildroot}%{_prefix}/include/bfd.h
     popd
 }
 
@@ -866,7 +869,7 @@ exit 0
 
 #----------------------------------------------------------------------------
 
-%files -f %{?cross}binutils.lang
+%files -f %{binutils_target}/%{?cross}binutils.lang
 %license COPYING COPYING3 COPYING3.LIB COPYING.LIB
 %doc README
 %{_bindir}/%{?cross}[!l]*
