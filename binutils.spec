@@ -1,4 +1,43 @@
 
+# Determine if this is a native build or a cross build.
+#
+# For a cross build add  --define "binutils_target <target>" to the command
+# line when building the rpms.
+#
+# For example:
+#  --define "binutils_target aarch64-linux-gnu"
+#  --define "binutils_target i686-linux-gnu"
+#  --define "binutils_target ppc64le-linux-gnu"
+#  --define "binutils_target s390x-linux-gnu"
+#  --define "binutils_target x86_64-linux-gnu"
+#
+# Cross builds will create a set of binutils that will run on the host
+# machine but which will create binaries suitable for running on the
+# target machine.  The cross tools will have the target name as a prefix.
+# So for example building with --define "binutils_target aarch64-linux-gnu"
+# will create a set of rpms like this:
+#
+#   aarch64-linux-gnu-binutils-2.35.1-14.fc34.x86_64.rpm
+#   aarch64-linux-gnu-binutils-debuginfo-2.35.1-14.fc34.x86_64.rpm
+#   [etc]
+#
+# and these rpms will contain files like:
+#
+#   /usr/bin/aarch64-linux-gnu-addr2line
+#   /usr/bin/aarch64-linux-gnu-ar
+#   /usr/bin/aarch64-linux-gnu-as
+#   [etc]
+
+%if 0%{!?binutils_target:1}
+%define binutils_target %{_target_platform}
+%define isnative 1
+%define enable_shared 1
+%else
+%define cross %{binutils_target}-
+%define isnative 0
+%define enable_shared 0
+%endif
+
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35.1
@@ -11,8 +50,6 @@ URL: https://sourceware.org/binutils
 # Binutils SPEC file.  Can be invoked with the following parameters to change
 #  the default behaviour:
 
-# --define "binutils_target arm-linux-gnu" to create arm-linux-gnu-binutils.
-#
 # --with bootstrap       Build with minimal dependencies.
 # --with debug           Build without optimizations and without splitting
 #                         the debuginfo into a separate file.
@@ -88,16 +125,6 @@ URL: https://sourceware.org/binutils
 
 %if %{with debug}
 %undefine with_testsuite
-%endif
-
-%if 0%{!?binutils_target:1}
-%define binutils_target %{_target_platform}
-%define isnative 1
-%define enable_shared 1
-%else
-%define cross %{binutils_target}-
-%define isnative 0
-%define enable_shared 0
 %endif
 
 # The opcodes library needs a few functions defined in the bfd
@@ -806,12 +833,14 @@ exit 0
 %{_bindir}/%{?cross}ld.bfd
 
 %if %{with docs}
-%{_mandir}/man1/*
+%{_mandir}/man1/
+%if %{isnative}
 %{_infodir}/as.info.*
 %{_infodir}/binutils.info.*
 %{_infodir}/gprof.info.*
 %{_infodir}/ld.info.*
 %{_infodir}/bfd.info.*
+%endif
 %endif
 
 %if %{enable_shared}
