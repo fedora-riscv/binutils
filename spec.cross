@@ -1,0 +1,93 @@
+
+# Note - this is an rpm spec file, but it has been renamed in order to avoid
+# conflict with the real binutils.spec file.
+#
+# Its only use is intened to be to build a cross-binutils rpm by installing it
+# into an rpmbuild tree where the binutils source rpm has already been placed.
+# It should be run as:
+#
+#    rpmbuild -bb spec.cross
+
+Summary: A meta collection of GNU binutils for cross builds
+Name: cross-binutils
+
+# Note: KEEP THE Version and Release FIELDS IN SYNC WITH binutils.spec
+Version: 2.35.1
+Release: 14%{?dist}
+
+License: GPLv3+
+URL: https://sourceware.org/binutils
+
+Source: binutils.spec
+
+Provides: bundled(libiberty)
+
+BuildRequires: autoconf automake
+BuildRequires: perl, sed, coreutils
+BuildRequires: gcc
+BuildRequires: gettext, flex, zlib-devel
+BuildRequires: findutils
+BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc
+BuildRequires: elfutils-debuginfod-client-devel
+BuildRequires: rpm-build
+
+Requires(post): %{_sbindir}/alternatives
+Requires(post): coreutils
+Requires(preun): %{_sbindir}/alternatives
+
+#----------------------------------------------------------------------------
+
+%description
+Provides a collection of cross built binutils for the targets
+supported by RHEL (aarch64, i686, ppc64le, s390x).
+
+#----------------------------------------------------------------------------
+
+%prep
+
+#----------------------------------------------------------------------------
+
+%build
+
+rpmbuild -bb --define "binutils_target aarch64-linux-gnu" ../SPECS/binutils.spec --without testsuite
+rpmbuild -bb --define "binutils_target i686-linux-gnu"    ../SPECS/binutils.spec --without testsuite
+rpmbuild -bb --define "binutils_target ppc64le-linux-gnu" ../SPECS/binutils.spec --without testsuite
+rpmbuild -bb --define "binutils_target s390x-linux-gnu"   ../SPECS/binutils.spec --without testsuite
+
+rpm2cpio %{_builddir}/../RPMS/aarch64-linux-gnu-binutils-%{version}-%{release}.%{_arch}.rpm | cpio -idmv
+rpm2cpio %{_builddir}/../RPMS/i686-linux-gnu-binutils-%{version}-%{release}.%{_arch}.rpm    | cpio -idmv
+rpm2cpio %{_builddir}/../RPMS/ppc64le-linux-gnu-binutils-%{version}-%{release}.%{_arch}.rpm | cpio -idmv
+rpm2cpio %{_builddir}/../RPMS/s390x-linux-gnu-binutils-%{version}-%{release}.%{_arch}.rpm   | cpio -idmv
+
+#----------------------------------------------------------------------------
+
+%install
+
+echo "bindir is %{_bindir}"
+mkdir -p ../BUILDROOT/cross-binutils-%{version}-%{release}.%{_arch}/usr/bin
+mv usr/bin/* ../BUILDROOT/cross-binutils-%{version}-%{release}.%{_arch}/usr/bin
+
+#----------------------------------------------------------------------------
+
+%post
+
+#----------------------------------------------------------------------------
+
+%preun
+
+#----------------------------------------------------------------------------
+
+%postun
+
+#----------------------------------------------------------------------------
+
+%files 
+%{_bindir}/aarch64-linux-gnu-*
+%{_bindir}/i686-linux-gnu-*
+%{_bindir}/ppc64le-linux-gnu-*
+%{_bindir}/s390x-linux-gnu-*
+
+#----------------------------------------------------------------------------
+%changelog
+* Wed Nov 11 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-14
+- First release of cross binutils rpm.
