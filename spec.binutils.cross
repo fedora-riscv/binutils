@@ -6,12 +6,12 @@
 # into an rpmbuild tree where the binutils source rpm has already been placed.
 # It should be run as:
 #
-#    rpmbuild -bb spec.cross
+#    rpmbuild -bb spec.binutils.cross
 
-Summary: A meta collection of GNU binutils for cross builds
+Summary: A meta collection of GNU binutils executables for cross builds
 Name: cross-binutils
 
-# Note: KEEP THE Version and Release FIELDS IN SYNC WITH binutils.spec
+# Note: KEEP THE Version and Release fields IN SYNC with binutils.spec
 Version: 2.35.1
 Release: 14%{?dist}
 
@@ -20,7 +20,7 @@ URL: https://sourceware.org/binutils
 
 Source: binutils.spec
 
-Provides: bundled(libiberty)
+# Provides: bundled(libiberty)
 
 BuildRequires: autoconf automake
 BuildRequires: perl, sed, coreutils
@@ -41,6 +41,9 @@ Requires(preun): %{_sbindir}/alternatives
 Provides a collection of cross built binutils for the targets
 supported by RHEL (aarch64, i686, ppc64le, s390x).
 
+# Note - this list assumes that we are building on an x86_64-linux-gnu host.
+%define arch_list aarch64-linux-gnu i686-linux-gnu ppc64le-linux-gnu s390x-linux-gnu
+
 #----------------------------------------------------------------------------
 
 %prep
@@ -49,35 +52,35 @@ supported by RHEL (aarch64, i686, ppc64le, s390x).
 
 %build
 
-rpmbuild -bb --define "binutils_target aarch64-linux-gnu" ../SPECS/binutils.spec --without testsuite
-rpmbuild -bb --define "binutils_target i686-linux-gnu"    ../SPECS/binutils.spec --without testsuite
-rpmbuild -bb --define "binutils_target ppc64le-linux-gnu" ../SPECS/binutils.spec --without testsuite
-rpmbuild -bb --define "binutils_target s390x-linux-gnu"   ../SPECS/binutils.spec --without testsuite
+# Build each set of cross binutils individually.
 
-rpm2cpio %{_builddir}/../RPMS/aarch64-linux-gnu-binutils-%{version}-%{release}.%{_arch}.rpm | cpio -idmv
-rpm2cpio %{_builddir}/../RPMS/i686-linux-gnu-binutils-%{version}-%{release}.%{_arch}.rpm    | cpio -idmv
-rpm2cpio %{_builddir}/../RPMS/ppc64le-linux-gnu-binutils-%{version}-%{release}.%{_arch}.rpm | cpio -idmv
-rpm2cpio %{_builddir}/../RPMS/s390x-linux-gnu-binutils-%{version}-%{release}.%{_arch}.rpm   | cpio -idmv
+for f in %{arch_list}; do
+  rpmbuild -bb --define "binutils_target $f" %{_specdir}/binutils.spec --without testsuite 
+done
+
+# Then unpack them ...
+# FIXME: There are two possible destinations for built rpms...
+# FIXME: Handle this more cleanly than the duplicated for loops below.
+
+if [ -d %{_rpmdir}/%{_arch} ] ; then
+  for f in %{arch_list}; do
+    rpm2cpio %{_rpmdir}/%{_arch}/$f-binutils-%{version}-%{release}.%{_arch}.rpm | cpio -idmv
+  done
+else
+  for f in %{arch_list}; do
+    rpm2cpio %{_rpmdir}/$f-binutils-%{version}-%{release}.%{_arch}.rpm | cpio -idmv
+  done
+fi
 
 #----------------------------------------------------------------------------
 
 %install
 
-echo "bindir is %{_bindir}"
-mkdir -p ../BUILDROOT/cross-binutils-%{version}-%{release}.%{_arch}/usr/bin
-mv usr/bin/* ../BUILDROOT/cross-binutils-%{version}-%{release}.%{_arch}/usr/bin
+# Take all of the unpacked executables and put them together in one place.
+# FIXME: This ought to make use of %%{_bindir}
 
-#----------------------------------------------------------------------------
-
-%post
-
-#----------------------------------------------------------------------------
-
-%preun
-
-#----------------------------------------------------------------------------
-
-%postun
+mkdir -p     %{_buildrootdir}/cross-binutils-%{version}-%{release}.%{_arch}/usr/bin
+mv usr/bin/* %{_buildrootdir}/cross-binutils-%{version}-%{release}.%{_arch}/usr/bin
 
 #----------------------------------------------------------------------------
 
