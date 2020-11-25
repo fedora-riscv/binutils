@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -142,6 +142,9 @@ Source: https://ftp.gnu.org/gnu/binutils/binutils-%%{version}.tar.xz
 Source2: binutils-2.19.50.0.1-output-format.sed
 
 #----------------------------------------------------------------------------
+
+Patch00: binutils-2.35.1-update.patch
+
 
 # Purpose:  Use /lib64 and /usr/lib64 instead of /lib and /usr/lib in the
 #           default library search path of 64-bit targets.
@@ -273,7 +276,7 @@ Patch24: binutils-strip-merge.patch
 
 # Purpose:  Fix various problems with the PowerPC arch10 extensions.
 # Lifetime: Fixed in 2.36
-Patch25: binutils-Power10-fixes.patch
+# Patch25: binutils-Power10-fixes.patch
 
 # Purpose:  Allow plugin syms to mark as-needed shared libs needed.
 # Lifetime: Fixed in 2.36
@@ -286,9 +289,9 @@ Patch27: binutils-recursive-debuglink-following.patch
 # Purpose:  Fix the DWARF parser to skip DW_FORM_ref_addr types
 #            when attempting to determine a type's signedness.
 # Lifetime: Fixed in 2.36
-Patch28: binutils-dwarf-type-sign.patch
-Patch29: binutils-dwarf-type-sign-2.patch
-Patch30: binutils-dwarf-DW_FORM_ref8.patch
+# Patch28: binutils-dwarf-type-sign.patch
+# Patch29: binutils-dwarf-type-sign-2.patch
+# Patch30: binutils-dwarf-DW_FORM_ref8.patch
 
 #----------------------------------------------------------------------------
 
@@ -868,6 +871,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Nov 25 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-15
+- Import fixes added to the 2.35 branch after the 2.35.1 release.
+
 * Tue Nov 10 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-14
 - Add support for DW_FORM_ref8 when parsing DWARF types.  (#1893921)
 
