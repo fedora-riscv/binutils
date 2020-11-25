@@ -6,22 +6,19 @@
 #
 # For example:
 #  --define "binutils_target aarch64-linux-gnu"
-#  --define "binutils_target i686-linux-gnu"
-#  --define "binutils_target ppc64le-linux-gnu"
-#  --define "binutils_target s390x-linux-gnu"
-#  --define "binutils_target x86_64-linux-gnu"
 #
-# Cross builds will create a set of binutils that will run on the host
-# machine but which will create binaries suitable for running on the
-# target machine.  The cross tools will have the target name as a prefix.
-# So for example building with --define "binutils_target aarch64-linux-gnu"
-# will create a set of rpms like this:
+# Cross builds will create a set of binutils executables that will run on the
+# host machine but which will create binaries suitable for running on the
+# target machine.  The cross tools will have the target name as a prefix,
+# but for compatibility with the kernel the rpms will use the target name
+# as an infix.  So for example building with the above define will create a
+# set of rpms like this:
 #
-#   aarch64-linux-gnu-binutils-2.35.1-14.fc34.x86_64.rpm
-#   aarch64-linux-gnu-binutils-debuginfo-2.35.1-14.fc34.x86_64.rpm
+#   binutils-aarch64-linux-gnu-2.35.1-14.fc34.x86_64.rpm
+#   binutils-aarch64-linux-gnu-debuginfo-2.35.1-14.fc34.x86_64.rpm
 #   [etc]
 #
-# and these rpms will contain files like:
+# and the rpms will contain files like:
 #
 #   /usr/bin/aarch64-linux-gnu-addr2line
 #   /usr/bin/aarch64-linux-gnu-ar
@@ -34,12 +31,13 @@
 %define enable_shared 1
 %else
 %define cross %{binutils_target}-
+%define name_cross -%{binutils_target}
 %define isnative 0
 %define enable_shared 0
 %endif
 
 Summary: A GNU collection of binary utilities
-Name: %{?cross}binutils%{?_with_debug:-debug}
+Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
 Release: 14%{?dist}
 License: GPLv3+
@@ -54,6 +52,7 @@ URL: https://sourceware.org/binutils
 # --with debug           Build without optimizations and without splitting
 #                         the debuginfo into a separate file.
 # --without docs         Skip building documentation.
+#                         Default is with docs, except when building a cross binutils.
 # --without testsuite    Do not run the testsuite.  Default is to run it.
 # --without gold         Disable building of the GOLD linker.
 # --with clang           To force building with the CLANG.
@@ -557,8 +556,8 @@ autoconf
 popd
 
 
-# We could optimize the cross builds size by --enable-shared but the produced
-# binaries may be less convenient in the embedded environment.
+# We could improve the cross build's size by setting --enable-shared but
+# the produced binaries may be less convenient in the embedded environment.
 %configure \
   --quiet \
   --build=%{_target_platform} --host=%{_target_platform} \

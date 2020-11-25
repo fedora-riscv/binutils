@@ -2,7 +2,7 @@
 # Note - this is an rpm spec file, but it has been renamed in order to avoid
 # conflict with the real binutils.spec file.
 #
-# Its only use is intened to be to build a cross-binutils rpm by installing it
+# Its only use is to build a set of cross-binutils rpms by installing it
 # into an rpmbuild tree where the binutils source rpm has already been placed.
 # It should be run as:
 #
@@ -58,37 +58,13 @@ for f in %{arch_list}; do
   rpmbuild -bb --define "binutils_target $f" %{_specdir}/binutils.spec --without testsuite 
 done
 
-# Then unpack them ...
-# FIXME: There are two possible destinations for built rpms...
-# FIXME: Handle this more cleanly than the duplicated for loops below.
-
-if [ -d %{_rpmdir}/%{_arch} ] ; then
-  for f in %{arch_list}; do
-    rpm2cpio %{_rpmdir}/%{_arch}/$f-binutils-%{version}-%{release}.%{_arch}.rpm | cpio -idmv
-  done
-else
-  for f in %{arch_list}; do
-    rpm2cpio %{_rpmdir}/$f-binutils-%{version}-%{release}.%{_arch}.rpm | cpio -idmv
-  done
-fi
-
 #----------------------------------------------------------------------------
 
 %install
 
-# Take all of the unpacked executables and put them together in one place.
-# FIXME: This ought to make use of %%{_bindir}
-
-mkdir -p     %{_buildrootdir}/cross-binutils-%{version}-%{release}.%{_arch}/usr/bin
-mv usr/bin/* %{_buildrootdir}/cross-binutils-%{version}-%{release}.%{_arch}/usr/bin
-
 #----------------------------------------------------------------------------
 
 %files 
-%{_bindir}/aarch64-linux-gnu-*
-%{_bindir}/i686-linux-gnu-*
-%{_bindir}/ppc64le-linux-gnu-*
-%{_bindir}/s390x-linux-gnu-*
 
 #----------------------------------------------------------------------------
 %changelog
