@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -871,6 +871,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Nov 26 2020 Florian Weimer <fweimer@redhat.com> - 2.35.1-16
+- NVR bump for toolchain rebuild
+
 * Wed Nov 25 2020 Nick Clifton  <nickc@redhat.com> - 2.35.1-15
 - Import fixes added to the 2.35 branch after the 2.35.1 release.
 
