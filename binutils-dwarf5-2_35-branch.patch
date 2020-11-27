@@ -1,0 +1,3376 @@
+From ed345be7d8667fbdac3a6a84ba6996b9386ad53f Mon Sep 17 00:00:00 2001
+From: Nick Clifton <nickc@redhat.com>
+Date: Tue, 25 Aug 2020 14:00:42 +0100
+Subject: [PATCH 01/19] Backport patches from the mainline to fix bugs in the
+ assembler's support for DWARF-5.
+
+	2020-08-04  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf2dbg.c (out_debug_abbrev): When DWARF2_VERSION >= 4, use
+	DW_FORM_udata for DW_AT_high_pc.
+	(out_debug_info): Use emit_leb128_expr for DW_AT_high_pc, when
+	DWARF2_VERSION >= 4.
+	* read.c (emit_leb128_exp): No longer static.
+	* read.h (emit_leb128_exp): Define.
+
+	2020-08-02  Mark Wielaard  <mark@klomp.org>
+
+	* gas/dwarf2dbg.c (out_dir_and_file_list): For DWARF5 emit at
+	least one directory if there is at least one file. Use dirs[1]
+	if dirs[0] is not set, or if there is no dirs[1] the current
+	working directory. Use files[1] filename, when files[0] filename
+	isn't set.
+
+	2020-08-02  Mark Wielaard  <mark@klomp.org>
+
+	* dwarf2dbg.c (out_debug_info): Emit unit type and abbrev offset
+	for DWARF5.
+	* gas/testsuite/gas/elf/dwarf-4-cu.d: New file.
+	* gas/testsuite/gas/elf/dwarf-4-cu.s: Likewise.
+	* gas/testsuite/gas/elf/dwarf-5-cu.d: Likewise.
+	* gas/testsuite/gas/elf/dwarf-5-cu.s: Likewise.
+	* testsuite/gas/elf/elf.exp: Run dwarf-4-cu and dwarf-5-cu.
+
+(cherry picked from commit 3b38ef6c319d7f6fcda106f529aaeca843fdb4c1)
+---
+ gas/ChangeLog                      | 30 +++++++++++++++
+ gas/dwarf2dbg.c                    | 61 +++++++++++++++++++++++-------
+ gas/read.c                         |  2 +-
+ gas/read.h                         |  1 +
+ gas/testsuite/gas/elf/dwarf-4-cu.d | 11 ++++++
+ gas/testsuite/gas/elf/dwarf-4-cu.s | 14 +++++++
+ gas/testsuite/gas/elf/dwarf-5-cu.d | 11 ++++++
+ gas/testsuite/gas/elf/dwarf-5-cu.s | 14 +++++++
+ gas/testsuite/gas/elf/elf.exp      |  2 +
+ 9 files changed, 131 insertions(+), 15 deletions(-)
+ create mode 100644 gas/testsuite/gas/elf/dwarf-4-cu.d
+ create mode 100644 gas/testsuite/gas/elf/dwarf-4-cu.s
+ create mode 100644 gas/testsuite/gas/elf/dwarf-5-cu.d
+ create mode 100644 gas/testsuite/gas/elf/dwarf-5-cu.s
+
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index c2dd3146362..3b0f925da60 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,33 @@
++2020-08-25  Nick Clifton  <nickc@redhat.com>
++
++	Backport from mainline:
++	2020-08-04  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf2dbg.c (out_debug_abbrev): When DWARF2_VERSION >= 4, use
++	DW_FORM_udata for DW_AT_high_pc.
++	(out_debug_info): Use emit_leb128_expr for DW_AT_high_pc, when
++	DWARF2_VERSION >= 4.
++	* read.c (emit_leb128_exp): No longer static.
++	* read.h (emit_leb128_exp): Define.
++
++	2020-08-02  Mark Wielaard  <mark@klomp.org>
++
++	* gas/dwarf2dbg.c (out_dir_and_file_list): For DWARF5 emit at
++	least one directory if there is at least one file. Use dirs[1]
++	if dirs[0] is not set, or if there is no dirs[1] the current
++	working directory. Use files[1] filename, when files[0] filename
++	isn't set.
++
++	2020-08-02  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf2dbg.c (out_debug_info): Emit unit type and abbrev offset
++	for DWARF5.
++	* gas/testsuite/gas/elf/dwarf-4-cu.d: New file.
++	* gas/testsuite/gas/elf/dwarf-4-cu.s: Likewise.
++	* gas/testsuite/gas/elf/dwarf-5-cu.d: Likewise.
++	* gas/testsuite/gas/elf/dwarf-5-cu.s: Likewise.
++	* testsuite/gas/elf/elf.exp: Run dwarf-4-cu and dwarf-5-cu.
++
+ 2020-07-24  Nick Clifton  <nickc@redhat.com>
+ 
+ 	2.35 Release:
+diff --git a/gas/dwarf2dbg.c b/gas/dwarf2dbg.c
+index 69955fea5bf..a95c29736f0 100644
+--- a/gas/dwarf2dbg.c
++++ b/gas/dwarf2dbg.c
+@@ -1992,18 +1992,29 @@ out_dir_and_file_list (void)
+ 	 the .debug_line_str section and reference them here.  */
+       out_uleb128 (DW_FORM_string);
+ 
+-      /* Now state how many rows there are in the table.  */
+-      out_uleb128 (dirs_in_use);
++      /* Now state how many rows there are in the table.  We need at
++	 least 1 if there is one or more file names to store the
++	 "working directory".  */
++      if (dirs_in_use == 0 && files_in_use > 0)
++	out_uleb128 (1);
++      else
++	out_uleb128 (dirs_in_use);
+     }
+       
+   /* Emit directory list.  */
+-  if (DWARF2_LINE_VERSION >= 5 && dirs_in_use > 0)
++  if (DWARF2_LINE_VERSION >= 5 && (dirs_in_use > 0 || files_in_use > 0))
+     {
+-      if (dirs == NULL || dirs[0] == NULL)
+-	dir = remap_debug_filename (".");
+-      else
++      /* DWARF5 uses slot zero, but that is only set explicitly
++	 using a .file 0 directive.  If that isn't used, but dir
++	 one is used, then use that as main file directory.
++	 Otherwise use pwd as main file directory.  */
++      if (dirs_in_use > 0 && dirs != NULL && dirs[0] != NULL)
+ 	dir = remap_debug_filename (dirs[0]);
+-	
++      else if (dirs_in_use > 1 && dirs != NULL && dirs[1] != NULL)
++	dir = remap_debug_filename (dirs[1]);
++      else
++	dir = remap_debug_filename (getpwd ());
++
+       size = strlen (dir) + 1;
+       cp = frag_more (size);
+       memcpy (cp, dir, size);
+@@ -2089,8 +2100,14 @@ out_dir_and_file_list (void)
+ 
+       if (files[i].filename == NULL)
+ 	{
+-	  /* Prevent a crash later, particularly for file 1.  */
+-	  files[i].filename = "";
++	  /* Prevent a crash later, particularly for file 1.  DWARF5
++	     uses slot zero, but that is only set explicitly using a
++	     .file 0 directive.  If that isn't used, but file 1 is,
++	     then use that as main file name.  */
++	  if (DWARF2_LINE_VERSION >= 5 && i == 0 && files_in_use >= 1)
++	      files[0].filename = files[1].filename;
++	  else
++	    files[i].filename = "";
+ 	  if (DWARF2_LINE_VERSION < 5 || i != 0)
+ 	    {
+ 	      as_bad (_("unassigned file number %ld"), (long) i);
+@@ -2427,8 +2444,7 @@ out_debug_abbrev (segT abbrev_seg,
+       if (DWARF2_VERSION < 4)
+ 	out_abbrev (DW_AT_high_pc, DW_FORM_addr);
+       else
+-	out_abbrev (DW_AT_high_pc, (sizeof_address == 4
+-				    ? DW_FORM_data4 : DW_FORM_data8));
++	out_abbrev (DW_AT_high_pc, DW_FORM_udata);
+     }
+   else
+     {
+@@ -2464,12 +2480,26 @@ out_debug_info (segT info_seg, segT abbrev_seg, segT line_seg, segT ranges_seg,
+   /* DWARF version.  */
+   out_two (DWARF2_VERSION);
+ 
+-  /* .debug_abbrev offset */
+-  TC_DWARF2_EMIT_OFFSET (section_symbol (abbrev_seg), sizeof_offset);
++  if (DWARF2_VERSION < 5)
++    {
++      /* .debug_abbrev offset */
++      TC_DWARF2_EMIT_OFFSET (section_symbol (abbrev_seg), sizeof_offset);
++    }
++  else
++    {
++      /* unit (header) type */
++      out_byte (DW_UT_compile);
++    }
+ 
+   /* Target address size.  */
+   out_byte (sizeof_address);
+ 
++  if (DWARF2_VERSION >= 5)
++    {
++      /* .debug_abbrev offset */
++      TC_DWARF2_EMIT_OFFSET (section_symbol (abbrev_seg), sizeof_offset);
++    }
++
+   /* DW_TAG_compile_unit DIE abbrev */
+   out_uleb128 (1);
+ 
+@@ -2497,7 +2527,10 @@ out_debug_info (segT info_seg, segT abbrev_seg, segT line_seg, segT ranges_seg,
+ 	}
+       exp.X_add_symbol = all_segs->text_end;
+       exp.X_add_number = 0;
+-      emit_expr (&exp, sizeof_address);
++      if (DWARF2_VERSION < 4)
++	emit_expr (&exp, sizeof_address);
++      else
++	emit_leb128_expr (&exp, 0);
+     }
+   else
+     {
+diff --git a/gas/read.c b/gas/read.c
+index 8f93c2ba2b4..f192cc16d57 100644
+--- a/gas/read.c
++++ b/gas/read.c
+@@ -5138,7 +5138,7 @@ output_big_leb128 (char *p, LITTLENUM_TYPE *bignum, unsigned int size, int sign)
+ /* Generate the appropriate fragments for a given expression to emit a
+    leb128 value.  SIGN is 1 for sleb, 0 for uleb.  */
+ 
+-static void
++void
+ emit_leb128_expr (expressionS *exp, int sign)
+ {
+   operatorT op = exp->X_op;
+diff --git a/gas/read.h b/gas/read.h
+index 502f3b6f2da..ffcdbb69a7b 100644
+--- a/gas/read.h
++++ b/gas/read.h
+@@ -132,6 +132,7 @@ extern void emit_expr_with_reloc (expressionS *exp, unsigned int nbytes,
+ 				  TC_PARSE_CONS_RETURN_TYPE);
+ extern void emit_expr_fix (expressionS *, unsigned int, fragS *, char *,
+ 			   TC_PARSE_CONS_RETURN_TYPE);
++extern void emit_leb128_expr (expressionS *, int);
+ extern void equals (char *, int);
+ extern void float_cons (int);
+ extern void ignore_rest_of_line (void);
+diff --git a/gas/testsuite/gas/elf/dwarf-4-cu.d b/gas/testsuite/gas/elf/dwarf-4-cu.d
+new file mode 100644
+index 00000000000..85a07390d38
+--- /dev/null
++++ b/gas/testsuite/gas/elf/dwarf-4-cu.d
+@@ -0,0 +1,11 @@
++#as: --gdwarf-4
++#name: DWARF4 CU
++#readelf: -wi
++
++#...
++  Compilation Unit @ offset 0x0:
++   Length:        0x.*
++   Version:       4
++   Abbrev Offset: 0x0
++   Pointer Size:  .
++#pass
+diff --git a/gas/testsuite/gas/elf/dwarf-4-cu.s b/gas/testsuite/gas/elf/dwarf-4-cu.s
+new file mode 100644
+index 00000000000..828f4102a3b
+--- /dev/null
++++ b/gas/testsuite/gas/elf/dwarf-4-cu.s
+@@ -0,0 +1,14 @@
++	.text
++	.file 1 "foo/bar.s"
++	.loc_mark_labels 1
++	.globl foobar
++	.type   foobar, %function
++foobar:
++	.quad   0x1
++	.size foobar, .-foobar
++
++	.globl baz
++	.type  baz, %function
++baz:
++	.quad 0x1
++	.size baz, .-baz
+diff --git a/gas/testsuite/gas/elf/dwarf-5-cu.d b/gas/testsuite/gas/elf/dwarf-5-cu.d
+new file mode 100644
+index 00000000000..839b4b7c77b
+--- /dev/null
++++ b/gas/testsuite/gas/elf/dwarf-5-cu.d
+@@ -0,0 +1,11 @@
++#as: --gdwarf-5
++#name: DWARF5 CU
++#readelf: -wi
++
++#...
++  Compilation Unit @ offset 0x0:
++   Length:        0x.*
++   Version:       5
++   Abbrev Offset: 0x0
++   Pointer Size:  .
++#pass
+diff --git a/gas/testsuite/gas/elf/dwarf-5-cu.s b/gas/testsuite/gas/elf/dwarf-5-cu.s
+new file mode 100644
+index 00000000000..828f4102a3b
+--- /dev/null
++++ b/gas/testsuite/gas/elf/dwarf-5-cu.s
+@@ -0,0 +1,14 @@
++	.text
++	.file 1 "foo/bar.s"
++	.loc_mark_labels 1
++	.globl foobar
++	.type   foobar, %function
++foobar:
++	.quad   0x1
++	.size foobar, .-foobar
++
++	.globl baz
++	.type  baz, %function
++baz:
++	.quad 0x1
++	.size baz, .-baz
+diff --git a/gas/testsuite/gas/elf/elf.exp b/gas/testsuite/gas/elf/elf.exp
+index 86b304ae34f..155f78efa7f 100644
+--- a/gas/testsuite/gas/elf/elf.exp
++++ b/gas/testsuite/gas/elf/elf.exp
+@@ -274,6 +274,8 @@ if { [is_elf_format] } then {
+     run_dump_test "dwarf2-18" $dump_opts
+     run_dump_test "dwarf2-19" $dump_opts
+     run_dump_test "dwarf-5-file0" $dump_opts
++    run_dump_test "dwarf-4-cu" $dump_opts
++    run_dump_test "dwarf-5-cu" $dump_opts
+     run_dump_test "pr25917"
+     run_dump_test "bss"
+     run_dump_test "bad-bss"
+-- 
+2.18.4
+
+From e33fbe54065e18c87642fbe37bfbff66cf1094b8 Mon Sep 17 00:00:00 2001
+From: Nick Clifton <nickc@redhat.com>
+Date: Tue, 25 Aug 2020 15:39:00 +0100
+Subject: [PATCH 02/19] Backport patches from the mainline to fix the handling
+ of DWARF-5 debug information:
+
+binutils* testsuite/binutils-all/readelf.exp (readelf_wi_test): Also
+	recognize DW_LANG_C11.
+
+bfd	*  dwarf2.c (struct dwarf2_debug_file): Add dwarf_rnglists_buffer
+	and dwarf_rnglists_size fields.
+	(dwarf_debug_sections): Add debug_rnglists.
+	(dwarf_debug_section_enum): Likewise.
+	(read_debug_rnglists): New function.
+	(read_rangelist): New function to call either read_ranges or
+	read_rnglists. Rename original function to...
+	(read_ranges): ...this.
+	(read_rnglists): New function.
+
+	* dwarf2.c (read_attribute_value): Handle DW_FORM_data16.
+	(read_formatted_entries): Likewise. And skip zero entry.
+
+(cherry picked from commit f9fe8b9cc552b5af8b768b425b3207921ca95186)
+---
+ bfd/ChangeLog                               |  20 +++
+ bfd/dwarf2.c                                | 147 +++++++++++++++++++-
+ binutils/ChangeLog                          |   8 ++
+ binutils/testsuite/binutils-all/readelf.exp |   2 +-
+ 4 files changed, 172 insertions(+), 5 deletions(-)
+
+diff --git a/bfd/ChangeLog b/bfd/ChangeLog
+index 87cd2916c9f..95dcde567ce 100644
+--- a/bfd/ChangeLog
++++ b/bfd/ChangeLog
+@@ -1,3 +1,23 @@
++2020-08-25  Nick Clifton  <nickc@redhat.com>
++
++	Backport from the mainline:
++	2020-08-25  Mark Wielaard  <mark@klomp.org>
++
++	*  dwarf2.c (struct dwarf2_debug_file): Add dwarf_rnglists_buffer
++	and dwarf_rnglists_size fields.
++	(dwarf_debug_sections): Add debug_rnglists.
++	(dwarf_debug_section_enum): Likewise.
++	(read_debug_rnglists): New function.
++	(read_rangelist): New function to call either read_ranges or
++	read_rnglists. Rename original function to...
++	(read_ranges): ...this.
++	(read_rnglists): New function.
++
++	2020-08-24  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf2.c (read_attribute_value): Handle DW_FORM_data16.
++	(read_formatted_entries): Likewise. And skip zero entry.
++
+ 2020-07-24  Nick Clifton  <nickc@redhat.com>
+ 
+ 	2.35 Release:
+diff --git a/bfd/dwarf2.c b/bfd/dwarf2.c
+index 9ed4a4a2871..b8f0008a10d 100644
+--- a/bfd/dwarf2.c
++++ b/bfd/dwarf2.c
+@@ -130,6 +130,12 @@ struct dwarf2_debug_file
+   /* Length of the loaded .debug_ranges section.  */
+   bfd_size_type dwarf_ranges_size;
+ 
++  /* Pointer to the .debug_rnglists section loaded into memory.  */
++  bfd_byte *dwarf_rnglists_buffer;
++
++  /* Length of the loaded .debug_rnglists section.  */
++  bfd_size_type dwarf_rnglists_size;
++
+   /* A list of all previously read comp_units.  */
+   struct comp_unit *all_comp_units;
+ 
+@@ -327,6 +333,7 @@ const struct dwarf_debug_section dwarf_debug_sections[] =
+   { ".debug_pubnames",		".zdebug_pubnames" },
+   { ".debug_pubtypes",		".zdebug_pubtypes" },
+   { ".debug_ranges",		".zdebug_ranges" },
++  { ".debug_rnglists",		".zdebug_rnglist" },
+   { ".debug_static_func",	".zdebug_static_func" },
+   { ".debug_static_vars",	".zdebug_static_vars" },
+   { ".debug_str",		".zdebug_str", },
+@@ -360,6 +367,7 @@ enum dwarf_debug_section_enum
+   debug_pubnames,
+   debug_pubtypes,
+   debug_ranges,
++  debug_rnglists,
+   debug_static_func,
+   debug_static_vars,
+   debug_str,
+@@ -1329,6 +1337,17 @@ read_attribute_value (struct attribute *  attr,
+       attr->form = DW_FORM_sdata;
+       attr->u.sval = implicit_const;
+       break;
++    case DW_FORM_data16:
++      /* This is really a "constant", but there is no way to store that
++         so pretend it is a 16 byte block instead.  */
++      amt = sizeof (struct dwarf_block);
++      blk = (struct dwarf_block *) bfd_alloc (abfd, amt);
++      if (blk == NULL)
++	return NULL;
++      blk->size = 16;
++      info_ptr = read_n_bytes (info_ptr, info_ptr_end, blk);
++      attr->u.blk = blk;
++      break;
+     default:
+       _bfd_error_handler (_("DWARF error: invalid or unhandled FORM value: %#x"),
+ 			  form);
+@@ -2069,11 +2088,17 @@ read_formatted_entries (struct comp_unit *unit, bfd_byte **bufp,
+ 	    case DW_FORM_udata:
+ 	      *uintp = attr.u.val;
+ 	      break;
++
++	    case DW_FORM_data16:
++	      /* MD5 data is in the attr.blk, but we are ignoring those.  */
++	      break;
+ 	    }
+ 	}
+ 
+-      if (!callback (table, fe.name, fe.dir, fe.time, fe.size))
+-	return FALSE;
++      /* Skip the first "zero entry", which is the compilation dir/file.  */
++      if (datai != 0)
++	if (!callback (table, fe.name, fe.dir, fe.time, fe.size))
++	  return FALSE;
+     }
+ 
+   *bufp = buf;
+@@ -2617,6 +2642,19 @@ read_debug_ranges (struct comp_unit * unit)
+ 		       &file->dwarf_ranges_buffer, &file->dwarf_ranges_size);
+ }
+ 
++/* Read in the .debug_rnglists section for future reference.  */
++
++static bfd_boolean
++read_debug_rnglists (struct comp_unit * unit)
++{
++  struct dwarf2_debug *stash = unit->stash;
++  struct dwarf2_debug_file *file = unit->file;
++
++  return read_section (unit->abfd, &stash->debug_sections[debug_rnglists],
++		       file->syms, 0,
++		       &file->dwarf_rnglists_buffer, &file->dwarf_rnglists_size);
++}
++
+ /* Function table functions.  */
+ 
+ static int
+@@ -3107,8 +3145,8 @@ find_abstract_instance (struct comp_unit *unit,
+ }
+ 
+ static bfd_boolean
+-read_rangelist (struct comp_unit *unit, struct arange *arange,
+-		bfd_uint64_t offset)
++read_ranges (struct comp_unit *unit, struct arange *arange,
++	     bfd_uint64_t offset)
+ {
+   bfd_byte *ranges_ptr;
+   bfd_byte *ranges_end;
+@@ -3153,6 +3191,107 @@ read_rangelist (struct comp_unit *unit, struct arange *arange,
+   return TRUE;
+ }
+ 
++static bfd_boolean
++read_rnglists (struct comp_unit *unit, struct arange *arange,
++	       bfd_uint64_t offset)
++{
++  bfd_byte *rngs_ptr;
++  bfd_byte *rngs_end;
++  bfd_vma base_address = unit->base_address;
++  bfd_vma low_pc;
++  bfd_vma high_pc;
++  bfd *abfd = unit->abfd;
++
++  if (! unit->file->dwarf_rnglists_buffer)
++    {
++      if (! read_debug_rnglists (unit))
++	return FALSE;
++    }
++
++  rngs_ptr = unit->file->dwarf_rnglists_buffer + offset;
++  if (rngs_ptr < unit->file->dwarf_rnglists_buffer)
++    return FALSE;
++  rngs_end = unit->file->dwarf_rnglists_buffer;
++  rngs_end +=  unit->file->dwarf_rnglists_size;
++
++  for (;;)
++    {
++      enum dwarf_range_list_entry rlet;
++      unsigned int bytes_read;
++
++      if (rngs_ptr + 1 > rngs_end)
++	return FALSE;
++
++      rlet = read_1_byte (abfd, rngs_ptr, rngs_end);
++      rngs_ptr++;
++
++      switch (rlet)
++	{
++	case DW_RLE_end_of_list:
++	  return TRUE;
++
++	case DW_RLE_base_address:
++	  if (rngs_ptr + unit->addr_size > rngs_end)
++	    return FALSE;
++	  base_address = read_address (unit, rngs_ptr, rngs_end);
++	  rngs_ptr += unit->addr_size;
++	  continue;
++
++	case DW_RLE_start_length:
++	  if (rngs_ptr + unit->addr_size > rngs_end)
++	    return FALSE;
++	  low_pc = read_address (unit, rngs_ptr, rngs_end);
++	  rngs_ptr += unit->addr_size;
++	  high_pc = low_pc;
++	  high_pc += _bfd_safe_read_leb128 (abfd, rngs_ptr, &bytes_read,
++					    FALSE, rngs_end);
++	  rngs_ptr += bytes_read;
++	  break;
++
++	case DW_RLE_offset_pair:
++	  low_pc = base_address;
++	  low_pc += _bfd_safe_read_leb128 (abfd, rngs_ptr, &bytes_read,
++					   FALSE, rngs_end);
++	  high_pc = base_address;
++	  high_pc += _bfd_safe_read_leb128 (abfd, rngs_ptr, &bytes_read,
++					    FALSE, rngs_end);
++	  break;
++
++	case DW_RLE_start_end:
++	  if (rngs_ptr + 2 * unit->addr_size > rngs_end)
++	    return FALSE;
++	  low_pc = read_address (unit, rngs_ptr, rngs_end);
++	  rngs_ptr += unit->addr_size;
++	  high_pc = read_address (unit, rngs_ptr, rngs_end);
++	  rngs_ptr += unit->addr_size;
++	  break;
++
++	/* TODO x-variants need .debug_addr support used for split-dwarf.  */
++	case DW_RLE_base_addressx:
++	case DW_RLE_startx_endx:
++	case DW_RLE_startx_length:
++	default:
++	  return FALSE;
++	}
++
++      if ((low_pc == 0 && high_pc == 0) || low_pc == high_pc)
++	return FALSE;
++
++      if (!arange_add (unit, arange, low_pc, high_pc))
++	return FALSE;
++    }
++}
++
++static bfd_boolean
++read_rangelist (struct comp_unit *unit, struct arange *arange,
++		bfd_uint64_t offset)
++{
++  if (unit->version <= 4)
++    return read_ranges (unit, arange, offset);
++  else
++    return read_rnglists (unit, arange, offset);
++}
++
+ static struct varinfo *
+ lookup_var_by_offset (bfd_uint64_t offset, struct varinfo * table)
+ {
+diff --git a/binutils/ChangeLog b/binutils/ChangeLog
+index 2b9ac6e792c..432920afec6 100644
+--- a/binutils/ChangeLog
++++ b/binutils/ChangeLog
+@@ -1,3 +1,11 @@
++2020-08-25  Nick Clifton  <nickc@redhat.com>
++
++	Backport from the mainline:
++	2020-08-21  Mark Wielaard  <mark@klomp.org>
++
++	* testsuite/binutils-all/readelf.exp (readelf_wi_test): Also
++	recognize DW_LANG_C11.
++
+ 2020-07-24  Nick Clifton  <nickc@redhat.com>
+ 
+ 	2.35 Release:
+diff --git a/binutils/testsuite/binutils-all/readelf.exp b/binutils/testsuite/binutils-all/readelf.exp
+index 0ca27482229..8a62eeff582 100644
+--- a/binutils/testsuite/binutils-all/readelf.exp
++++ b/binutils/testsuite/binutils-all/readelf.exp
+@@ -188,7 +188,7 @@ proc readelf_wi_test {} {
+ 	".*DW_TAG_subprogram.*"
+ 	".*DW_TAG_base_type.*"
+ 	".*DW_AT_producer.*(GNU C|indirect string).*"
+-	".*DW_AT_language.*ANSI C.*"
++	".*DW_AT_language.*(ANSI C|C11).*"
+ 	".*DW_AT_name.*(testprog.c|indirect string).*"
+ 	".*DW_AT_name.*fn.*"
+ 	".*DW_AT_name.*(main|indirect string).*"
+-- 
+2.18.4
+
+From 563266453d331da81a81dd7607832b1c1caaba8e Mon Sep 17 00:00:00 2001
+From: Nick Clifton <nickc@redhat.com>
+Date: Thu, 3 Sep 2020 15:52:53 +0100
+Subject: [PATCH 03/19] Import a patch from mainline to fix a spurious overflow
+ error when decoding negative LEB128 values.
+
+	PR 26548
+	* dwarf.c (read_leb128): When checking for overflow of a signed
+	read, use a signed shift.
+
+(cherry picked from commit 1f1ded87c9250deb986067eac6d53663f3f69e09)
+---
+ binutils/ChangeLog |  9 +++++++++
+ binutils/dwarf.c   | 28 +++++++++++++++++++++-------
+ 2 files changed, 30 insertions(+), 7 deletions(-)
+
+diff --git a/binutils/ChangeLog b/binutils/ChangeLog
+index 432920afec6..3422233408c 100644
+--- a/binutils/ChangeLog
++++ b/binutils/ChangeLog
+@@ -1,3 +1,12 @@
++2020-09-03  Nick Clifton  <nickc@redhat.com>
++
++	Import from mainline:
++	2020-08-28  Nick Clifton  <nickc@redhat.com>
++
++	PR 26548
++	* dwarf.c (read_leb128): When checking for overflow of a signed
++	read, use a signed shift.
++
+ 2020-08-25  Nick Clifton  <nickc@redhat.com>
+ 
+ 	Backport from the mainline:
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index 80eb7bd0b1b..2b289fe6d1e 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -345,20 +345,34 @@ read_leb128 (unsigned char *data,
+   while (data < end)
+     {
+       unsigned char byte = *data++;
++      bfd_boolean cont = (byte & 0x80) ? TRUE : FALSE;
++
++      byte &= 0x7f;
+       num_read++;
+ 
+       if (shift < sizeof (result) * 8)
+ 	{
+-	  result |= ((dwarf_vma) (byte & 0x7f)) << shift;
+-	  if ((result >> shift) != (byte & 0x7f))
+-	    /* Overflow.  */
+-	    status |= 2;
++	  result |= ((dwarf_vma) byte) << shift;
++	  if (sign)
++	    {
++	      if ((((dwarf_signed_vma) result >> shift) & 0x7f) != byte)
++		/* Overflow.  */
++		status |= 2;
++	    }
++	  else if ((result >> shift) != byte)
++	    {
++	      /* Overflow.  */
++	      status |= 2;
++	    }
++
+ 	  shift += 7;
+ 	}
+-      else if ((byte & 0x7f) != 0)
+-	status |= 2;
++      else if (byte != 0)
++	{
++	  status |= 2;
++	}
+ 
+-      if ((byte & 0x80) == 0)
++      if (!cont)
+ 	{
+ 	  status &= ~1;
+ 	  if (sign && (shift < 8 * sizeof (result)) && (byte & 0x40))
+-- 
+2.18.4
+
+From c14f31b0d348ec98cf887afd640e534f143870a4 Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Wed, 26 Aug 2020 21:46:04 +0200
+Subject: [PATCH 04/19] gas: Handle bad -gdwarf options, just like bad --gdwarf
+ options.
+
+parse_args uses getopt_long_only so it can handle long options both
+with double and single dash. But this means that some single dash
+options like -gdwarf-1 don't generate an error (unlike --gdwarf-1).
+
+This is especially confusing since there is also --gdwarf2, but no
+--gdwarf4 (it is --gdwarf-4). When giving -gdwarf4 the option is
+silently interpreted as -g (which set dwarf_version to 2). This causes
+some confusion for people who don't expect this and suddenly get
+DWARF2 instead of DWARF4 as they might expect.
+
+So make it so that the -gdwarf<unknown> creates an error, just like
+--gdwarf<unknown> would.
+
+(cherry picked from commit a2afee4a2ca4ff0ba15e4b16e7784f4be306f527)
+---
+ gas/ChangeLog | 7 +++++++
+ gas/as.c      | 7 +++++++
+ 2 files changed, 14 insertions(+)
+
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index 3b0f925da60..86741978644 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,10 @@
++2020-09-14  Mark Wielaard  <mark@klomp.org>
++
++	Backport from mainline:
++	2020-08-26  Mark Wielaard  <mark@klomp.org>
++
++	* as.c (parse_args): Handle bad -gdwarf options.
++
+ 2020-08-25  Nick Clifton  <nickc@redhat.com>
+ 
+ 	Backport from mainline:
+diff --git a/gas/as.c b/gas/as.c
+index 79f7b5c184e..6cecdbe0de3 100644
+--- a/gas/as.c
++++ b/gas/as.c
+@@ -823,6 +823,13 @@ This program has absolutely no warranty.\n"));
+ 	      && md_parse_option (optc, optarg))
+ 	    continue;
+ 
++	  /* We end up here for any -gsomething-not-already-a-long-option.
++	     give some useful feedback on not (yet) supported -gdwarfxxx
++	     versions/sections/options.  */
++	  if (strncmp (old_argv[optind - 1], "-gdwarf",
++		       strlen ("-gdwarf")) == 0)
++	    as_fatal (_("unknown DWARF option %s\n"), old_argv[optind - 1]);
++
+ 	  if (md_debug_format_selector)
+ 	    debug_type = md_debug_format_selector (& use_gnu_debug_info_extensions);
+ 	  else if (IS_ELF)
+-- 
+2.18.4
+
+From 9f1d1c826be8d297ae572799024029ba54398d98 Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Tue, 1 Sep 2020 15:29:56 +0200
+Subject: [PATCH 05/19] gas: Use DW_FORM_sec_offset for DWARF version 4 or
+ higher.
+
+Older DWARF versions used DW_FORM_data4 or DW_FORM_data8 for offsets
+into sections for e.g. DW_AT_stmt_list ot DW_AT_ranges. But version 4
+introduced a dedicated form for such section offsets. Make sure to emit
+the proper form for newer DWARF versions.
+
+gas/ChangeLog:
+
+	* dwarf2dbg.c (out_debug_abbrev): Use DW_FORM_sec_offset for DWARF
+	version 4 or higher.
+
+(cherry picked from commit 1e9cc65075eadb4901c10310ca0119d4941f2d5e)
+---
+ gas/ChangeLog   |  8 ++++++++
+ gas/dwarf2dbg.c | 20 +++++++++++---------
+ 2 files changed, 19 insertions(+), 9 deletions(-)
+
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index 86741978644..042880425dc 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,11 @@
++2020-09-14  Mark Wielaard  <mark@klomp.org>
++
++	Backport from mainline:
++	2020-09-01  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf2dbg.c (out_debug_abbrev): Use DW_FORM_sec_offset for DWARF
++	version 4 or higher.
++
+ 2020-09-14  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from mainline:
+diff --git a/gas/dwarf2dbg.c b/gas/dwarf2dbg.c
+index a95c29736f0..50e4dd91fdd 100644
+--- a/gas/dwarf2dbg.c
++++ b/gas/dwarf2dbg.c
+@@ -2429,15 +2429,22 @@ out_debug_abbrev (segT abbrev_seg,
+ 		  segT info_seg ATTRIBUTE_UNUSED,
+ 		  segT line_seg ATTRIBUTE_UNUSED)
+ {
++  int secoff_form;
+   subseg_set (abbrev_seg, 0);
+ 
+   out_uleb128 (1);
+   out_uleb128 (DW_TAG_compile_unit);
+   out_byte (DW_CHILDREN_no);
+-  if (DWARF2_FORMAT (line_seg) == dwarf2_format_32bit)
+-    out_abbrev (DW_AT_stmt_list, DW_FORM_data4);
++  if (DWARF2_VERSION < 4)
++    {
++      if (DWARF2_FORMAT (line_seg) == dwarf2_format_32bit)
++	secoff_form = DW_FORM_data4;
++      else
++	secoff_form = DW_FORM_data8;
++    }
+   else
+-    out_abbrev (DW_AT_stmt_list, DW_FORM_data8);
++    secoff_form = DW_FORM_sec_offset;
++  out_abbrev (DW_AT_stmt_list, secoff_form);
+   if (all_segs->next == NULL)
+     {
+       out_abbrev (DW_AT_low_pc, DW_FORM_addr);
+@@ -2447,12 +2454,7 @@ out_debug_abbrev (segT abbrev_seg,
+ 	out_abbrev (DW_AT_high_pc, DW_FORM_udata);
+     }
+   else
+-    {
+-      if (DWARF2_FORMAT (info_seg) == dwarf2_format_32bit)
+-	out_abbrev (DW_AT_ranges, DW_FORM_data4);
+-      else
+-	out_abbrev (DW_AT_ranges, DW_FORM_data8);
+-    }
++    out_abbrev (DW_AT_ranges, secoff_form);
+   out_abbrev (DW_AT_name, DW_FORM_strp);
+   out_abbrev (DW_AT_comp_dir, DW_FORM_strp);
+   out_abbrev (DW_AT_producer, DW_FORM_strp);
+-- 
+2.18.4
+
+From 4ae2f173a830183d5328d07c1df7d6f3fb510131 Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Mon, 7 Sep 2020 12:08:07 +0100
+Subject: [PATCH 06/19] gas: Make sure to only add an md5 to a .file when
+ requested.
+
+	* dwarf2dbg.c (dwarf2_directive_filename): Initialize with_md5 to
+	FALSE.
+	* gas/testsuite/gas/elf/dwarf-5-file0.s: Add a random bignum.
+
+(cherry picked from commit 3a7d446f108f63e6d1a8cfa07d99e64f06547a6e)
+---
+ gas/ChangeLog                         | 9 +++++++++
+ gas/dwarf2dbg.c                       | 2 +-
+ gas/testsuite/gas/elf/dwarf-5-file0.s | 2 +-
+ 3 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index 042880425dc..951b60a04cd 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,12 @@
++2020-09-14  Mark Wielaard  <mark@klomp.org>
++
++	Backport from mainline:
++	2020-08-28  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf2dbg.c (dwarf2_directive_filename): Initialize with_md5 to
++	FALSE.
++	* gas/testsuite/gas/elf/dwarf-5-file0.s: Add a random bignum.
++
+ 2020-09-14  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from mainline:
+diff --git a/gas/dwarf2dbg.c b/gas/dwarf2dbg.c
+index 50e4dd91fdd..cf15eda767b 100644
+--- a/gas/dwarf2dbg.c
++++ b/gas/dwarf2dbg.c
+@@ -1014,7 +1014,7 @@ dwarf2_emit_label (symbolS *label)
+ char *
+ dwarf2_directive_filename (void)
+ {
+-  bfd_boolean with_md5 = TRUE;
++  bfd_boolean with_md5 = FALSE;
+   valueT num;
+   char *filename;
+   const char * dirname = NULL;
+diff --git a/gas/testsuite/gas/elf/dwarf-5-file0.s b/gas/testsuite/gas/elf/dwarf-5-file0.s
+index 2792ba8c441..9ac15a052bb 100644
+--- a/gas/testsuite/gas/elf/dwarf-5-file0.s
++++ b/gas/testsuite/gas/elf/dwarf-5-file0.s
+@@ -8,7 +8,7 @@
+ 	.file 0 "master directory/master source file"
+ 	.line 1
+ 	.text
+-	.word 0
++	.octa 0x12345678901234567890123456789012
+ 
+ 	.file 1 "secondary directory/secondary source file"
+ 	.line 2
+-- 
+2.18.4
+
+From 9251deb9520fd108afce77ac474cdb2a4a8ceb1e Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Mon, 7 Sep 2020 13:04:45 +0100
+Subject: [PATCH 07/19] gas: Output .debug_rnglists for DWARF 5.
+
+	* dwarf2dbg.c (DWARF2_RNGLISTS_VERSION): New constant.
+	(out_debug_ranges): Add ranges_sym argument and set it.
+	(out_debug_rnglists): New function.
+	(out_debug_info): Change ranges_seg argument to ranges_sym
+	and use it to set DW_AT_ranges value.
+	(dwarf2_finish): Remove ranges_seg, add ranges_sym. For
+	DWARF2_VERSION 5 call out_debug_rnglists.
+
+(cherry picked from commit fe148fc96400dcfa3d14cd143ee9f3f49d2ead79)
+---
+ gas/ChangeLog   | 13 +++++++
+ gas/dwarf2dbg.c | 98 ++++++++++++++++++++++++++++++++++++++++++-------
+ 2 files changed, 98 insertions(+), 13 deletions(-)
+
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index 951b60a04cd..de2a1b2d184 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,16 @@
++2020-09-14  Mark Wielaard  <mark@klomp.org>
++
++	Backport from mainline:
++	2020-09-07  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf2dbg.c (DWARF2_RNGLISTS_VERSION): New constant.
++	(out_debug_ranges): Add ranges_sym argument and set it.
++	(out_debug_rnglists): New function.
++	(out_debug_info): Change ranges_seg argument to ranges_sym
++	and use it to set DW_AT_ranges value.
++	(dwarf2_finish): Remove ranges_seg, add ranges_sym. For
++	DWARF2_VERSION 5 call out_debug_rnglists.
++
+ 2020-09-14  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from mainline:
+diff --git a/gas/dwarf2dbg.c b/gas/dwarf2dbg.c
+index cf15eda767b..f6016ee2ce9 100644
+--- a/gas/dwarf2dbg.c
++++ b/gas/dwarf2dbg.c
+@@ -102,6 +102,11 @@
+ #define DWARF2_LINE_VERSION (dwarf_level > 3 ? dwarf_level : 3)
+ #endif
+ 
++/* The .debug_rnglists has only been in DWARF version 5. */
++#ifndef DWARF2_RNGLISTS_VERSION
++#define DWARF2_RNGLISTS_VERSION 5
++#endif
++
+ #include "subsegs.h"
+ 
+ #include "dwarf2.h"
+@@ -2303,7 +2308,7 @@ out_debug_line (segT line_seg)
+ }
+ 
+ static void
+-out_debug_ranges (segT ranges_seg)
++out_debug_ranges (segT ranges_seg, symbolS **ranges_sym)
+ {
+   unsigned int addr_size = sizeof_address;
+   struct line_seg *s;
+@@ -2313,6 +2318,10 @@ out_debug_ranges (segT ranges_seg)
+   memset (&exp, 0, sizeof exp);
+   subseg_set (ranges_seg, 0);
+ 
++  /* For DW_AT_ranges to point at (there is no header, so really start
++     of section, but see out_debug_rnglists).  */
++  *ranges_sym = symbol_temp_new_now_octets ();
++
+   /* Base Address Entry.  */
+   for (i = 0; i < addr_size; i++)
+     out_byte (0xff);
+@@ -2351,6 +2360,57 @@ out_debug_ranges (segT ranges_seg)
+     out_byte (0);
+ }
+ 
++static void
++out_debug_rnglists (segT ranges_seg, symbolS **ranges_sym)
++{
++  expressionS exp;
++  symbolS *ranges_end;
++  struct line_seg *s;
++
++  /* Unit length.  */
++  memset (&exp, 0, sizeof exp);
++  out_header (ranges_seg, &exp);
++  ranges_end = exp.X_add_symbol;
++
++  out_two (DWARF2_RNGLISTS_VERSION);
++  out_byte (sizeof_address);
++  out_byte (0); /* Segment Selector size.  */
++  out_four (0); /* Offset entry count.  */
++
++  /* For DW_AT_ranges to point at (must be after the header).   */
++  *ranges_sym = symbol_temp_new_now_octets ();
++
++  for (s = all_segs; s; s = s->next)
++    {
++      fragS *frag;
++      symbolS *beg, *end;
++
++      out_byte (DW_RLE_start_length);
++
++      frag = first_frag_for_seg (s->seg);
++      beg = symbol_temp_new (s->seg, 0, frag);
++      s->text_start = beg;
++
++      frag = last_frag_for_seg (s->seg);
++      end = symbol_temp_new (s->seg, get_frag_fix (frag, s->seg), frag);
++      s->text_end = end;
++
++      exp.X_op = O_symbol;
++      exp.X_add_symbol = beg;
++      exp.X_add_number = 0;
++      emit_expr (&exp, sizeof_address);
++
++      exp.X_op = O_symbol;
++      exp.X_add_symbol = end;
++      exp.X_add_number = 0;
++      emit_leb128_expr (&exp, 0);
++    }
++
++  out_byte (DW_RLE_end_of_list);
++
++  symbol_set_value_now (ranges_end);
++}
++
+ /* Emit data for .debug_aranges.  */
+ 
+ static void
+@@ -2468,8 +2528,9 @@ out_debug_abbrev (segT abbrev_seg,
+ /* Emit a description of this compilation unit for .debug_info.  */
+ 
+ static void
+-out_debug_info (segT info_seg, segT abbrev_seg, segT line_seg, segT ranges_seg,
+-		symbolS *name_sym, symbolS *comp_dir_sym, symbolS *producer_sym)
++out_debug_info (segT info_seg, segT abbrev_seg, segT line_seg,
++		symbolS *ranges_sym, symbolS *name_sym,
++		symbolS *comp_dir_sym, symbolS *producer_sym)
+ {
+   expressionS exp;
+   symbolS *info_end;
+@@ -2538,7 +2599,7 @@ out_debug_info (segT info_seg, segT abbrev_seg, segT line_seg, segT ranges_seg,
+     {
+       /* This attribute is emitted if the code is disjoint.  */
+       /* DW_AT_ranges.  */
+-      TC_DWARF2_EMIT_OFFSET (section_symbol (ranges_seg), sizeof_offset);
++      TC_DWARF2_EMIT_OFFSET (ranges_sym, sizeof_offset);
+     }
+ 
+   /* DW_AT_name, DW_AT_comp_dir and DW_AT_producer.  Symbols in .debug_str
+@@ -2703,9 +2764,8 @@ dwarf2_finish (void)
+     {
+       segT abbrev_seg;
+       segT aranges_seg;
+-      segT ranges_seg;
+       segT str_seg;
+-      symbolS *name_sym, *comp_dir_sym, *producer_sym;
++      symbolS *name_sym, *comp_dir_sym, *producer_sym, *ranges_sym;
+ 
+       gas_assert (all_segs);
+ 
+@@ -2728,20 +2788,32 @@ dwarf2_finish (void)
+       record_alignment (aranges_seg, ffs (2 * sizeof_address) - 1);
+ 
+       if (all_segs->next == NULL)
+-	ranges_seg = NULL;
++	ranges_sym = NULL;
+       else
+ 	{
+-	  ranges_seg = subseg_new (".debug_ranges", 0);
+-	  bfd_set_section_flags (ranges_seg,
+-				 SEC_READONLY | SEC_DEBUGGING | SEC_OCTETS);
+-	  record_alignment (ranges_seg, ffs (2 * sizeof_address) - 1);
+-	  out_debug_ranges (ranges_seg);
++	  if (DWARF2_VERSION < 5)
++	    {
++	      segT ranges_seg = subseg_new (".debug_ranges", 0);
++	      bfd_set_section_flags (ranges_seg, (SEC_READONLY
++						  | SEC_DEBUGGING
++						  | SEC_OCTETS));
++	      record_alignment (ranges_seg, ffs (2 * sizeof_address) - 1);
++	      out_debug_ranges (ranges_seg, &ranges_sym);
++	    }
++	  else
++	    {
++	      segT rnglists_seg = subseg_new (".debug_rnglists", 0);
++	      bfd_set_section_flags (rnglists_seg, (SEC_READONLY
++						    | SEC_DEBUGGING
++						    | SEC_OCTETS));
++	      out_debug_rnglists (rnglists_seg, &ranges_sym);
++	    }
+ 	}
+ 
+       out_debug_aranges (aranges_seg, info_seg);
+       out_debug_abbrev (abbrev_seg, info_seg, line_seg);
+       out_debug_str (str_seg, &name_sym, &comp_dir_sym, &producer_sym);
+-      out_debug_info (info_seg, abbrev_seg, line_seg, ranges_seg,
++      out_debug_info (info_seg, abbrev_seg, line_seg, ranges_sym,
+ 		      name_sym, comp_dir_sym, producer_sym);
+     }
+ }
+-- 
+2.18.4
+
+From b9a18facd345e7418c8bef50553ba6d39b73d411 Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Mon, 7 Sep 2020 14:03:20 +0100
+Subject: [PATCH 08/19] gas: Output directory and file names in .debug_line_str
+ for DWARF5
+
+	* dwarf2dbg.c (add_line_strp): New function.
+	(out_dir_and_file_list): Take line_seg and sizeof_offset as
+	arguments, Use DW_FORM_line_strp for dir and file. Call
+	add_line_strp and set symbol offset for DWARF2_LINE_VERSION 5.
+	(out_debug_line): Call out_dir_and_file_list with line_seg and
+	sizeof_offset.
+	* gas/testsuite/gas/elf/dwarf-5-file0.d: Expect indirect line
+	strings.
+
+(cherry picked from commit b5693f7d5c334b4c25ef557974a58414b0279471)
+---
+ gas/ChangeLog                         | 14 +++++
+ gas/dwarf2dbg.c                       | 82 +++++++++++++++++++++------
+ gas/testsuite/gas/elf/dwarf-5-file0.d | 12 ++--
+ 3 files changed, 85 insertions(+), 23 deletions(-)
+
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index de2a1b2d184..947e355d763 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,17 @@
++2020-09-14  Mark Wielaard  <mark@klomp.org>
++
++	Backport from mainline:
++	2020-09-07  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf2dbg.c (add_line_strp): New function.
++	(out_dir_and_file_list): Take line_seg and sizeof_offset as
++	arguments, Use DW_FORM_line_strp for dir and file. Call
++	add_line_strp and set symbol offset for DWARF2_LINE_VERSION 5.
++	(out_debug_line): Call out_dir_and_file_list with line_seg and
++	sizeof_offset.
++	* gas/testsuite/gas/elf/dwarf-5-file0.d: Expect indirect line
++	strings.
++
+ 2020-09-14  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from mainline:
+diff --git a/gas/dwarf2dbg.c b/gas/dwarf2dbg.c
+index f6016ee2ce9..7ea315abc8e 100644
+--- a/gas/dwarf2dbg.c
++++ b/gas/dwarf2dbg.c
+@@ -1972,10 +1972,32 @@ process_entries (segT seg, struct line_entry *e)
+     }
+ }
+ 
++/* Switch to LINE_STR_SEG and output the given STR.  Return the
++   symbol pointing to the new string in the section.  */
++
++static symbolS *
++add_line_strp (segT line_str_seg, const char *str)
++{
++  char *cp;
++  size_t size;
++  symbolS *sym;
++
++  subseg_set (line_str_seg, 0);
++
++  sym = symbol_temp_new_now_octets ();
++
++  size = strlen (str) + 1;
++  cp = frag_more (size);
++  memcpy (cp, str, size);
++
++  return sym;
++}
++
++
+ /* Emit the directory and file tables for .debug_line.  */
+ 
+ static void
+-out_dir_and_file_list (void)
++out_dir_and_file_list (segT line_seg, int sizeof_offset)
+ {
+   size_t size;
+   const char *dir;
+@@ -1984,6 +2006,8 @@ out_dir_and_file_list (void)
+   bfd_boolean emit_md5 = FALSE;
+   bfd_boolean emit_timestamps = TRUE;
+   bfd_boolean emit_filesize = TRUE;
++  segT line_str_seg = NULL;
++  symbolS *line_strp;
+ 
+   /* Output the Directory Table.  */
+   if (DWARF2_LINE_VERSION >= 5)
+@@ -1993,9 +2017,9 @@ out_dir_and_file_list (void)
+ 
+       /* Describe the purpose and format of the column.  */
+       out_uleb128 (DW_LNCT_path);
+-      /* FIXME: it would be better to store these strings in
+-	 the .debug_line_str section and reference them here.  */
+-      out_uleb128 (DW_FORM_string);
++      /* Store these strings in the .debug_line_str section so they
++	 can be shared.  */
++      out_uleb128 (DW_FORM_line_strp);
+ 
+       /* Now state how many rows there are in the table.  We need at
+ 	 least 1 if there is one or more file names to store the
+@@ -2009,6 +2033,12 @@ out_dir_and_file_list (void)
+   /* Emit directory list.  */
+   if (DWARF2_LINE_VERSION >= 5 && (dirs_in_use > 0 || files_in_use > 0))
+     {
++      line_str_seg = subseg_new (".debug_line_str", 0);
++      bfd_set_section_flags (line_str_seg,
++			     SEC_READONLY | SEC_DEBUGGING | SEC_OCTETS
++			     | SEC_MERGE | SEC_STRINGS);
++      line_str_seg->entsize = 1;
++
+       /* DWARF5 uses slot zero, but that is only set explicitly
+ 	 using a .file 0 directive.  If that isn't used, but dir
+ 	 one is used, then use that as main file directory.
+@@ -2020,16 +2050,25 @@ out_dir_and_file_list (void)
+       else
+ 	dir = remap_debug_filename (getpwd ());
+ 
+-      size = strlen (dir) + 1;
+-      cp = frag_more (size);
+-      memcpy (cp, dir, size);
++      line_strp = add_line_strp (line_str_seg, dir);
++      subseg_set (line_seg, 0);
++      TC_DWARF2_EMIT_OFFSET (line_strp, sizeof_offset);
+     }
+   for (i = 1; i < dirs_in_use; ++i)
+     {
+       dir = remap_debug_filename (dirs[i]);
+-      size = strlen (dir) + 1;
+-      cp = frag_more (size);
+-      memcpy (cp, dir, size);
++      if (DWARF2_LINE_VERSION < 5)
++	{
++	  size = strlen (dir) + 1;
++	  cp = frag_more (size);
++	  memcpy (cp, dir, size);
++	}
++      else
++	{
++	  line_strp = add_line_strp (line_str_seg, dir);
++	  subseg_set (line_seg, 0);
++	  TC_DWARF2_EMIT_OFFSET (line_strp, sizeof_offset);
++	}
+     }
+ 
+   if (DWARF2_LINE_VERSION < 5)
+@@ -2066,9 +2105,9 @@ out_dir_and_file_list (void)
+       out_byte (columns);
+       /* The format of the file name.  */
+       out_uleb128 (DW_LNCT_path);
+-      /* FIXME: it would be better to store these strings in
+-	 the .debug_line_str section and reference them here.  */
+-      out_uleb128 (DW_FORM_string);
++      /* Store these strings in the .debug_line_str section so they
++	 can be shared.  */
++      out_uleb128 (DW_FORM_line_strp);
+ 
+       /* The format of the directory index.  */
+       out_uleb128 (DW_LNCT_directory_index);
+@@ -2122,9 +2161,18 @@ out_dir_and_file_list (void)
+ 
+       fullfilename = DWARF2_FILE_NAME (files[i].filename,
+ 				       files[i].dir ? dirs [files [i].dir] : "");
+-      size = strlen (fullfilename) + 1;
+-      cp = frag_more (size);
+-      memcpy (cp, fullfilename, size);
++      if (DWARF2_LINE_VERSION < 5)
++	{
++	  size = strlen (fullfilename) + 1;
++	  cp = frag_more (size);
++	  memcpy (cp, fullfilename, size);
++	}
++      else
++	{
++	  line_strp = add_line_strp (line_str_seg, fullfilename);
++	  subseg_set (line_seg, 0);
++	  TC_DWARF2_EMIT_OFFSET (line_strp, sizeof_offset);
++	}
+ 
+       /* Directory number.  */
+       out_uleb128 (files[i].dir);
+@@ -2282,7 +2330,7 @@ out_debug_line (segT line_seg)
+      matches up to the opcode base value we have been using.  */
+   gas_assert (DWARF2_LINE_OPCODE_BASE == 13);
+ 
+-  out_dir_and_file_list ();
++  out_dir_and_file_list (line_seg, sizeof_offset);
+ 
+   symbol_set_value_now (prologue_end);
+ 
+diff --git a/gas/testsuite/gas/elf/dwarf-5-file0.d b/gas/testsuite/gas/elf/dwarf-5-file0.d
+index 3dffa63965b..5d76b7bcd14 100644
+--- a/gas/testsuite/gas/elf/dwarf-5-file0.d
++++ b/gas/testsuite/gas/elf/dwarf-5-file0.d
+@@ -5,15 +5,15 @@
+ #...
+  The Directory Table \(offset 0x.*, lines 3, columns 1\):
+   Entry	Name
+-  0	master directory
+-  1	secondary directory
+-  2	/tmp
++  0	\(indirect line string, offset: 0x.*\): master directory
++  1	\(indirect line string, offset: 0x.*\): secondary directory
++  2	\(indirect line string, offset: 0x.*\): /tmp
+ 
+  The File Name Table \(offset 0x.*, lines 3, columns 3\):
+   Entry	Dir	MD5				Name
+-  0	0 0x00000000000000000000000000000000	master source file
+-  1	1 0x00000000000000000000000000000000	secondary source file
+-  2	2 0x95828e8bc4f7404dbf7526fb7bd0f192	foo.c
++  0	0 0x00000000000000000000000000000000	\(indirect line string, offset: 0x.*\): master source file
++  1	1 0x00000000000000000000000000000000	\(indirect line string, offset: 0x.*\): secondary source file
++  2	2 0x95828e8bc4f7404dbf7526fb7bd0f192	\(indirect line string, offset: 0x.*\): foo.c
+ #pass
+ 
+ 
+-- 
+2.18.4
+
+From 87347c78227bdb611038ba39756b95d807de0953 Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Mon, 7 Sep 2020 14:25:25 +0200
+Subject: [PATCH 09/19] gas: Don't error when .debug_line already exists,
+ unless .loc was used
+
+When -g was used to generate DWARF gas would error out when a .debug_line
+already exists. But when a .debug_info section already exists it would
+simply skip generating one without warning or error. Do the same for
+.debug_line. It is only an error when the user explicitly uses .loc
+directives and also generates the .debug_line table itself.
+
+The tests are unfortunately arch specific because the line table is only
+generated when actual instructions have been emitted. Use i386 because
+that is probably the most used architecture. Before this patch the new
+dwarf-line-2 testcase would fail, with this patch it succeeds (and doesn't
+try to add its own line table).
+
+gas/ChangeLog:
+
+    * as.texi (-g): Explicitly mention when .debug_info and .debug_line
+    are generated for the DWARF format.
+    (Loc): Add that it is an error to both use a .loc directive and
+    generate a .debug_line yourself.
+    * dwarf2dbg.c (dwarf2_any_loc_directive_seen): New static variable.
+    (dwarf2_directive_loc): Set dwarf2_any_loc_directive_seen to TRUE.
+    (dwarf2_finish): Check dwarf2_any_loc_directive_seen before emitting
+    an error. Only create .debug_line if it is empty (or doesn't exist).
+    * testsuite/gas/i386/i386.exp: Add dwarf2-line-{1,2,3,4} when testing
+    an elf target.
+    * testsuite/gas/i386/dwarf2-line-{1,2,3,4}.{s,d,l}: New test files.
+
+(cherry picked from commit bb4799e9b78104977b075cec80db938c5c9f7251)
+---
+ gas/ChangeLog                          | 17 +++++
+ gas/doc/as.texi                        |  7 +-
+ gas/dwarf2dbg.c                        | 29 +++++---
+ gas/testsuite/gas/i386/dwarf2-line-1.d | 45 +++++++++++++
+ gas/testsuite/gas/i386/dwarf2-line-1.s | 28 ++++++++
+ gas/testsuite/gas/i386/dwarf2-line-2.d | 48 ++++++++++++++
+ gas/testsuite/gas/i386/dwarf2-line-2.s | 91 ++++++++++++++++++++++++++
+ gas/testsuite/gas/i386/dwarf2-line-3.d |  3 +
+ gas/testsuite/gas/i386/dwarf2-line-3.l |  2 +
+ gas/testsuite/gas/i386/dwarf2-line-3.s | 32 +++++++++
+ gas/testsuite/gas/i386/dwarf2-line-4.d | 46 +++++++++++++
+ gas/testsuite/gas/i386/dwarf2-line-4.s | 29 ++++++++
+ gas/testsuite/gas/i386/i386.exp        |  5 ++
+ 13 files changed, 372 insertions(+), 10 deletions(-)
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-1.d
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-1.s
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-2.d
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-2.s
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-3.d
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-3.l
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-3.s
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-4.d
+ create mode 100644 gas/testsuite/gas/i386/dwarf2-line-4.s
+
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index 947e355d763..95ec131b98e 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,20 @@
++2020-09-14  Mark Wielaard  <mark@klomp.org>
++
++	Backport from mainline:
++	2020-09-07  Mark Wielaard  <mark@klomp.org>
++
++	* as.texi (-g): Explicitly mention when .debug_info and .debug_line
++	are generated for the DWARF format.
++	(Loc): Add that it is an error to both use a .loc directive and
++	generate a .debug_line yourself.
++	* dwarf2dbg.c (dwarf2_any_loc_directive_seen): New static variable.
++	(dwarf2_directive_loc): Set dwarf2_any_loc_directive_seen to TRUE.
++	(dwarf2_finish): Check dwarf2_any_loc_directive_seen before emitting
++	an error. Only create .debug_line if it is empty (or doesn't exist).
++	* testsuite/gas/i386/i386.exp: Add dwarf2-line-{1,2,3,4} when testing
++	an elf target.
++	* testsuite/gas/i386/dwarf2-line-{1,2,3,4}.{s,d,l}: New test files.
++
+ 2020-09-14  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from mainline:
+diff --git a/gas/doc/as.texi b/gas/doc/as.texi
+index 710e5ebe3c3..b8d95927a01 100644
+--- a/gas/doc/as.texi
++++ b/gas/doc/as.texi
+@@ -746,7 +746,9 @@ compiler output).
+ @itemx --gen-debug
+ Generate debugging information for each assembler source line using whichever
+ debug format is preferred by the target.  This currently means either STABS,
+-ECOFF or DWARF2.
++ECOFF or DWARF2.  When the debug format is DWARF then a @code{.debug_info} and
++@code{.debug_line} section is only emitted when the assembly file doesn't
++generate one itself.
+ 
+ @item --gstabs
+ Generate stabs debugging information for each assembler line.  This
+@@ -5874,7 +5876,8 @@ the @code{.loc} directive will add a row to the @code{.debug_line} line
+ number matrix corresponding to the immediately following assembly
+ instruction.  The @var{fileno}, @var{lineno}, and optional @var{column}
+ arguments will be applied to the @code{.debug_line} state machine before
+-the row is added.
++the row is added.  It is an error for the input assembly file to generate
++a non-empty @code{.debug_line} and also use @code{loc} directives.
+ 
+ The @var{options} are a sequence of the following tokens in any order:
+ 
+diff --git a/gas/dwarf2dbg.c b/gas/dwarf2dbg.c
+index 7ea315abc8e..6899a840eff 100644
+--- a/gas/dwarf2dbg.c
++++ b/gas/dwarf2dbg.c
+@@ -226,9 +226,15 @@ static unsigned int  dirs_in_use = 0;
+ static unsigned int  dirs_allocated = 0;
+ 
+ /* TRUE when we've seen a .loc directive recently.  Used to avoid
+-   doing work when there's nothing to do.  */
++   doing work when there's nothing to do.  Will be reset by
++   dwarf2_consume_line_info.  */
+ bfd_boolean dwarf2_loc_directive_seen;
+ 
++/* TRUE when we've seen any .loc directive at any time during parsing.
++   Indicates the user wants us to generate a .debug_line section.
++   Used in dwarf2_finish as sanity check.  */
++static bfd_boolean dwarf2_any_loc_directive_seen;
++
+ /* TRUE when we're supposed to set the basic block mark whenever a
+    label is seen.  */
+ bfd_boolean dwarf2_loc_mark_labels;
+@@ -1290,7 +1296,7 @@ dwarf2_directive_loc (int dummy ATTRIBUTE_UNUSED)
+     }
+ 
+   demand_empty_rest_of_line ();
+-  dwarf2_loc_directive_seen = TRUE;
++  dwarf2_any_loc_directive_seen = dwarf2_loc_directive_seen = TRUE;
+   debug_type = DEBUG_NONE;
+ 
+   /* If we were given a view id, emit the row right away.  */
+@@ -2737,7 +2743,7 @@ dwarf2_init (void)
+ 
+ 
+ /* Finish the dwarf2 debug sections.  We emit .debug.line if there
+-   were any .file/.loc directives, or --gdwarf2 was given, or if the
++   were any .file/.loc directives, or --gdwarf2 was given, and if the
+    file has a non-empty .debug_info section and an empty .debug_line
+    section.  If we emit .debug_line, and the .debug_info section is
+    empty, we also emit .debug_info, .debug_aranges and .debug_abbrev.
+@@ -2761,8 +2767,10 @@ dwarf2_finish (void)
+   empty_debug_line = line_seg == NULL || !seg_not_empty_p (line_seg);
+ 
+   /* We can't construct a new debug_line section if we already have one.
+-     Give an error.  */
+-  if (all_segs && !empty_debug_line)
++     Give an error if we have seen any .loc, otherwise trust the user
++     knows what they are doing and want to generate the .debug_line
++     (and all other debug sections) themselves.  */
++  if (all_segs && !empty_debug_line && dwarf2_any_loc_directive_seen)
+     as_fatal ("duplicate .debug_line sections");
+ 
+   if ((!all_segs && emit_other_sections)
+@@ -2776,8 +2784,12 @@ dwarf2_finish (void)
+   sizeof_address = DWARF2_ADDR_SIZE (stdoutput);
+ 
+   /* Create and switch to the line number section.  */
+-  line_seg = subseg_new (".debug_line", 0);
+-  bfd_set_section_flags (line_seg, SEC_READONLY | SEC_DEBUGGING | SEC_OCTETS);
++  if (empty_debug_line)
++    {
++      line_seg = subseg_new (".debug_line", 0);
++      bfd_set_section_flags (line_seg,
++			     SEC_READONLY | SEC_DEBUGGING | SEC_OCTETS);
++    }
+ 
+   /* For each subsection, chain the debug entries together.  */
+   for (s = all_segs; s; s = s->next)
+@@ -2803,7 +2815,8 @@ dwarf2_finish (void)
+ 	}
+     }
+ 
+-  out_debug_line (line_seg);
++  if (empty_debug_line)
++    out_debug_line (line_seg);
+ 
+   /* If this is assembler generated line info, and there is no
+      debug_info already, we need .debug_info, .debug_abbrev and
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-1.d b/gas/testsuite/gas/i386/dwarf2-line-1.d
+new file mode 100644
+index 00000000000..196f099c1a8
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-1.d
+@@ -0,0 +1,45 @@
++#as: -gdwarf-2
++#readelf: -wl
++#name: DWARF .debug_line 1
++
++Raw dump of debug contents of section \.z?debug_line:
++
++  Offset:                      0x0
++  Length:                      .*
++  DWARF Version:               3
++  Prologue Length:             .*
++  Minimum Instruction Length:  1
++  Initial value of 'is_stmt':  1
++  Line Base:                   -5
++  Line Range:                  14
++  Opcode Base:                 13
++
++ Opcodes:
++  Opcode 1 has 0 args
++  Opcode 2 has 1 arg
++  Opcode 3 has 1 arg
++  Opcode 4 has 1 arg
++  Opcode 5 has 1 arg
++  Opcode 6 has 0 args
++  Opcode 7 has 0 args
++  Opcode 8 has 0 args
++  Opcode 9 has 1 arg
++  Opcode 10 has 0 args
++  Opcode 11 has 0 args
++  Opcode 12 has 1 arg
++
++ The Directory Table \(offset 0x.*\):
++  .*
++
++ The File Name Table \(offset 0x.*\):
++  Entry	Dir	Time	Size	Name
++  1	1	0	0	dwarf2-line-1.s
++
++ Line Number Statements:
++  \[0x.*\]  Extended opcode 2: set Address to 0x0
++  \[0x.*\]  Special opcode 13: advance Address by 0 to 0x0 and Line by 8 to 9
++  \[0x.*\]  Special opcode 20: advance Address by 1 to 0x1 and Line by 1 to 10
++  \[0x.*\]  Advance PC by 1 to 0x2
++  \[0x.*\]  Extended opcode 1: End of Sequence
++
++
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-1.s b/gas/testsuite/gas/i386/dwarf2-line-1.s
+new file mode 100644
+index 00000000000..a2cb22e842a
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-1.s
+@@ -0,0 +1,28 @@
++        .file   "dwarf2-test.c"
++        .text
++        .section .text.startup,"ax",@progbits
++        .p2align 4
++        .globl  main
++        .type   main, @function
++main:
++        .cfi_startproc
++        nop
++        ret
++        .cfi_endproc
++        .size   main, .-main
++        .text
++
++        .section .debug_info,"",%progbits
++        .long   0x0
++        .value  0x2
++        .long   .Ldebug_abbrev0
++        .byte   0x8
++        .uleb128 0x1
++
++        .section .debug_abbrev,"",@progbits
++.Ldebug_abbrev0:
++        .uleb128 0x0    # (abbrev code)
++        .uleb128 0x0    # (abbrev code)
++        .uleb128 0x0    # (abbrev code)
++
++# No .debug_line ok even if there is a .debug_info section
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-2.d b/gas/testsuite/gas/i386/dwarf2-line-2.d
+new file mode 100644
+index 00000000000..2553fea32cd
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-2.d
+@@ -0,0 +1,48 @@
++#as: -gdwarf-2
++#readelf: -wl
++#name: DWARF .debug_line 2
++
++Raw dump of debug contents of section .z?debug_line:
++
++  Offset:                      0x0
++  Length:                      62
++  DWARF Version:               .
++  Prologue Length:             35
++  Minimum Instruction Length:  1
++  Initial value of 'is_stmt':  1
++  Line Base:                   1
++  Line Range:                  1
++  Opcode Base:                 16
++
++ Opcodes:
++  Opcode 1 has 0 args
++  Opcode 2 has 1 arg
++  Opcode 3 has 1 arg
++  Opcode 4 has 1 arg
++  Opcode 5 has 1 arg
++  Opcode 6 has 0 args
++  Opcode 7 has 0 args
++  Opcode 8 has 0 args
++  Opcode 9 has 1 arg
++  Opcode 10 has 0 args
++  Opcode 11 has 0 args
++  Opcode 12 has 1 arg
++  Opcode 13 has 0 args
++  Opcode 14 has 0 args
++  Opcode 15 has 0 args
++
++ The Directory Table is empty.
++
++ The File Name Table \(offset 0x.*\):
++  Entry	Dir	Time	Size	Name
++  1	0	0	0	file1.txt
++
++ Line Number Statements:
++  \[0x.*\]  Extended opcode 2: set Address to 0x0
++  \[0x.*\]  Advance Line by 3 to 4
++  \[0x.*\]  Copy
++  \[0x.*\]  Copy \(view 1\)
++  \[0x.*\]  Extended opcode 2: set Address to 0x0
++  \[0x.*\]  Extended opcode 1: End of Sequence
++
++
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-2.s b/gas/testsuite/gas/i386/dwarf2-line-2.s
+new file mode 100644
+index 00000000000..d43acdaa3a7
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-2.s
+@@ -0,0 +1,91 @@
++        .file   "dwarf2-test.c"
++        .text
++        .section .text.startup,"ax",@progbits
++        .p2align 4
++        .globl  main
++        .type   main, @function
++main:
++        .cfi_startproc
++        nop
++        ret
++        .cfi_endproc
++        .size   main, .-main
++        .text
++
++        .section .debug_info,"",%progbits
++        .long   0x0
++        .value  0x2
++        .long   .Ldebug_abbrev0
++        .byte   0x8
++        .uleb128 0x1
++
++        .section .debug_abbrev,"",@progbits
++.Ldebug_abbrev0:
++        .uleb128 0x0    # (abbrev code)
++        .uleb128 0x0    # (abbrev code)
++        .uleb128 0x0    # (abbrev code)
++
++# A non-empty .debug_line section is ok when not using .loc directives
++	.section .debug_line
++.Lline1_begin:
++	.4byte		.Lline1_end - .Lline1_start	/* Initial length */
++.Lline1_start:
++	.2byte		2			/* Version */
++	.4byte		.Lline1_lines - .Lline1_hdr	/* header_length */
++.Lline1_hdr:
++	.byte		1			/* Minimum insn length */
++	.byte		1			/* default_is_stmt */
++	.byte		1			/* line_base */
++	.byte		1			/* line_range */
++	.byte		0x10			/* opcode_base */
++
++	/* Standard lengths */
++	.byte		0
++	.byte		1
++	.byte		1
++	.byte		1
++	.byte		1
++	.byte		0
++	.byte		0
++	.byte		0
++	.byte		1
++	.byte		0
++	.byte		0
++	.byte		1
++	.byte		0
++	.byte		0
++	.byte		0
++
++	/* Include directories */
++	.byte		0
++
++	/* File names */
++	.ascii		"file1.txt\0"
++	.uleb128	0
++	.uleb128	0
++	.uleb128	0
++
++	.byte		0
++
++.Lline1_lines:
++	.byte		0	/* DW_LNE_set_address */
++	.uleb128	5
++	.byte		2
++	.4byte		.Lbegin_func_cu1
++
++	.byte		3	/* DW_LNS_advance_line */
++	.sleb128	3	/* ... to 4 */
++
++	.byte		1	/* DW_LNS_copy */
++
++	.byte		1	/* DW_LNS_copy (second time as an end-of-prologue marker) */
++
++	.byte		0	/* DW_LNE_set_address */
++	.uleb128	5
++	.byte		2
++	.4byte		.Lend_func_cu1
++
++	.byte		0	/* DW_LNE_end_of_sequence */
++	.uleb128	1
++	.byte		1
++
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-3.d b/gas/testsuite/gas/i386/dwarf2-line-3.d
+new file mode 100644
+index 00000000000..42c94c56821
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-3.d
+@@ -0,0 +1,3 @@
++#as: -gdwarf-2
++#name: DWARF .debug_line 3
++#error_output: dwarf2-line-3.l
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-3.l b/gas/testsuite/gas/i386/dwarf2-line-3.l
+new file mode 100644
+index 00000000000..c26e1fa8782
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-3.l
+@@ -0,0 +1,2 @@
++[^:]*: Assembler messages:
++[^:]*: Fatal error: duplicate .debug_line sections
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-3.s b/gas/testsuite/gas/i386/dwarf2-line-3.s
+new file mode 100644
+index 00000000000..2085ef93940
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-3.s
+@@ -0,0 +1,32 @@
++        .file   "dwarf2-test.c"
++        .text
++        .section .text.startup,"ax",@progbits
++        .p2align 4
++        .globl  main
++        .type   main, @function
++main:
++        .cfi_startproc
++        nop
++	.loc 1 1
++        ret
++        .cfi_endproc
++        .size   main, .-main
++        .text
++
++        .section .debug_info,"",%progbits
++        .long   0x0
++        .value  0x2
++        .long   .Ldebug_abbrev0
++        .byte   0x8
++        .uleb128 0x1
++
++        .section .debug_abbrev,"",@progbits
++.Ldebug_abbrev0:
++        .uleb128 0x0    # (abbrev code)
++        .uleb128 0x0    # (abbrev code)
++        .uleb128 0x0    # (abbrev code)
++
++# A non-empty .debug_line section is NOT ok when using .loc directives
++        .section .debug_line,"",@progbits
++.Ldebug_line0:
++        .byte 0x1
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-4.d b/gas/testsuite/gas/i386/dwarf2-line-4.d
+new file mode 100644
+index 00000000000..c0c85f4639f
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-4.d
+@@ -0,0 +1,46 @@
++#as: -gdwarf-2
++#readelf: -wl
++#name: DWARF .debug_line 4
++
++Raw dump of debug contents of section \.z?debug_line:
++
++  Offset:                      0x0
++  Length:                      .*
++  DWARF Version:               3
++  Prologue Length:             .*
++  Minimum Instruction Length:  1
++  Initial value of 'is_stmt':  1
++  Line Base:                   -5
++  Line Range:                  14
++  Opcode Base:                 13
++
++ Opcodes:
++  Opcode 1 has 0 args
++  Opcode 2 has 1 arg
++  Opcode 3 has 1 arg
++  Opcode 4 has 1 arg
++  Opcode 5 has 1 arg
++  Opcode 6 has 0 args
++  Opcode 7 has 0 args
++  Opcode 8 has 0 args
++  Opcode 9 has 1 arg
++  Opcode 10 has 0 args
++  Opcode 11 has 0 args
++  Opcode 12 has 1 arg
++
++ The Directory Table \(offset 0x.*\):
++  .*
++
++ The File Name Table \(offset 0x.*\):
++  Entry	Dir	Time	Size	Name
++  1	1	0	0	dwarf2-line-4.s
++
++ Line Number Statements:
++  \[0x.*\]  Extended opcode 2: set Address to 0x0
++  \[0x.*\]  Special opcode 13: advance Address by 0 to 0x0 and Line by 8 to 9
++  \[0x.*\]  Advance Line by -8 to 1
++  \[0x.*\]  Special opcode 19: advance Address by 1 to 0x1 and Line by 0 to 1
++  \[0x.*\]  Advance PC by 1 to 0x2
++  \[0x.*\]  Extended opcode 1: End of Sequence
++
++
+diff --git a/gas/testsuite/gas/i386/dwarf2-line-4.s b/gas/testsuite/gas/i386/dwarf2-line-4.s
+new file mode 100644
+index 00000000000..89bb62d9db7
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf2-line-4.s
+@@ -0,0 +1,29 @@
++        .file   "dwarf2-test.c"
++        .text
++        .section .text.startup,"ax",@progbits
++        .p2align 4
++        .globl  main
++        .type   main, @function
++main:
++        .cfi_startproc
++        nop
++	.loc 1 1
++        ret
++        .cfi_endproc
++        .size   main, .-main
++        .text
++
++        .section .debug_info,"",%progbits
++        .long   0x0
++        .value  0x2
++        .long   .Ldebug_abbrev0
++        .byte   0x8
++        .uleb128 0x1
++
++        .section .debug_abbrev,"",@progbits
++.Ldebug_abbrev0:
++        .uleb128 0x0    # (abbrev code)
++        .uleb128 0x0    # (abbrev code)
++        .uleb128 0x0    # (abbrev code)
++
++# No .debug_line ok even if there is a .debug_info section and using .locs
+diff --git a/gas/testsuite/gas/i386/i386.exp b/gas/testsuite/gas/i386/i386.exp
+index 55929d3acb6..276b09229ac 100644
+--- a/gas/testsuite/gas/i386/i386.exp
++++ b/gas/testsuite/gas/i386/i386.exp
+@@ -590,6 +590,11 @@ if [expr ([istarget "i*86-*-*"] ||  [istarget "x86_64-*-*"]) && [gas_32_check]]
+ 	run_dump_test "localpic"
+ 	run_dump_test "debug1"
+ 
++	run_dump_test "dwarf2-line-1"
++	run_dump_test "dwarf2-line-2"
++	run_dump_test "dwarf2-line-3"
++	run_dump_test "dwarf2-line-4"
++
+ 	run_dump_test "dw2-compress-2"
+ 	run_dump_test "dw2-compressed-2"
+ 
+-- 
+2.18.4
+
+From 4651d191c8cba511e94ce4e2e603f00df9c0d431 Mon Sep 17 00:00:00 2001
+From: Nick Clifton <nickc@redhat.com>
+Date: Thu, 24 Sep 2020 13:42:04 +0100
+Subject: [PATCH 10/19] Import patch from mainline to fix decoding DWARF
+ information in the BFD library.
+
+	PR 26520
+	* dwarf2.c (scan_unit_for_symbols): Add member entries to the
+	variable table.
+
+(cherry picked from commit 269d40a2ef3b020b5beb3f3de5b8e909c43ab53b)
+---
+ bfd/ChangeLog | 9 +++++++++
+ bfd/dwarf2.c  | 5 +++--
+ 2 files changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/bfd/ChangeLog b/bfd/ChangeLog
+index 95dcde567ce..50af4c401ee 100644
+--- a/bfd/ChangeLog
++++ b/bfd/ChangeLog
+@@ -1,3 +1,12 @@
++2020-09-24  Nick Clifton  <nickc@redhat.com>
++
++	Import from mainline:
++	2020-08-29  Nick Clifton  <nickc@redhat.com>
++
++	PR 26520
++	* dwarf2.c (scan_unit_for_symbols): Add member entries to the
++	variable table.
++
+ 2020-08-25  Nick Clifton  <nickc@redhat.com>
+ 
+ 	Backport from the mainline:
+diff --git a/bfd/dwarf2.c b/bfd/dwarf2.c
+index b8f0008a10d..977bf43a6a1 100644
+--- a/bfd/dwarf2.c
++++ b/bfd/dwarf2.c
+@@ -3404,7 +3404,8 @@ scan_unit_for_symbols (struct comp_unit *unit)
+       else
+ 	{
+ 	  func = NULL;
+-	  if (abbrev->tag == DW_TAG_variable)
++	  if (abbrev->tag == DW_TAG_variable
++	      || abbrev->tag == DW_TAG_member)
+ 	    {
+ 	      size_t amt = sizeof (struct varinfo);
+ 	      var = (struct varinfo *) bfd_zalloc (abfd, amt);
+@@ -3516,7 +3517,7 @@ scan_unit_for_symbols (struct comp_unit *unit)
+ 		      spec_var = lookup_var_by_offset (attr.u.val,
+ 						       unit->variable_table);
+ 		      if (spec_var == NULL)
+-			{	
++			{
+ 			  _bfd_error_handler (_("DWARF error: could not find "
+ 						"variable specification "
+ 						"at offset %lx"),
+-- 
+2.18.4
+
+From bd3679ba2ce51b92f75fdc97f6834bbf0a4017ef Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Wed, 23 Sep 2020 16:31:14 +0200
+Subject: [PATCH 11/19] binutils: Handle DWARF5 DW_FORM_ref_addr and
+ DW_UT_partial.
+
+dwz in DWARF5 mode might produce DW_UT_partial unit types, which are
+the same as DW_UT_compile unit types (but start with a DW_TAG_partial_unit)
+and it might produce DW_FORM_ref_addr to create a reference between
+units. Accept both constructs.
+
+binutils/ChangeLog:
+
+	* dwarf.c (read_and_display_attr_value): Handle DW_FORM_ref_addr
+	for dwarf_version 5 just as version 3 and 4 (only 2 is different).
+	(process_debug_info): Allow DW_UT_partial.
+
+(cherry picked from commit ec47b32a85294af959457ad19bd98dd13f6389fd)
+---
+ binutils/ChangeLog | 10 ++++++++++
+ binutils/dwarf.c   |  6 ++++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/binutils/ChangeLog b/binutils/ChangeLog
+index 3422233408c..3766581ee4d 100644
+--- a/binutils/ChangeLog
++++ b/binutils/ChangeLog
+@@ -1,3 +1,13 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-09-23  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf.c (read_and_display_attr_value): Handle DW_FORM_ref_addr
++	for dwarf_version 5 just as version 3 and 4 (only 2 is
++	different).
++	(process_debug_info): Allow DW_UT_partial.
++
+ 2020-09-03  Nick Clifton  <nickc@redhat.com>
+ 
+ 	Import from mainline:
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index 2b289fe6d1e..4c0adad6894 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -2415,10 +2415,11 @@ read_and_display_attr_value (unsigned long           attribute,
+     case DW_FORM_ref_addr:
+       if (dwarf_version == 2)
+ 	SAFE_BYTE_GET_AND_INC (uvalue, data, pointer_size, end);
+-      else if (dwarf_version == 3 || dwarf_version == 4)
++      else if (dwarf_version > 2)
+ 	SAFE_BYTE_GET_AND_INC (uvalue, data, offset_size, end);
+       else
+-	error (_("Internal error: DWARF version is not 2, 3 or 4.\n"));
++	error (_("Internal error: DW_FORM_ref_addr is not supported in DWARF version 1.\n"));
++
+       break;
+ 
+     case DW_FORM_addr:
+@@ -3713,6 +3714,7 @@ process_debug_info (struct dwarf_section *           section,
+ 	}
+ 
+       if (compunit.cu_unit_type != DW_UT_compile
++	  && compunit.cu_unit_type != DW_UT_partial
+ 	  && compunit.cu_unit_type != DW_UT_type)
+ 	{
+ 	  warn (_("CU at offset %s contains corrupt or "
+-- 
+2.18.4
+
+From 32c783074e99ba259fb81bd179d8a3c5777af477 Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Wed, 23 Sep 2020 16:41:06 +0200
+Subject: [PATCH 12/19] Sync libiberty and include with GCC for get_DW_UT_name.
+
+This adds a get_DW_UT_name function to dwarfnames using dwarf2.def
+for use in binutils readelf to show the unit types in a DWARF5 header.
+
+include/ChangeLog:
+
+	Sync with GCC
+	* dwarf2.def: Add DWARF5 Unit type header encoding macros
+	DW_UT_FIRST, DW_UT and DW_UT_END.
+	* dwarf2.h (enum dwarf_unit_type): Removed and define using
+	DW_UT_FIRST, DW_UT and DW_UT_END macros.
+	(get_DW_UT_name): New function declaration.
+
+libiberty/ChangeLog:
+
+	Sync with GCC
+	* dwarfnames.c (get_DW_UT_name): Define using DW_UT_FIRST, DW_UT
+	and DW_UT_END.
+
+(cherry picked from commit d7b477c541bd31045483f37345727bd8335a052a)
+---
+ include/ChangeLog      | 12 ++++++++++++
+ include/dwarf2.def     | 11 +++++++++++
+ include/dwarf2.h       | 24 +++++++++++-------------
+ libiberty/ChangeLog    |  9 +++++++++
+ libiberty/dwarfnames.c |  7 +++++++
+ 5 files changed, 50 insertions(+), 13 deletions(-)
+
+diff --git a/include/ChangeLog b/include/ChangeLog
+index acdd85fc4df..5997c26899c 100644
+--- a/include/ChangeLog
++++ b/include/ChangeLog
+@@ -1,3 +1,15 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-09-23  Mark Wielaard  <mark@klomp.org>
++
++	Sync with GCC
++	* dwarf2.def: Add DWARF5 Unit type header encoding macros
++	DW_UT_FIRST, DW_UT and DW_UT_END.
++	* dwarf2.h (enum dwarf_unit_type): Removed and define using
++	DW_UT_FIRST, DW_UT and DW_UT_END macros.
++	(get_DW_UT_name): New function declaration.
++
+ 2020-07-22  H.J. Lu  <hongjiu.lu@intel.com>
+ 
+ 	PR ld/26262
+diff --git a/include/dwarf2.def b/include/dwarf2.def
+index d8a8cce7947..13825a3eef7 100644
+--- a/include/dwarf2.def
++++ b/include/dwarf2.def
+@@ -805,3 +805,14 @@ DW_IDX (DW_IDX_hi_user, 0x3fff)
+ DW_IDX (DW_IDX_GNU_internal, 0x2000)
+ DW_IDX (DW_IDX_GNU_external, 0x2001)
+ DW_END_IDX
++
++/* DWARF5 Unit type header encodings  */
++DW_FIRST_UT (DW_UT_compile, 0x01)
++DW_UT (DW_UT_type, 0x02)
++DW_UT (DW_UT_partial, 0x03)
++DW_UT (DW_UT_skeleton, 0x04)
++DW_UT (DW_UT_split_compile, 0x05)
++DW_UT (DW_UT_split_type, 0x06)
++DW_UT (DW_UT_lo_user, 0x80)
++DW_UT (DW_UT_hi_user, 0xff)
++DW_END_UT
+diff --git a/include/dwarf2.h b/include/dwarf2.h
+index 882453dce08..3f271fb0f7a 100644
+--- a/include/dwarf2.h
++++ b/include/dwarf2.h
+@@ -55,6 +55,7 @@
+ #define DW_CFA_DUP(name, value) , name = value
+ #define DW_IDX(name, value) , name = value
+ #define DW_IDX_DUP(name, value) , name = value
++#define DW_UT(name, value) , name = value
+ 
+ #define DW_FIRST_TAG(name, value) enum dwarf_tag { \
+   name = value
+@@ -77,6 +78,9 @@
+ #define DW_FIRST_IDX(name, value) enum dwarf_name_index_attribute { \
+   name = value
+ #define DW_END_IDX };
++#define DW_FIRST_UT(name, value) enum dwarf_unit_type { \
++  name = value
++#define DW_END_UT };
+ 
+ #include "dwarf2.def"
+ 
+@@ -94,6 +98,8 @@
+ #undef DW_END_CFA
+ #undef DW_FIRST_IDX
+ #undef DW_END_IDX
++#undef DW_FIRST_UT
++#undef DW_END_UT
+ 
+ #undef DW_TAG
+ #undef DW_TAG_DUP
+@@ -108,6 +114,7 @@
+ #undef DW_CFA_DUP
+ #undef DW_IDX
+ #undef DW_IDX_DUP
++#undef DW_UT
+ 
+ /* Flag that tells whether entry has a child or not.  */
+ #define DW_children_no   0
+@@ -450,19 +457,6 @@ enum dwarf_range_list_entry
+     DW_RLE_start_end = 0x06,
+     DW_RLE_start_length = 0x07
+   };
+-
+-/* Unit types in unit_type unit header field.  */
+-enum dwarf_unit_type
+-  {
+-    DW_UT_compile = 0x01,
+-    DW_UT_type = 0x02,
+-    DW_UT_partial = 0x03,
+-    DW_UT_skeleton = 0x04,
+-    DW_UT_split_compile = 0x05,
+-    DW_UT_split_type = 0x06,
+-    DW_UT_lo_user = 0x80,
+-    DW_UT_hi_user = 0xff
+-  };
+ 
+ /* @@@ For use with GNU frame unwind information.  */
+ 
+@@ -534,6 +528,10 @@ extern const char *get_DW_CFA_name (unsigned int opc);
+    recognized.  */
+ extern const char *get_DW_IDX_name (unsigned int idx);
+ 
++/* Return the name of a DW_UT_ constant, or NULL if the value is not
++   recognized.  */
++extern const char *get_DW_UT_name (unsigned int ut);
++
+ #ifdef __cplusplus
+ }
+ #endif /* __cplusplus */
+diff --git a/libiberty/ChangeLog b/libiberty/ChangeLog
+index 19d2b702d62..42daff15948 100644
+--- a/libiberty/ChangeLog
++++ b/libiberty/ChangeLog
+@@ -1,3 +1,12 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-09-23  Mark Wielaard  <mark@klomp.org>
++
++	Sync with GCC
++	* dwarfnames.c (get_DW_UT_name): Define using DW_UT_FIRST, DW_UT
++	and DW_UT_END.
++
+ 2020-06-23  Nick Alcock  <nick.alcock@oracle.com>
+ 
+ 	* bsearch_r.c: New file.
+diff --git a/libiberty/dwarfnames.c b/libiberty/dwarfnames.c
+index 968d1917532..af11668b431 100644
+--- a/libiberty/dwarfnames.c
++++ b/libiberty/dwarfnames.c
+@@ -64,6 +64,11 @@ Boston, MA 02110-1301, USA.  */
+   switch (idx) {					\
+   DW_IDX (name, value)
+ #define DW_END_IDX } return 0; }
++#define DW_FIRST_UT(name, value) \
++  const char *get_DW_UT_name (unsigned int ut) {	\
++  switch (ut) {					\
++  DW_UT (name, value)
++#define DW_END_UT } return 0; }
+ 
+ #define DW_TAG(name, value) case name: return # name ;
+ #define DW_TAG_DUP(name, value)
+@@ -78,6 +83,7 @@ Boston, MA 02110-1301, USA.  */
+ #define DW_CFA_DUP(name, value)
+ #define DW_IDX(name, value) case name: return # name ;
+ #define DW_IDX_DUP(name, value)
++#define DW_UT(name, value) case name: return # name ;
+ 
+ #include "dwarf2.def"
+ 
+@@ -95,6 +101,7 @@ Boston, MA 02110-1301, USA.  */
+ #undef DW_END_CFA
+ #undef DW_FIRST_IDX
+ #undef DW_END_IDX
++#undef DW_END_UT
+ 
+ #undef DW_TAG
+ #undef DW_TAG_DUP
+-- 
+2.18.4
+
+From aae92d47af6dbcf7f41c3830560a9ef11521cb54 Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Wed, 23 Sep 2020 16:48:35 +0200
+Subject: [PATCH 13/19] readelf: Show Unit Type for DWARF5
+
+binutils/ChangeLog:
+
+	* dwarf.c (process_debug_info): Print Unit Type for DWARF5.
+	* testsuite/binutils-all/dw5.W: Adjust expected output.
+	* testsuite/binutils-all/dwarf-attributes.W: Likewise.
+
+gas/ChangeLog:
+
+	* testsuite/gas/elf/dwarf-5-cu.d: Adjust expected output.
+
+(cherry picked from commit debd1a62c4d250a6257e9018d9f9c7355edcdf8b)
+---
+ binutils/ChangeLog                                 | 9 +++++++++
+ binutils/dwarf.c                                   | 4 ++++
+ binutils/testsuite/binutils-all/dw5.W              | 1 +
+ binutils/testsuite/binutils-all/dwarf-attributes.W | 1 +
+ gas/ChangeLog                                      | 7 +++++++
+ gas/testsuite/gas/elf/dwarf-5-cu.d                 | 1 +
+ 6 files changed, 23 insertions(+)
+
+diff --git a/binutils/ChangeLog b/binutils/ChangeLog
+index 3766581ee4d..b63be1c4711 100644
+--- a/binutils/ChangeLog
++++ b/binutils/ChangeLog
+@@ -1,3 +1,12 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-09-23  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf.c (process_debug_info): Print Unit Type for DWARF5.
++	* testsuite/binutils-all/dw5.W: Adjust expected output.
++	* testsuite/binutils-all/dwarf-attributes.W: Likewise.
++
+ 2020-11-15  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from the mainline:
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index 4c0adad6894..67ab91633d6 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -3656,6 +3656,10 @@ process_debug_info (struct dwarf_section *           section,
+ 		  dwarf_vmatoa ("x", compunit.cu_length),
+ 		  offset_size == 8 ? "64-bit" : "32-bit");
+ 	  printf (_("   Version:       %d\n"), compunit.cu_version);
++	  if (compunit.cu_version >= 5)
++	    printf (_("   Unit Type:     %s (%x)\n"),
++		    get_DW_UT_name (compunit.cu_unit_type) ?: "???",
++		    compunit.cu_unit_type);
+ 	  printf (_("   Abbrev Offset: 0x%s\n"),
+ 		  dwarf_vmatoa ("x", compunit.cu_abbrev_offset));
+ 	  printf (_("   Pointer Size:  %d\n"), compunit.cu_pointer_size);
+diff --git a/binutils/testsuite/binutils-all/dw5.W b/binutils/testsuite/binutils-all/dw5.W
+index 2eccb03c5a6..cb949ad49cd 100644
+--- a/binutils/testsuite/binutils-all/dw5.W
++++ b/binutils/testsuite/binutils-all/dw5.W
+@@ -3,6 +3,7 @@ Contents of the .debug_info section:
+   Compilation Unit @ offset 0x0:
+    Length:        0x160 \(32-bit\)
+    Version:       5
++   Unit Type:     DW_UT_compile \(1\)
+    Abbrev Offset: 0x0
+    Pointer Size:  8
+  <0><c>: Abbrev Number: 6 \(DW_TAG_compile_unit\)
+diff --git a/binutils/testsuite/binutils-all/dwarf-attributes.W b/binutils/testsuite/binutils-all/dwarf-attributes.W
+index 3a4e7409889..4e8386ae880 100644
+--- a/binutils/testsuite/binutils-all/dwarf-attributes.W
++++ b/binutils/testsuite/binutils-all/dwarf-attributes.W
+@@ -3,6 +3,7 @@ Contents of the .debug_info section:
+   Compilation Unit @ offset 0x0:
+    Length:        0x40 \(32-bit\)
+    Version:       5
++   Unit Type:     DW_UT_compile \(1\)
+    Abbrev Offset: 0x0
+    Pointer Size:  4
+  <0><c>: Abbrev Number: 1 \(User TAG value: 0x5555\)
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index 95ec131b98e..252b8387482 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,10 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-09-23  Mark Wielaard  <mark@klomp.org>
++
++	* testsuite/gas/elf/dwarf-5-cu.d: Adjust expected output.
++
+ 2020-09-14  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from mainline:
+diff --git a/gas/testsuite/gas/elf/dwarf-5-cu.d b/gas/testsuite/gas/elf/dwarf-5-cu.d
+index 839b4b7c77b..7db20a330b8 100644
+--- a/gas/testsuite/gas/elf/dwarf-5-cu.d
++++ b/gas/testsuite/gas/elf/dwarf-5-cu.d
+@@ -6,6 +6,7 @@
+   Compilation Unit @ offset 0x0:
+    Length:        0x.*
+    Version:       5
++   Unit Type:     DW_UT_compile \(1\)
+    Abbrev Offset: 0x0
+    Pointer Size:  .
+ #pass
+-- 
+2.18.4
+
+From acf48b64b3f334b6253902ec0b1b4f0c478f2b50 Mon Sep 17 00:00:00 2001
+From: Mark Wielaard <mark@klomp.org>
+Date: Tue, 29 Sep 2020 00:02:06 +0200
+Subject: [PATCH 14/19] binutils: dwarf.c handle DWARF5 DW_LLE_start_end and
+ DW_LLE_start_length.
+
+display_loclists_list only handled DW_LLE_offset_pair as bounded
+location description. Also handle DW_LLE_start_end and DW_LLE_start_lenght.
+These don't use the base_address.
+
+binutils/ChangeLog:
+
+      * dwarf.c (display_loclists_list): Handle DW_LLE_start_end and
+      DW_LLE_start_length. Only add base_address for DW_LLE_offset_pair.
+
+(cherry picked from commit 1c9f770d16a715662564d810a1c1efefd7a66540)
+---
+ binutils/ChangeLog |  8 ++++++++
+ binutils/dwarf.c   | 23 +++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
+
+diff --git a/binutils/ChangeLog b/binutils/ChangeLog
+index b63be1c4711..a054d16f668 100644
+--- a/binutils/ChangeLog
++++ b/binutils/ChangeLog
+@@ -1,3 +1,11 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-09-29  Mark Wielaard  <mark@klomp.org>
++
++	* dwarf.c (display_loclists_list): Handle DW_LLE_start_end and
++	DW_LLE_start_length. Only add base_address for DW_LLE_offset_pair.
++
+ 2020-11-15  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from the mainline:
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index 67ab91633d6..f7f7243fdb1 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -6331,7 +6331,9 @@ display_loclists_list (struct dwarf_section *section,
+ 
+       SAFE_BYTE_GET_AND_INC (llet, start, 1, section_end);
+ 
+-      if (vstart && llet == DW_LLE_offset_pair)
++      if (vstart && (llet == DW_LLE_offset_pair
++		     || llet == DW_LLE_start_end
++		     || llet == DW_LLE_start_length))
+ 	{
+ 	  off = offset + (vstart - *start_ptr);
+ 
+@@ -6352,7 +6354,18 @@ display_loclists_list (struct dwarf_section *section,
+ 	  break;
+ 	case DW_LLE_offset_pair:
+ 	  READ_ULEB (begin, start, section_end);
++	  begin += base_address;
+ 	  READ_ULEB (end, start, section_end);
++	  end += base_address;
++	  break;
++	case DW_LLE_start_end:
++	  SAFE_BYTE_GET_AND_INC (begin, start, pointer_size, section_end);
++	  SAFE_BYTE_GET_AND_INC (end, start, pointer_size, section_end);
++	  break;
++	case DW_LLE_start_length:
++	  SAFE_BYTE_GET_AND_INC (begin, start, pointer_size, section_end);
++	  READ_ULEB (end, start, section_end);
++	  end += begin;
+ 	  break;
+ 	case DW_LLE_base_address:
+ 	  SAFE_BYTE_GET_AND_INC (base_address, start, pointer_size,
+@@ -6379,7 +6392,9 @@ display_loclists_list (struct dwarf_section *section,
+ 	}
+       if (llet == DW_LLE_end_of_list)
+ 	break;
+-      if (llet != DW_LLE_offset_pair)
++      if (llet != DW_LLE_offset_pair
++	  && llet != DW_LLE_start_end
++	  && llet != DW_LLE_start_length)
+ 	continue;
+ 
+       if (start + 2 > section_end)
+@@ -6391,8 +6406,8 @@ display_loclists_list (struct dwarf_section *section,
+ 
+       READ_ULEB (length, start, section_end);
+ 
+-      print_dwarf_vma (begin + base_address, pointer_size);
+-      print_dwarf_vma (end + base_address, pointer_size);
++      print_dwarf_vma (begin, pointer_size);
++      print_dwarf_vma (end, pointer_size);
+ 
+       putchar ('(');
+       need_frame_base = decode_location_expression (start,
+-- 
+2.18.4
+
+From 6ac15c8cdc59b42ce326d5fdeaea30abc6b6cc71 Mon Sep 17 00:00:00 2001
+From: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Date: Wed, 11 Nov 2020 14:31:46 +0000
+Subject: [PATCH 15/19] readelf: Fix output of rnglists section
+
+	* dwarf.c (display_debug_rnglists_list): Only bias the
+	DW_RLS_offset_pair with the base address.
+
+(cherry picked from commit 4d93271533473d65165022ee9f82c368511ce82a)
+---
+ binutils/ChangeLog |  8 ++++++++
+ binutils/dwarf.c   | 11 +++++++++--
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/binutils/ChangeLog b/binutils/ChangeLog
+index a054d16f668..f199025faa3 100644
+--- a/binutils/ChangeLog
++++ b/binutils/ChangeLog
+@@ -1,3 +1,11 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-11-11  Bernd Edlinger  <bernd.edlinger@hotmail.de>
++
++	* dwarf.c (display_debug_rnglists_list): Only bias the
++	DW_RLS_offset_pair with the base address.
++
+ 2020-11-15  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from the mainline:
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index f7f7243fdb1..320a12dda3e 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -7415,8 +7415,15 @@ display_debug_rnglists_list (unsigned char *start, unsigned char *finish,
+       if (rlet == DW_RLE_base_address)
+ 	continue;
+ 
+-      print_dwarf_vma (begin + base_address, pointer_size);
+-      print_dwarf_vma (end + base_address, pointer_size);
++      /* Only a DW_RLE_offset_pair needs the base address added.  */
++      if (rlet == DW_RLE_offset_pair)
++	{
++	  begin += base_address;
++	  end += base_address;
++	}
++
++      print_dwarf_vma (begin, pointer_size);
++      print_dwarf_vma (end, pointer_size);
+ 
+       if (begin == end)
+ 	fputs (_("(start == end)"), stdout);
+-- 
+2.18.4
+
+From ad360b86e684a41ce34807867c5b78b1ff9f7bee Mon Sep 17 00:00:00 2001
+From: "H.J. Lu" <hjl.tools@gmail.com>
+Date: Fri, 16 Oct 2020 04:03:20 -0700
+Subject: [PATCH 16/19] gas: Reuse the input file entry in the file table
+
+Some instructions can be emitted (dwarf2_emit_insn is called) before the
+first .file <NUMBER> directive has been seen, which allocates the input
+file as the first file entry.  Reuse the input file entry in the file
+table.
+
+	PR gas/25878
+	PR gas/26740
+	* dwarf2dbg.c (file_entry): Remove auto_assigned.
+	(assign_file_to_slot): Remove the auto_assign argument.
+	(allocate_filenum): Updated.
+	(allocate_filename_to_slot): Reuse the input file entry in the
+	file table.
+	(dwarf2_where): Replace as_where with as_where_physical.
+	* testsuite/gas/i386/dwarf5-line-1.d: New file.
+	* testsuite/gas/i386/dwarf5-line-1.s: Likewise.
+	* testsuite/gas/i386/i386.exp: Run dwarf5-line-1.
+
+(cherry picked from commit 6915020bb134ae29fd772295c66fd67b5944962d)
+
+gas: Always use as_where for preprocessed assembly codes
+
+Always clear the slot 1 if it was assigned to the input file before the
+first .file <NUMBER> directive has been seen.  Always use as_where to
+generate the correct debug infor for preprocessed assembly codes.
+
+	PR gas/25878
+	PR gas/26740
+	* dwarf2dbg.c (allocate_filename_to_slot): Don't reuse the slot 1
+	here.
+	(dwarf2_where): Restore as_where.
+	(dwarf2_directive_filename): Clear the slot 1 if it was assigned
+	to the input file.
+	* testsuite/gas/i386/dwarf5-line-2.d: New file.
+	* testsuite/gas/i386/dwarf5-line-2.s: Likewise.
+	* testsuite/gas/i386/dwarf5-line-3.d: Likewise.
+	* testsuite/gas/i386/dwarf5-line-3.s: Likewise.
+	* testsuite/gas/i386/i386.exp: Run dwarf5-line-2 and
+	dwarf5-line-3.
+
+NOTE: In gas/testsuite/gas/i386/dwarf5-line-3.s '.nop' was replace by 'nop'.
+
+(cherry picked from commit bd0c565edbf4ba8121fded38e389530d7fa6f963)
+
+gas: Clear all auto-assigned file slots
+
+Since a file slot is auto-assigned for the #APP marker appeared before
+the first .file <NUMBER> directive has been seen, clear all auto-assigned
+file slots when seeing the first .file <NUMBER> directive.
+
+	PR gas/26778
+	* * dwarf2dbg.c (num_of_auto_assigned): New.
+	(allocate_filenum): Increment num_of_auto_assigned.
+	(dwarf2_directive_filename): Clear the slots auto-assigned
+	before the first .file <NUMBER> directive was seen.
+	* testsuite/gas/i386/dwarf4-line-1.d: New file.
+	* testsuite/gas/i386/dwarf4-line-1.s: Likewise.
+	* testsuite/gas/i386/i386.exp: Run dwarf4-line-1.
+
+(cherry picked from commit ae9d2233e61a98ff8dba56be10219aa5306ffc9a)
+---
+ gas/ChangeLog                          | 44 ++++++++++++++++++++
+ gas/dwarf2dbg.c                        | 57 +++++++++++++-------------
+ gas/testsuite/gas/i386/dwarf4-line-1.d | 50 ++++++++++++++++++++++
+ gas/testsuite/gas/i386/dwarf4-line-1.s | 14 +++++++
+ gas/testsuite/gas/i386/dwarf5-line-1.d | 50 ++++++++++++++++++++++
+ gas/testsuite/gas/i386/dwarf5-line-1.s |  6 +++
+ gas/testsuite/gas/i386/dwarf5-line-2.d | 49 ++++++++++++++++++++++
+ gas/testsuite/gas/i386/dwarf5-line-2.s |  5 +++
+ gas/testsuite/gas/i386/dwarf5-line-3.d | 49 ++++++++++++++++++++++
+ gas/testsuite/gas/i386/dwarf5-line-3.s | 10 +++++
+ gas/testsuite/gas/i386/i386.exp        |  4 ++
+ 11 files changed, 309 insertions(+), 29 deletions(-)
+ create mode 100644 gas/testsuite/gas/i386/dwarf4-line-1.d
+ create mode 100644 gas/testsuite/gas/i386/dwarf4-line-1.s
+ create mode 100644 gas/testsuite/gas/i386/dwarf5-line-1.d
+ create mode 100644 gas/testsuite/gas/i386/dwarf5-line-1.s
+ create mode 100644 gas/testsuite/gas/i386/dwarf5-line-2.d
+ create mode 100644 gas/testsuite/gas/i386/dwarf5-line-2.s
+ create mode 100644 gas/testsuite/gas/i386/dwarf5-line-3.d
+ create mode 100644 gas/testsuite/gas/i386/dwarf5-line-3.s
+
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index 252b8387482..79f489ddd6c 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,47 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-10-16  H.J. Lu  <hongjiu.lu@intel.com>
++
++	PR gas/25878
++	PR gas/26740
++	* dwarf2dbg.c (file_entry): Remove auto_assigned.
++	(assign_file_to_slot): Remove the auto_assign argument.
++	(allocate_filenum): Updated.
++	(allocate_filename_to_slot): Reuse the input file entry in the
++	file table.
++	(dwarf2_where): Replace as_where with as_where_physical.
++	* testsuite/gas/i386/dwarf5-line-1.d: New file.
++	* testsuite/gas/i386/dwarf5-line-1.s: Likewise.
++	* testsuite/gas/i386/i386.exp: Run dwarf5-line-1.
++
++	2020-10-17  H.J. Lu  <hongjiu.lu@intel.com>
++
++	PR gas/25878
++	PR gas/26740
++	* dwarf2dbg.c (allocate_filename_to_slot): Don't reuse the slot 1
++	here.
++	(dwarf2_where): Restore as_where.
++	(dwarf2_directive_filename): Clear the slot 1 if it was assigned
++	to the input file.
++	* testsuite/gas/i386/dwarf5-line-2.d: New file.
++	* testsuite/gas/i386/dwarf5-line-2.s: Likewise.
++	* testsuite/gas/i386/dwarf5-line-3.d: Likewise.
++	* testsuite/gas/i386/dwarf5-line-3.s: Likewise.
++	* testsuite/gas/i386/i386.exp: Run dwarf5-line-2 and
++	dwarf5-line-3.
++
++	2020-10-26  H.J. Lu  <hongjiu.lu@intel.com>
++
++	PR gas/26778
++	* * dwarf2dbg.c (num_of_auto_assigned): New.
++	(allocate_filenum): Increment num_of_auto_assigned.
++	(dwarf2_directive_filename): Clear the slots auto-assigned
++	before the first .file <NUMBER> directive was seen.
++	* testsuite/gas/i386/dwarf4-line-1.d: New file.
++	* testsuite/gas/i386/dwarf4-line-1.s: Likewise.
++	* testsuite/gas/i386/i386.exp: Run dwarf4-line-1.
++
+ 2020-11-15  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from the mainline:
+diff --git a/gas/dwarf2dbg.c b/gas/dwarf2dbg.c
+index 6899a840eff..1160cafc13e 100644
+--- a/gas/dwarf2dbg.c
++++ b/gas/dwarf2dbg.c
+@@ -211,7 +211,6 @@ struct file_entry
+ {
+   const char *   filename;
+   unsigned int   dir;
+-  bfd_boolean    auto_assigned;
+   unsigned char  md5[NUM_MD5_BYTES];
+ };
+ 
+@@ -219,6 +218,7 @@ struct file_entry
+ static struct file_entry *files;
+ static unsigned int files_in_use;
+ static unsigned int files_allocated;
++static unsigned int num_of_auto_assigned;
+ 
+ /* Table of directories used by .debug_line.  */
+ static char **       dirs = NULL;
+@@ -633,7 +633,7 @@ get_directory_table_entry (const char *  dirname,
+ }
+ 
+ static bfd_boolean
+-assign_file_to_slot (unsigned long i, const char *file, unsigned int dir, bfd_boolean auto_assign)
++assign_file_to_slot (unsigned long i, const char *file, unsigned int dir)
+ {
+   if (i >= files_allocated)
+     {
+@@ -653,7 +653,6 @@ assign_file_to_slot (unsigned long i, const char *file, unsigned int dir, bfd_bo
+ 
+   files[i].filename = file;
+   files[i].dir = dir;
+-  files[i].auto_assigned = auto_assign;
+   memset (files[i].md5, 0, NUM_MD5_BYTES);
+ 
+   if (files_in_use < i + 1)
+@@ -717,9 +716,11 @@ allocate_filenum (const char * pathname)
+ 	return i;
+       }
+ 
+-  if (!assign_file_to_slot (i, file, dir, TRUE))
++  if (!assign_file_to_slot (i, file, dir))
+     return -1;
+ 
++  num_of_auto_assigned++;
++
+   last_used = i;
+   last_used_dir_len = dir_len;
+ 
+@@ -792,30 +793,15 @@ allocate_filename_to_slot (const char *  dirname,
+ 	}
+ 
+     fail:
+-      /* If NUM was previously allocated automatically then
+-	 choose another slot for it, so that we can reuse NUM.  */
+-      if (files[num].auto_assigned)
+-	{
+-	  /* Find an unused slot.  */
+-	  for (i = 1; i < files_in_use; ++i)
+-	    if (files[i].filename == NULL)
+-	      break;
+-	  if (! assign_file_to_slot (i, files[num].filename, files[num].dir, TRUE))
+-	    return FALSE;
+-	  files[num].filename = NULL;
+-	}
+-      else
+-	{
+-	  as_bad (_("file table slot %u is already occupied by a different file (%s%s%s vs %s%s%s)"),
+-		  num,
+-		  dir == NULL ? "" : dir,
+-		  dir == NULL ? "" : "/",
+-		  files[num].filename,
+-		  dirname == NULL ? "" : dirname,
+-		  dirname == NULL ? "" : "/",
+-		  filename);
+-	  return FALSE;
+-	}
++      as_bad (_("file table slot %u is already occupied by a different file (%s%s%s vs %s%s%s)"),
++	      num,
++	      dir == NULL ? "" : dir,
++	      dir == NULL ? "" : "/",
++	      files[num].filename,
++	      dirname == NULL ? "" : dirname,
++	      dirname == NULL ? "" : "/",
++	      filename);
++      return FALSE;
+     }
+ 
+   if (dirname == NULL)
+@@ -833,7 +819,7 @@ allocate_filename_to_slot (const char *  dirname,
+   d = get_directory_table_entry (dirname, dirlen, num == 0);
+   i = num;
+ 
+-  if (! assign_file_to_slot (i, file, d, FALSE))
++  if (! assign_file_to_slot (i, file, d))
+     return FALSE;
+ 
+   if (with_md5)
+@@ -1030,6 +1016,7 @@ dwarf2_directive_filename (void)
+   char *filename;
+   const char * dirname = NULL;
+   int filename_len;
++  unsigned int i;
+ 
+   /* Continue to accept a bare string and pass it off.  */
+   SKIP_WHITESPACE ();
+@@ -1096,6 +1083,18 @@ dwarf2_directive_filename (void)
+       return NULL;
+     }
+ 
++  if (num_of_auto_assigned)
++    {
++      /* Clear slots auto-assigned before the first .file <NUMBER>
++	 directive was seen.  */
++      if (files_in_use != (num_of_auto_assigned + 1))
++	abort ();
++      for (i = 1; i < files_in_use; i++)
++	files[i].filename = NULL;
++      files_in_use = 0;
++      num_of_auto_assigned = 0;
++    }
++
+   if (! allocate_filename_to_slot (dirname, filename, (unsigned int) num,
+ 				   with_md5))
+     return NULL;
+diff --git a/gas/testsuite/gas/i386/dwarf4-line-1.d b/gas/testsuite/gas/i386/dwarf4-line-1.d
+new file mode 100644
+index 00000000000..4f8321e9bfd
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf4-line-1.d
+@@ -0,0 +1,50 @@
++#as: -gdwarf-4
++#readelf: -wl
++#name: DWARF4 .debug_line 1
++
++Raw dump of debug contents of section \.z?debug_line:
++
++  Offset:                      0x0
++  Length:                      .*
++  DWARF Version:               4
++  Prologue Length:             .*
++  Minimum Instruction Length:  1
++  Maximum Ops per Instruction: 1
++  Initial value of 'is_stmt':  1
++  Line Base:                   -5
++  Line Range:                  14
++  Opcode Base:                 13
++
++ Opcodes:
++  Opcode 1 has 0 args
++  Opcode 2 has 1 arg
++  Opcode 3 has 1 arg
++  Opcode 4 has 1 arg
++  Opcode 5 has 1 arg
++  Opcode 6 has 0 args
++  Opcode 7 has 0 args
++  Opcode 8 has 0 args
++  Opcode 9 has 1 arg
++  Opcode 10 has 0 args
++  Opcode 11 has 0 args
++  Opcode 12 has 1 arg
++
++ The Directory Table \(offset 0x.*\):
++  1	.*/gas/testsuite/gas/i386
++
++ The File Name Table \(offset 0x.*\):
++  Entry	Dir	Time	Size	Name
++  1	0	0	0	foo.c
++  2	0	0	0	foo.h
++
++ Line Number Statements:
++  \[0x.*\]  Extended opcode 2: set Address to 0x0
++  \[0x.*\]  Advance Line by 81 to 82
++  \[0x.*\]  Copy
++  \[0x.*\]  Set File Name to entry 2 in the File Name Table
++  \[0x.*\]  Advance Line by -73 to 9
++  \[0x.*\]  Special opcode 19: advance Address by 1 to 0x1 and Line by 0 to 9
++  \[0x.*\]  Advance PC by 3 to 0x4
++  \[0x.*\]  Extended opcode 1: End of Sequence
++
++
+diff --git a/gas/testsuite/gas/i386/dwarf4-line-1.s b/gas/testsuite/gas/i386/dwarf4-line-1.s
+new file mode 100644
+index 00000000000..e558fdc0507
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf4-line-1.s
+@@ -0,0 +1,14 @@
++	.file	"foo.c"
++	.text
++bar:
++#APP
++# 82 "foo.h" 1
++	nop
++# 0 "" 2
++#NO_APP
++	ret
++foo:
++	.file 1 "foo.c"
++	nop
++	.file 2 "foo.h"
++	ret
+diff --git a/gas/testsuite/gas/i386/dwarf5-line-1.d b/gas/testsuite/gas/i386/dwarf5-line-1.d
+new file mode 100644
+index 00000000000..7d602d0594f
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf5-line-1.d
+@@ -0,0 +1,50 @@
++#as: -gdwarf-5
++#readelf: -wl
++#name: DWARF5 .debug_line 1
++
++Raw dump of debug contents of section \.z?debug_line:
++
++  Offset:                      0x0
++  Length:                      .*
++  DWARF Version:               5
++  Address size \(bytes\):        .*
++  Segment selector \(bytes\):    0
++  Prologue Length:             .*
++  Minimum Instruction Length:  1
++  Maximum Ops per Instruction: 1
++  Initial value of 'is_stmt':  1
++  Line Base:                   -5
++  Line Range:                  14
++  Opcode Base:                 13
++
++ Opcodes:
++  Opcode 1 has 0 args
++  Opcode 2 has 1 arg
++  Opcode 3 has 1 arg
++  Opcode 4 has 1 arg
++  Opcode 5 has 1 arg
++  Opcode 6 has 0 args
++  Opcode 7 has 0 args
++  Opcode 8 has 0 args
++  Opcode 9 has 1 arg
++  Opcode 10 has 0 args
++  Opcode 11 has 0 args
++  Opcode 12 has 1 arg
++
++ The Directory Table \(offset 0x.*, lines 2, columns 1\):
++  Entry	Name
++  0	\(indirect line string, offset: 0x.*\): .*/gas/testsuite/gas/i386
++  1	\(indirect line string, offset: 0x.*\): .*/gas/testsuite/gas/i386
++
++ The File Name Table \(offset 0x.*, lines 2, columns 3\):
++  Entry	Dir	MD5				Name
++  0	0 0xbbd69fc03ce253b2dbaab2522dd519ae	\(indirect line string, offset: 0x.*\): core.c
++  1	0 0x00000000000000000000000000000000	\(indirect line string, offset: 0x.*\): types.h
++
++ Line Number Statements:
++  \[0x.*\]  Extended opcode 2: set Address to 0x0
++  \[0x.*\]  Special opcode 8: advance Address by 0 to 0x0 and Line by 3 to 4
++  \[0x.*\]  Advance PC by 1 to 0x1
++  \[0x.*\]  Extended opcode 1: End of Sequence
++
++
+diff --git a/gas/testsuite/gas/i386/dwarf5-line-1.s b/gas/testsuite/gas/i386/dwarf5-line-1.s
+new file mode 100644
+index 00000000000..6e343ad0d36
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf5-line-1.s
+@@ -0,0 +1,6 @@
++	.text
++	.global kretprobe_trampoline
++kretprobe_trampoline:
++	ret
++	.file	0 "core.c" md5 0xbbd69fc03ce253b2dbaab2522dd519ae
++	.file	1 "types.h"
+diff --git a/gas/testsuite/gas/i386/dwarf5-line-2.d b/gas/testsuite/gas/i386/dwarf5-line-2.d
+new file mode 100644
+index 00000000000..302a2d8fcc4
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf5-line-2.d
+@@ -0,0 +1,49 @@
++#as: -gdwarf-5
++#readelf: -wl
++#name: DWARF5 .debug_line 2
++
++Raw dump of debug contents of section \.z?debug_line:
++
++  Offset:                      0x0
++  Length:                      .*
++  DWARF Version:               5
++  Address size \(bytes\):        .*
++  Segment selector \(bytes\):    0
++  Prologue Length:             .*
++  Minimum Instruction Length:  1
++  Maximum Ops per Instruction: 1
++  Initial value of 'is_stmt':  1
++  Line Base:                   -5
++  Line Range:                  14
++  Opcode Base:                 13
++
++ Opcodes:
++  Opcode 1 has 0 args
++  Opcode 2 has 1 arg
++  Opcode 3 has 1 arg
++  Opcode 4 has 1 arg
++  Opcode 5 has 1 arg
++  Opcode 6 has 0 args
++  Opcode 7 has 0 args
++  Opcode 8 has 0 args
++  Opcode 9 has 1 arg
++  Opcode 10 has 0 args
++  Opcode 11 has 0 args
++  Opcode 12 has 1 arg
++
++ The Directory Table \(offset 0x.*, lines 2, columns 1\):
++  Entry	Name
++  0	\(indirect line string, offset: 0x.*\): .*/gas/testsuite/gas/i386
++  1	\(indirect line string, offset: 0x.*\): .*/gas/testsuite/gas/i386
++
++ The File Name Table \(offset 0x.*, lines 1, columns 3\):
++  Entry	Dir	MD5				Name
++  0	0 0xbbd69fc03ce253b2dbaab2522dd519ae	\(indirect line string, offset: 0x.*\): core.c
++
++ Line Number Statements:
++  \[0x.*\]  Extended opcode 2: set Address to 0x0
++  \[0x.*\]  Special opcode 8: advance Address by 0 to 0x0 and Line by 3 to 4
++  \[0x.*\]  Advance PC by 1 to 0x1
++  \[0x.*\]  Extended opcode 1: End of Sequence
++
++
+diff --git a/gas/testsuite/gas/i386/dwarf5-line-2.s b/gas/testsuite/gas/i386/dwarf5-line-2.s
+new file mode 100644
+index 00000000000..4af7d7061c9
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf5-line-2.s
+@@ -0,0 +1,5 @@
++	.text
++	.global kretprobe_trampoline
++kretprobe_trampoline:
++	ret
++	.file	0 "core.c" md5 0xbbd69fc03ce253b2dbaab2522dd519ae
+diff --git a/gas/testsuite/gas/i386/dwarf5-line-3.d b/gas/testsuite/gas/i386/dwarf5-line-3.d
+new file mode 100644
+index 00000000000..6f4ebf04718
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf5-line-3.d
+@@ -0,0 +1,49 @@
++#as: -g -gdwarf-5
++#readelf: -wl
++#name: DWARF5 .debug_line 2
++
++Raw dump of debug contents of section \.z?debug_line:
++
++  Offset:                      0x0
++  Length:                      .*
++  DWARF Version:               5
++  Address size \(bytes\):        .*
++  Segment selector \(bytes\):    0
++  Prologue Length:             .*
++  Minimum Instruction Length:  1
++  Maximum Ops per Instruction: 1
++  Initial value of 'is_stmt':  1
++  Line Base:                   -5
++  Line Range:                  14
++  Opcode Base:                 13
++
++ Opcodes:
++  Opcode 1 has 0 args
++  Opcode 2 has 1 arg
++  Opcode 3 has 1 arg
++  Opcode 4 has 1 arg
++  Opcode 5 has 1 arg
++  Opcode 6 has 0 args
++  Opcode 7 has 0 args
++  Opcode 8 has 0 args
++  Opcode 9 has 1 arg
++  Opcode 10 has 0 args
++  Opcode 11 has 0 args
++  Opcode 12 has 1 arg
++
++ The Directory Table \(offset 0x.*, lines 1, columns 1\):
++  Entry	Name
++  0	\(indirect line string, offset: 0x.*\): .*
++
++ The File Name Table \(offset 0x.*, lines 2, columns 2\):
++  Entry	Dir	Name
++  0	0	\(indirect line string, offset: 0x.*\): dwarf5-line-2.S
++  1	0	\(indirect line string, offset: 0x.*\): dwarf5-line-2.S
++
++ Line Number Statements:
++  \[0x.*\]  Extended opcode 2: set Address to 0x0
++  \[0x.*\]  Special opcode 7: advance Address by 0 to 0x0 and Line by 2 to 3
++  \[0x.*\]  Advance PC by 1 to 0x1
++  \[0x.*\]  Extended opcode 1: End of Sequence
++
++
+diff --git a/gas/testsuite/gas/i386/dwarf5-line-3.s b/gas/testsuite/gas/i386/dwarf5-line-3.s
+new file mode 100644
+index 00000000000..f46206c7a50
+--- /dev/null
++++ b/gas/testsuite/gas/i386/dwarf5-line-3.s
+@@ -0,0 +1,10 @@
++# 1 "foo.S"
++# 1 "<built-in>"
++# 1 "<command-line>"
++# 31 "<command-line>"
++# 1 "/usr/include/stdc-predef.h" 1 3 4
++# 32 "<command-line>" 2
++# 1 "dwarf5-line-2.S"
++ .text
++lbasename:
++ nop
+diff --git a/gas/testsuite/gas/i386/i386.exp b/gas/testsuite/gas/i386/i386.exp
+index 276b09229ac..7a9219c206b 100644
+--- a/gas/testsuite/gas/i386/i386.exp
++++ b/gas/testsuite/gas/i386/i386.exp
+@@ -594,6 +594,10 @@ if [expr ([istarget "i*86-*-*"] ||  [istarget "x86_64-*-*"]) && [gas_32_check]]
+ 	run_dump_test "dwarf2-line-2"
+ 	run_dump_test "dwarf2-line-3"
+ 	run_dump_test "dwarf2-line-4"
++	run_dump_test "dwarf4-line-1"
++	run_dump_test "dwarf5-line-1"
++	run_dump_test "dwarf5-line-2"
++	run_dump_test "dwarf5-line-3"
+ 
+ 	run_dump_test "dw2-compress-2"
+ 	run_dump_test "dw2-compressed-2"
+-- 
+2.18.4
+
+From ad647fca7387186e9c91c10593ca5a74e2c1e950 Mon Sep 17 00:00:00 2001
+From: Nick Clifton <nickc@redhat.com>
+Date: Tue, 10 Nov 2020 11:55:18 +0000
+Subject: [PATCH 17/19] Accept the DW_FORM_ref8 type when parsing DWARF types.
+
+	* dwarf.c (skip_attr_bytes): Correctly handle DW_FORM_ref8.
+	(get_type_abbrev_from_form): Accept DW_FORM_ref8.
+
+(cherry picked from commit 1f57314183549008c065ad2240598d2b0f0ff56b
+ and commit ed1afd86668781159a131dc9c9c4a54a3b0a1e3a)
+---
+ binutils/ChangeLog |  8 ++++++++
+ binutils/dwarf.c   | 16 ++++++++++++++++
+ 2 files changed, 24 insertions(+)
+
+diff --git a/binutils/ChangeLog b/binutils/ChangeLog
+index f199025faa3..606a349bcd3 100644
+--- a/binutils/ChangeLog
++++ b/binutils/ChangeLog
+@@ -1,3 +1,11 @@
++2020-11-15  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-11-10  Nick Clifton  <nickc@redhat.com>
++
++	* dwarf.c (skip_attr_bytes): Correctly handle DW_FORM_ref8.
++	(get_type_abbrev_from_form): Accept DW_FORM_ref8.
++
+ 2020-11-15  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from the mainline:
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index 320a12dda3e..ba141c58f16 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -2021,6 +2021,21 @@ skip_attr_bytes (unsigned long          form,
+       break;
+ 
+     case DW_FORM_ref8:
++      {
++	dwarf_vma high_bits;
++
++	SAFE_BYTE_GET64 (data, &high_bits, &uvalue, end);
++	data += 8;
++	if (sizeof (uvalue) > 4)
++	  uvalue += high_bits << 32;
++	else if (high_bits != 0)
++	  {
++	    /* FIXME: What to do ?  */
++	    return NULL;
++	  }
++	break;
++      }
++
+     case DW_FORM_data8:
+     case DW_FORM_ref_sig8:
+       data += 8;
+@@ -2111,6 +2126,7 @@ get_type_abbrev_from_form (unsigned long                 form,
+     case DW_FORM_ref1:
+     case DW_FORM_ref2:
+     case DW_FORM_ref4:
++    case DW_FORM_ref8:
+     case DW_FORM_ref_udata:
+       if (uvalue + cu_offset > section->size)
+ 	{
+-- 
+2.18.4
+
+From 65866dc58d4edc87b56fb2313bd172533e2c343a Mon Sep 17 00:00:00 2001
+From: Alan Modra <amodra@gmail.com>
+Date: Fri, 25 Sep 2020 10:00:01 +0930
+Subject: [PATCH 18/19] Re: Sync libiberty and include with GCC for
+ get_DW_UT_name
+
+	* dwarf.h (DW_FIRST_UT, DW_UT, DW_END_UT): Define.
+
+(cherry picked from commit cc9ea2c21cd6e2c88995a7484d2c848c7d7ce71b)
+---
+ elfcpp/ChangeLog | 7 +++++++
+ elfcpp/dwarf.h   | 9 +++++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/elfcpp/ChangeLog b/elfcpp/ChangeLog
+index efb82c57703..fa1d20e5d9a 100644
+--- a/elfcpp/ChangeLog
++++ b/elfcpp/ChangeLog
+@@ -1,3 +1,10 @@
++2020-11-16  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-09-25  Alan Modra  <amodra@gmail.com>
++
++	* dwarf.h (DW_FIRST_UT, DW_UT, DW_END_UT): Define.
++
+ 2020-07-04  Nick Clifton  <nickc@redhat.com>
+ 
+ 	Binutils 2.35 branch created.
+diff --git a/elfcpp/dwarf.h b/elfcpp/dwarf.h
+index 1221f37f8a6..d5e06d4d7d3 100644
+--- a/elfcpp/dwarf.h
++++ b/elfcpp/dwarf.h
+@@ -81,6 +81,11 @@ namespace elfcpp
+ #define DW_IDX_DUP(name, value) , name = value
+ #define DW_END_IDX };
+ 
++#define DW_FIRST_UT(name, value) enum dwarf_unit_type { \
++  name = value
++#define DW_UT(name, value) , name = value
++#define DW_END_UT };
++
+ #include "dwarf2.def"
+ 
+ #undef DW_FIRST_TAG
+@@ -117,6 +122,10 @@ namespace elfcpp
+ #undef DW_IDX_DUP
+ #undef DW_END_IDX
+ 
++#undef DW_FIRST_UT
++#undef DW_UT
++#undef DW_END_UT
++
+ // Frame unwind information.
+ 
+ enum DW_EH_PE
+-- 
+2.18.4
+
+From aa54a0d931f1ecc53c812ad9e856a06da68a6576 Mon Sep 17 00:00:00 2001
+From: "H.J. Lu" <hjl.tools@gmail.com>
+Date: Thu, 29 Oct 2020 09:19:25 -0700
+Subject: [PATCH 19/19] dwarf: Also match abbrev base when searching abbrev
+ list
+
+A .debug_abbrev section can have multiple CUs.  When caching abbrev list,
+we need to check abbrev base to support multiple CUs.
+
+	PR binutils/26808
+	* dwarf.c (abbrev_list): Add abbrev_base.
+	(new_abbrev_list): Add an abbrev_base argument and record it.
+	(find_abbrev_list_by_abbrev_offset): Add an abbrev_base argument
+	and match it.
+	(process_debug_info): Pass abbrev_base to new_abbrev_list and
+	find_abbrev_list_by_abbrev_offset.
+	(display_debug_abbrev): Pass 0 abbrev_base to new_abbrev_list
+	and find_abbrev_list_by_abbrev_offset.
+	* testsuite/binutils-all/x86-64/pr26808.dump: New file.
+	* testsuite/binutils-all/x86-64/pr26808.dwp.bz2: Likewise.
+	* testsuite/binutils-all/x86-64/x86-64.exp: Run PR binutils/26808
+	test.
+
+(cherry picked from commit 76868f3606fb9de04f49c441c1e3cdd3e943a34d)
+---
+ binutils/ChangeLog                            |   19 +
+ binutils/dwarf.c                              |   52 +-
+ .../binutils-all/x86-64/pr26808.dump          | 1440 +++++++++++++++++
+ .../binutils-all/x86-64/pr26808.dwp.bz2       |  Bin 0 -> 2951 bytes
+ .../testsuite/binutils-all/x86-64/x86-64.exp  |   31 +
+ 5 files changed, 1520 insertions(+), 22 deletions(-)
+ create mode 100644 binutils/testsuite/binutils-all/x86-64/pr26808.dump
+ create mode 100644 binutils/testsuite/binutils-all/x86-64/pr26808.dwp.bz2
+
+diff --git a/binutils/ChangeLog b/binutils/ChangeLog
+index 606a349bcd3..681354044cd 100644
+--- a/binutils/ChangeLog
++++ b/binutils/ChangeLog
+@@ -1,3 +1,22 @@
++2020-11-16  Mark Wielaard  <mark@klomp.org>
++
++	Backport from the mainline:
++	2020-10-29  H.J. Lu  <hongjiu.lu@intel.com>
++
++	PR binutils/26808
++	* dwarf.c (abbrev_list): Add abbrev_base.
++	(new_abbrev_list): Add an abbrev_base argument and record it.
++	(find_abbrev_list_by_abbrev_offset): Add an abbrev_base argument
++	and match it.
++	(process_debug_info): Pass abbrev_base to new_abbrev_list and
++	find_abbrev_list_by_abbrev_offset.
++	(display_debug_abbrev): Pass 0 abbrev_base to new_abbrev_list
++	and find_abbrev_list_by_abbrev_offset.
++	* testsuite/binutils-all/x86-64/pr26808.dump: New file.
++	* testsuite/binutils-all/x86-64/pr26808.dwp.bz2: Likewise.
++	* testsuite/binutils-all/x86-64/x86-64.exp: Run PR binutils/26808
++	test.
++
+ 2020-11-15  Mark Wielaard  <mark@klomp.org>
+ 
+ 	Backport from the mainline:
+diff --git a/binutils/dwarf.c b/binutils/dwarf.c
+index ba141c58f16..a11392dd4a0 100644
+--- a/binutils/dwarf.c
++++ b/binutils/dwarf.c
+@@ -876,6 +876,7 @@ typedef struct abbrev_list
+ {
+   abbrev_entry *        first_abbrev;
+   abbrev_entry *        last_abbrev;
++  dwarf_vma             abbrev_base;
+   dwarf_vma             abbrev_offset;
+   struct abbrev_list *  next;
+   unsigned char *       start_of_next_abbrevs;
+@@ -955,10 +956,11 @@ free_all_abbrevs (void)
+ }
+ 
+ static abbrev_list *
+-new_abbrev_list (dwarf_vma abbrev_offset)
++new_abbrev_list (dwarf_vma abbrev_base, dwarf_vma abbrev_offset)
+ {
+   abbrev_list * list = (abbrev_list *) xcalloc (sizeof * list, 1);
+ 
++  list->abbrev_base = abbrev_base;
+   list->abbrev_offset = abbrev_offset;
+ 
+   list->next = abbrev_lists;
+@@ -968,12 +970,14 @@ new_abbrev_list (dwarf_vma abbrev_offset)
+ }
+ 
+ static abbrev_list *
+-find_abbrev_list_by_abbrev_offset (dwarf_vma abbrev_offset)
++find_abbrev_list_by_abbrev_offset (dwarf_vma abbrev_base,
++				   dwarf_vma abbrev_offset)
+ {
+   abbrev_list * list;
+ 
+   for (list = abbrev_lists; list != NULL; list = list->next)
+-    if (list->abbrev_offset == abbrev_offset)
++    if (list->abbrev_base == abbrev_base
++	&& list->abbrev_offset == abbrev_offset)
+       return list;
+ 
+   return NULL;
+@@ -3472,6 +3476,8 @@ process_debug_info (struct dwarf_section *           section,
+     {
+       DWARF2_Internal_CompUnit  compunit;
+       unsigned char *           hdrptr;
++      dwarf_vma                 abbrev_base;
++      size_t                    abbrev_size;
+       dwarf_vma                 cu_offset;
+       unsigned int              offset_size;
+       unsigned int              initial_length_size;
+@@ -3516,25 +3522,25 @@ process_debug_info (struct dwarf_section *           section,
+ 
+       SAFE_BYTE_GET_AND_INC (compunit.cu_abbrev_offset, hdrptr, offset_size, end);
+ 
+-      list = find_abbrev_list_by_abbrev_offset (compunit.cu_abbrev_offset);
++      if (this_set == NULL)
++	{
++	  abbrev_base = 0;
++	  abbrev_size = debug_displays [abbrev_sec].section.size;
++	}
++      else
++	{
++	  abbrev_base = this_set->section_offsets [DW_SECT_ABBREV];
++	  abbrev_size = this_set->section_sizes [DW_SECT_ABBREV];
++	}
++
++      list = find_abbrev_list_by_abbrev_offset (abbrev_base,
++						compunit.cu_abbrev_offset);
+       if (list == NULL)
+ 	{
+-	  dwarf_vma        abbrev_base;
+-	  size_t           abbrev_size;
+ 	  unsigned char *  next;
+ 
+-	  if (this_set == NULL)
+-	    {
+-	      abbrev_base = 0;
+-	      abbrev_size = debug_displays [abbrev_sec].section.size;
+-	    }
+-	  else
+-	    {
+-	      abbrev_base = this_set->section_offsets [DW_SECT_ABBREV];
+-	      abbrev_size = this_set->section_sizes [DW_SECT_ABBREV];
+-	    }
+-
+-	  list = new_abbrev_list (compunit.cu_abbrev_offset);
++	  list = new_abbrev_list (abbrev_base,
++				  compunit.cu_abbrev_offset);
+ 	  next = process_abbrev_set
+ 	    (((unsigned char *) debug_displays [abbrev_sec].section.start
+ 	      + abbrev_base + compunit.cu_abbrev_offset),
+@@ -3756,12 +3762,14 @@ process_debug_info (struct dwarf_section *           section,
+ 	      (unsigned long) debug_displays [abbrev_sec].section.size);
+       else
+ 	{
+-	  list = find_abbrev_list_by_abbrev_offset (compunit.cu_abbrev_offset);
++	  list = find_abbrev_list_by_abbrev_offset (abbrev_base,
++						    compunit.cu_abbrev_offset);
+ 	  if (list == NULL)
+ 	    {
+ 	      unsigned char * next;
+ 
+-	      list = new_abbrev_list (compunit.cu_abbrev_offset);
++	      list = new_abbrev_list (abbrev_base,
++				      compunit.cu_abbrev_offset);
+ 	      next = process_abbrev_set
+ 		(((unsigned char *) debug_displays [abbrev_sec].section.start
+ 		  + abbrev_base + compunit.cu_abbrev_offset),
+@@ -6051,10 +6059,10 @@ display_debug_abbrev (struct dwarf_section *section,
+       dwarf_vma        offset;
+ 
+       offset = start - section->start;
+-      list = find_abbrev_list_by_abbrev_offset (offset);
++      list = find_abbrev_list_by_abbrev_offset (0, offset);
+       if (list == NULL)
+ 	{
+-	  list = new_abbrev_list (offset);
++	  list = new_abbrev_list (0, offset);
+ 	  start = process_abbrev_set (start, end, list);
+ 	  list->start_of_next_abbrevs = start;
+ 	}
+-- 
+2.18.4
+

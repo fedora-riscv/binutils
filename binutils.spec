@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -245,6 +245,10 @@ Patch27: binutils-plugin-as-needed.patch
 #            when attempting to determine a type's signedness.
 # Lifetime: Fixed in 2.36
 Patch28: binutils-dwarf-type-sign.patch
+
+# Purpose:  Fix some DWARF5 issues
+# Lifetime: Fixed in 2.36 and on 2.35-branch
+Patch29: binutils-dwarf5-2_35-branch.patch
 
 #----------------------------------------------------------------------------
 
@@ -819,6 +823,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Nov 27 2020 Mark Wielaard  <mjw@fedoraproject.org> - 2.35-15
+- Add DWARF5 fixes from 2_35-branch.
+
 * Fri Oct 30 2020 Nick Clifton  <nickc@redhat.com> - 2.35-14
 - Correction for plugin as-needed patch.  (#1889763)
 
