@@ -316,6 +316,7 @@ Requires: binutils-gold >= %{version}
 
 # Perl, sed and touch are all used in the %%prep section of this spec file.
 BuildRequires: perl, sed, coreutils
+BuildRequires: make
 
 %if %{with clang}
 BuildRequires: clang compiler-rt
