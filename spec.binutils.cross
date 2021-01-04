@@ -2,69 +2,64 @@
 # Note - this is an rpm spec file, but it has been renamed in order to avoid
 # conflict with the real binutils.spec file.
 #
-# Its only use is to build a set of cross-binutils rpms by installing it
-# into an rpmbuild tree where the binutils source rpm has already been placed.
-# It should be run as:
+# Its only use is to build a set of cross-binutils rpms by putting it into
+# the SPECS directory of an rpmbuild tree, installing the binutils source
+# rpm into the SOURCES directory and then running:
 #
 #    rpmbuild -bb spec.binutils.cross
 
 Summary: A meta collection of GNU binutils executables for cross builds
 Name: cross-binutils
-
-# Note: KEEP THE Version and Release fields IN SYNC with binutils.spec
-Version: 2.35.1
-Release: 14%{?dist}
-
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
-Source: binutils.spec
+#----------------------------------------------------------------------------
+#
+# Configurable settings - adjust to match your needs:
+#
+
+Version: 2.30
+Release: 89.el8
+
+# The list of cross architectures to build.
+# Note: this list assumes that we are building on an x86_64-linux-gnu host.
+
+%define arch_list  aarch64-linux-gnu  ppc64le-linux-gnu  s390x-linux-gnu
+
+#----------------------------------------------------------------------------
+
+%define binutils_source_rpm   binutils-%{version}-%{release}.src.rpm
+
+Source: %{binutils_source_rpm}
 
 # Provides: bundled(libiberty)
 
 BuildRequires: autoconf automake
 BuildRequires: perl, sed, coreutils
-BuildRequires: gcc
+BuildRequires: gcc, bison
 BuildRequires: gettext, flex, zlib-devel
-BuildRequires: findutils
+BuildRequires: findutils, texinfo
 BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc
-BuildRequires: elfutils-debuginfod-client-devel
+# BuildRequires: elfutils-debuginfod-client-devel
 BuildRequires: rpm-build
-
-Requires(post): %{_sbindir}/alternatives
-Requires(post): coreutils
-Requires(preun): %{_sbindir}/alternatives
 
 #----------------------------------------------------------------------------
 
 %description
 Provides a collection of cross built binutils for the targets
-supported by RHEL (aarch64, i686, ppc64le, s390x).
-
-# Note - this list assumes that we are building on an x86_64-linux-gnu host.
-%define arch_list aarch64-linux-gnu i686-linux-gnu ppc64le-linux-gnu s390x-linux-gnu
-
-#----------------------------------------------------------------------------
-
-%prep
+supported by RHEL (aarch64, ppc64le, s390x).
 
 #----------------------------------------------------------------------------
 
 %build
 
+# Install the binutils sources.
+rpm -ivh %{_sourcedir}/%{binutils_source_rpm}
+
 # Build each set of cross binutils individually.
-
 for f in %{arch_list}; do
-  rpmbuild -bb --define "binutils_target $f" %{_specdir}/binutils.spec --without testsuite 
+  rpmbuild -bb --define "binutils_target $f" %{_specdir}/binutils.spec --without testsuite --without gold
 done
-
-#----------------------------------------------------------------------------
-
-%install
-
-#----------------------------------------------------------------------------
-
-%files 
 
 #----------------------------------------------------------------------------
 %changelog
