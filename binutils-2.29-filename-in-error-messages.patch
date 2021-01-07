@@ -121,3 +121,15 @@
  
    free (ba_cache.strtab);
    ba_cache.strtab = NULL;
+--- binutils.orig/binutils/readelf.c	2021-01-07 12:59:35.802994842 +0000
++++ binutils-2.35.1/binutils/readelf.c	2021-01-07 13:02:36.591754005 +0000
+@@ -20818,7 +20818,8 @@ process_file (char * file_name)
+  done:
+   if (filedata)
+     {
+-      fclose (filedata->handle);
++      if (filedata->handle != NULL)
++	fclose (filedata->handle);
+       free (filedata->section_headers);
+       free (filedata->program_headers);
+       free (filedata->string_table);
