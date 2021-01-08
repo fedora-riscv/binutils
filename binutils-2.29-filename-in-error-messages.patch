@@ -133,3 +133,13 @@
        free (filedata->section_headers);
        free (filedata->program_headers);
        free (filedata->string_table);
+--- binutils.orig/binutils/readelf.c	2021-01-08 17:01:23.573093204 +0000
++++ binutils-2.35.1/binutils/readelf.c	2021-01-08 17:02:23.095677242 +0000
+@@ -20787,7 +20787,6 @@ process_file (char * file_name)
+   if (fread (armag, SARMAG, 1, filedata->handle) != 1)
+     {
+       error (_("Failed to read file's magic number\n"));
+-      fclose (filedata->handle);
+       goto done;
+     }
+ 

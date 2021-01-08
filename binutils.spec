@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -874,6 +874,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jan 08 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-20
+- Fix bug running readelf on an empty file.  (#1903448)
+
+* Thu Jan 07 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-19
+- Fix bug running readelf on a file that cannot be read.  (#1913589)
+
 * Mon Jan 04 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-18
 - Fix linking with multiple same-name sections.  (PR 27100)
 
