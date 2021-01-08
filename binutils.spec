@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -823,6 +823,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jan 08 2021 Nick Clifton  <nickc@redhat.com> - 2.35-16
+- Fix bug running readelf on an empty file.  (#1903448)
+- Fix bug running readelf on a file that cannot be read.  (#1913589)
+
 * Fri Nov 27 2020 Mark Wielaard  <mjw@fedoraproject.org> - 2.35-15
 - Add DWARF5 fixes from 2_35-branch.
 
