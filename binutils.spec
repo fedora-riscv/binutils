@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -294,6 +294,14 @@ Patch28: binutils-SHF_LINK_ORDER.patch
 # Purpose:  Correctly handle multiple same-named sections in linker scripts
 # Lifetime: Fixed in 2.36
 Patch29: binutils-duplicate-sections.patch
+
+# Purpose:  Use the "unsigned long long" type for pointers on hosts where
+#           long is a 32-bit type but pointers are a 64-bit type.  Necessary
+#           because users expect to be able to install both the i686- and
+#           x86_64 versions of binutils-devel on the same machine, so they
+#           need to identical versions of the bfd.h header file.
+# Lifetime: Permanent.
+Patch30: binutils-use-long-long.patch
 
 #----------------------------------------------------------------------------
 
@@ -874,6 +882,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jan 12 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-21
+- Ensure that bfd.h is the same for i686- and x86_64 versions of the devel rpm.  (#1915317)
+
 * Fri Jan 08 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-20
 - Fix bug running readelf on an empty file.  (#1903448)
 
