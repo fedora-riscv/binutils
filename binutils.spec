@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -249,6 +249,11 @@ Patch28: binutils-dwarf-type-sign.patch
 # Purpose:  Fix some DWARF5 issues
 # Lifetime: Fixed in 2.36 and on 2.35-branch
 Patch29: binutils-dwarf5-2_35-branch.patch
+
+# Purpose:  Fix the strip program to cope when merging multiple same-named
+#            sections.
+# Lifetime: Fixed in 2.36
+Patch30: binutils-strip-merge.patch
 
 #----------------------------------------------------------------------------
 
@@ -823,6 +828,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+
+* Thu Jan 14 2021 Nick Clifton  <nickc@redhat.com> - 2.35-17
+- Fix strip when merging multiple same-named sections.  (#1885607)
+
 * Fri Jan 08 2021 Nick Clifton  <nickc@redhat.com> - 2.35-16
 - Fix bug running readelf on an empty file.  (#1903448)
 - Fix bug running readelf on a file that cannot be read.  (#1913589)
