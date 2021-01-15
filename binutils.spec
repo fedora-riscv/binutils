@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -69,6 +69,10 @@ URL: https://sourceware.org/binutils
 # Enable support for GCC LTO compilation.
 # Disable if it is necessary to work around bugs in LTO.
 %define enable_lto 1
+
+# Enable support for generating new dtags in the linker
+# Disable if it is necessary to use RPATH instead.
+%define enable_new_dtags 0
 
 # Enable the compression of debug sections as default behaviour of the
 # assembler and linker.  This option is disabled for now.  The assembler and
@@ -603,6 +607,9 @@ popd
 %if %{enable_lto}
   --enable-lto \
 %endif
+%if %{enable_new_dtags}
+  --enable-new-dtags \
+%endif
 %if %{default_compress_debug}
   --enable-compressed-debug-sections=all \
 %else
@@ -882,6 +889,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jan 15 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-22
+- Add an option (currently disabled) to build a linker which generates new dtags.
+
 * Tue Jan 12 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-21
 - Ensure that bfd.h is the same for i686- and x86_64 versions of the devel rpm.  (#1915317)
 
