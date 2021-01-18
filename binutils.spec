@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -254,6 +254,10 @@ Patch29: binutils-dwarf5-2_35-branch.patch
 #            sections.
 # Lifetime: Fixed in 2.36
 Patch30: binutils-strip-merge.patch
+
+# Purpose:  Update the GOLD linker to support x86 .note.gnu.property sections.
+# Lifetime: Fixed in 2.36
+Patch31: binutils-gold-gnu-properties.patch
 
 #----------------------------------------------------------------------------
 
@@ -828,6 +832,8 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jan 18 2021 Nick Clifton  <nickc@redhat.com> - 2.35-18
+- Update the GOLD linker to handle x86 .note.gnu.property sections.  (#1916925)
 
 * Thu Jan 14 2021 Nick Clifton  <nickc@redhat.com> - 2.35-17
 - Fix strip when merging multiple same-named sections.  (#1885607)
