@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -306,6 +306,11 @@ Patch29: binutils-duplicate-sections.patch
 #           need to identical versions of the bfd.h header file.
 # Lifetime: Permanent.
 Patch30: binutils-use-long-long.patch
+
+# Purpose:  Have the assembler automatically detect the use of DWARF-5
+#            file numbers, and enable DWARF-5 support.
+# Lifetime: Fixed in 2.36.
+Patch31: binutils-gas-auto-dwarf-5.patch
 
 #----------------------------------------------------------------------------
 
@@ -775,6 +780,8 @@ rm -rf %{buildroot}%{_infodir}
 #rm -rf {buildroot}{_prefix}/share/locale
 #rm -rf {buildroot}{_mandir}
 rm -rf %{buildroot}%{_libdir}/libiberty.a
+# Remove libtool files, which reference the .so libs
+rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.la
 %endif
 
 # This one comes from gcc
@@ -889,6 +896,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jan 18 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-23
+- Add a fix to gas to automatically enable DWARF-5 style file name tables.
+
 * Fri Jan 15 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-22
 - Add an option (currently disabled) to build a linker which generates new dtags.
 
