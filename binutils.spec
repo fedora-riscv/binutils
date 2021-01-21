@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -311,6 +311,10 @@ Patch30: binutils-use-long-long.patch
 #            file numbers, and enable DWARF-5 support.
 # Lifetime: Fixed in 2.36.
 Patch31: binutils-gas-auto-dwarf-5.patch
+
+# Purpose:  Update the GOLD linker to support x86 .note.gnu.property sections.
+# Lifetime: Fixed in 2.36
+Patch32: binutils-gold-gnu-properties.patch
 
 #----------------------------------------------------------------------------
 
@@ -896,6 +900,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 21 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-24
+- Update the GOLD linker to handle x86 .note.gnu.property sections.  (#1916925)
+
 * Mon Jan 18 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-23
 - Add a fix to gas to automatically enable DWARF-5 style file name tables.
 
