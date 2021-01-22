@@ -67,6 +67,17 @@ rlJournalStart
         rlLogInfo "COLLECTIONS=$COLLECTIONS"
         rlLogInfo "SKIP_COLLECTION_METAPACKAGE_CHECK=$SKIP_COLLECTION_METAPACKAGE_CHECK"
 
+        # We'll use a lot of disk space (tens of GBs at least). The root FS
+        # often is the most beefy one in CI environemnts. Let's use it but also
+        # let's log what's actually available.
+        export TMPDIR=/test_tmp_root
+        rlRun "mkdir -p $TMPDIR"
+        rlLogInfo "TMPDIR=$TMPDIR"
+        rlLogInfo 'Disk space:'
+        df -h | while read line; do
+            rlLogInfo "    $line"
+        done
+
         # We optionally need to skip checking for the presence of the metapackage
         # because that would pull in all the dependent toolset subrpms.  We do not
         # always want that, especially in CI.
