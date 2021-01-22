@@ -1,0 +1,20 @@
+Rebuild kernel, install it, reboot, and check if we're running the correct
+kernel. Tailored specificaly for binutils buildroot testing process.
+
+Author: Milos Prchlik <mprchlik@redhat.com>
+
+Based on gcc/Sanity/rebuild-kernel by:
+Author: Michal Nowak <mnowak@redhat.com>
+Author: Marek Polacek <polacek@redhat.com>
+
+Using MACHINE_SET__STRONG host-filter for this test, by setting the "hardware"
+section in TCMS properly. That has several effects:
+
+  - kernel rebuild is very resoruce-intensive task, and having more powerful
+    boxes for it is simply good,
+  - this task will get its own boxes, not clobbered by additional kernel packages
+    that are usually installed by other tasks in the same run. E.g.kernel-debuginfo,
+    when installed, will conflict with freshly build kernel packages. This should
+    workaround such situations,
+  - this tasks reboots its boxes - should such reboot break something, don't ruin
+    the whole run by it, right?
