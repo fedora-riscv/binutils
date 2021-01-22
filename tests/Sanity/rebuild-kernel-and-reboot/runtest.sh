@@ -28,6 +28,15 @@
 
 export AVC_ERROR='+no_avc_check'
 
+case "$JUST_BUILD" in
+    0|[Ff][Aa][Ll][Ss][Ee]|[Nn][Oo])
+        JUST_BUILD=no
+        ;;
+    *)
+        JUST_BUILD=yes
+        ;;
+esac
+
 LD="${LD:-$(which ld)}"
 GCC="${GCC:-$(which gcc)}"
 
@@ -54,6 +63,7 @@ rlJournalStart
         rlLogInfo "PACKAGES=$PACKAGES"
         rlLogInfo "KERNEL=$KERNEL"
         rlLogInfo "REQUIRES=$REQUIRES"
+        rlLogInfo "JUST_BUILD=$JUST_BUILD"
         rlLogInfo "COLLECTIONS=$COLLECTIONS"
         rlLogInfo "SKIP_COLLECTION_METAPACKAGE_CHECK=$SKIP_COLLECTION_METAPACKAGE_CHECK"
 
@@ -130,8 +140,8 @@ rlJournalStart
             rlBundleLogs "Build-log" BUILD_LOG
         rlPhaseEnd
 
-        # Only install new kernel and reboot if the kernel build went successful
-        if [ "$RPMBUILD_OK" = "yes" ]; then
+        # Install and boot the new kernel only if it's requested *and* the build was successful
+        if [ "$JUST_BUILD" = 'no' ] && [ "$RPMBUILD_OK" = "yes" ]; then
             rlPhaseStartTest "Install"
                 RPMS="$(ls -1 $TmpDir/RPMS/*/*.rpm | grep -v kernel-selftests-internal | tr '\n' ' ')"
 
@@ -162,10 +172,16 @@ rlJournalStart
         fi
     fi
 
-    rlPhaseStartTest "Test"
-        rlLogInfo "$(uname -a)"
-        rlRun "uname -r | grep $RPM_BUILD_ID"
-    rlPhaseEnd
+    # Verify the build ID only if its install and boot were requested
+    if [ "$JUST_BUILD" = 'no' ]; then
+        rlPhaseStartTest "Test"
+            if ! [ "$AFTER_REBOOT" = 'yes' ]; then
+                rlFail 'Not rebooted. Probably rhts-reboot did not work.'
+            fi
+            rlLogInfo "$(uname -a)"
+            rlRun "uname -r | grep $RPM_BUILD_ID"
+        rlPhaseEnd
+    fi
 
     rlPhaseStartCleanup
     rlPhaseEnd
