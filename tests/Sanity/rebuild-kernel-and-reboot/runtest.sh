@@ -103,9 +103,7 @@ rlJournalStart
             rlRun "rpm -ivh --define=\"_topdir $TmpDir\" $SRPM"
             rlRun "SPECFILE=`find $SPECDIR/ -name '*.spec'`"
 
-            if rlIsRHEL 8; then
-                builddep_options="--nobest"
-            fi
+            builddep_options="--nobest"
             rlRun "yum-builddep -y $builddep_options $SPECFILE"
         fi
     rlPhaseEnd
@@ -114,9 +112,6 @@ rlJournalStart
         rlPhaseStartTest "Build"
             if [ "$RPM_BUILD_ID" != "" ]; then
                 rlRun "sed -i \"s/# % define buildid .local/%define buildid $RPM_BUILD_ID/\" $SPECFILE"
-
-                # This is new, in RHEL8 the line looks different (lacks the '%')... I let reader to
-                # think about reasoning behind such change.
                 rlRun "sed -i \"s/# define buildid .local/%define buildid $RPM_BUILD_ID/\" $SPECFILE"
             fi
 
@@ -137,46 +132,14 @@ rlJournalStart
 
         # Only install new kernel and reboot if the kernel build went successful
         if [ "$RPMBUILD_OK" = "yes" ]; then
-        rlPhaseStartTest "Install"
-            # This apparently helps to install the kernel, otherwise the 'yum install' gets collisions :/
-            # However, kernel-firmware is in the system repo, and rhel7 needs it... Must experiment more.
-            # rlRun "yum erase -y kernel-firmware kernel-tools-libs"
-
-            RPMS="$(ls -1 $TmpDir/RPMS/*/*.rpm | tr '\n' ' ')"
-
-            if rlIsRHEL 8; then
+            rlPhaseStartTest "Install"
                 RPMS="$(ls -1 $TmpDir/RPMS/*/*.rpm | grep -v kernel-selftests-internal | tr '\n' ' ')"
-            fi
 
-            rlRun "yum localinstall -y --disablerepo=\* $RPMS"
+                rlRun "yum localinstall -y --disablerepo=\* $RPMS"
 
-            rlLogInfo "$(rpm -qa | grep kernel | sort)"
+                rlLogInfo "$(rpm -qa | grep kernel | sort)"
 
-            # On RHEL6 and RHEL7, it was good enough to install packages, and new kernel would be the
-            # one to boot. On RHEL8, not anymore, we have to update configuration.
-            if rlIsRHEL 8; then
-
-                # Do Nothing!
-                # Thanks to /etc/sysconfig/kernel, newly installed kernel is set as default. It is told...
-
-                # Or, use the title. But setting default by the entry title seems to fail. Giving up.
-                #
-                # rlRun "entry_filename=/boot/loader/entries/*${RPM_BUILD_ID}.$(arch).conf"
-                # rlRun "ls -al /boot/loader/entries"
-                #
-                # Don't wrap it with rlRun, beakerlib gets unhappy :/
-                # entry_title="$(grep 'title' $entry_filename | cut -d' ' -f2-)"
-                # rlLogInfo "entry_title=$entry_title"
-                #
-                # rlRun "grub2-mkconfig -o /boot/grub2/grub.cfg"
-                # rlRun "grub2-set-default \"$entry_title\""
-
-                # This works - forcing to boot new kernel, and if there are no other kernels, it's just index 2.
-                # Apparently, mkconfig sorts the kernels in the opposite way :O - 0. is the old kernel, 1. is
-                # the new one's debug kernel, and 2. is the new one...
-
-                # But doesn't work on s390x as there's no grub2-set-default. But there's grubby!
-
+                # Update the boot configuration
                 if [ "$(arch)" = "s390x" ]; then
                     rlRun "grubby --info=ALL"
                     rlLogInfo "Default kernel is $(grubby --default-kernel), index $(grubby --default-index)"
@@ -188,28 +151,14 @@ rlJournalStart
                 else
                     rlRun "grub2-set-default 2"
                 fi
+            rlPhaseEnd
 
-                #rlRun "grep '^menuentry' /etc/grub2.cfg > grub_entries"
-                #rlRun "cat grub_entries"
-                #rlRun "GRUB_ENTRY_NUMBER=$(grep -n $RPM_BUILD_ID grub_entries | grep -v '\+debug' | cut -d':' -f1)"
-                #rlAssertEquals "Newly installed kernel should be the first one" "$GRUB_ENTRY_NUMBER" "1"
-                #rlRun "grub2-set-default 0"
-                #rlAssertEquals "Default boot entry should be 0 (new kernel)" "$(grep saved_entry /boot/grub2/grubenv)" "saved_entry=0"
-            fi
-        rlPhaseEnd
+            rlPhaseStartTest "Reboot"
+                rlRun "touch $REBOOT_FLAG"
 
-        rlPhaseStartTest "Reboot"
-#            if [[ "`rlGetPrimaryArch`" == "ppc64" ]] || [[ "`rlGetPrimaryArch`" == "ppc64le" ]]; then
-#                rlLogWarning "Kernels older than kernel-3.10.0-381.el7 do not boot when built with binutils 2.25.1 on PowerPC boxes"
-#                rlLogWarning "This is a temporary, very general warning - I will make it more specific."
-#                rlLogWarning "Until then, it is necessary to (build and) reboot the newly build kernel, using the recent enough kernel package."
-#            else
-              rlRun "touch $REBOOT_FLAG"
-
-            rlLog "Rebooting ..."
-            rhts-reboot
-#            fi
-        rlPhaseEnd
+                rlLog "Rebooting ..."
+                rhts-reboot
+            rlPhaseEnd
         fi
     fi
 
