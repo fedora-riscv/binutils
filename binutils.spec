@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -315,6 +315,10 @@ Patch31: binutils-gas-auto-dwarf-5.patch
 # Purpose:  Update the GOLD linker to support x86 .note.gnu.property sections.
 # Lifetime: Fixed in 2.36
 Patch32: binutils-gold-gnu-properties.patch
+
+# Purpose:  Update the BFD library to handle DWARF-5 line number ranges.
+# Lifetime: Fixed in 2.36
+Patch33: binutils-DWARF-5-line-number-parsing.patch
 
 #----------------------------------------------------------------------------
 
@@ -900,6 +904,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jan 25 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-25
+- Update the BFD library to handle DWARF-5 line number ranges.
+
 * Thu Jan 21 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-24
 - Update the GOLD linker to handle x86 .note.gnu.property sections.  (#1916925)
 
