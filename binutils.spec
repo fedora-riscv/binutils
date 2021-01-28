@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 26%{?dist}
+Release: 27%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -319,6 +319,10 @@ Patch32: binutils-gold-gnu-properties.patch
 # Purpose:  Update the BFD library to handle DWARF-5 line number ranges.
 # Lifetime: Fixed in 2.36
 Patch33: binutils-DWARF-5-line-number-parsing.patch
+
+# Purpose:  Fix FAIL results in gas and ld testsuites.
+# Lifetime: Fixed in 2.36
+Patch34: binutils-testsuite-failures.patch
 
 #----------------------------------------------------------------------------
 
@@ -904,6 +908,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 28 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-27
+- Fix failures is gas and ld testsuites.
+
 * Tue Jan 26 2021 Fedora Release Engineering <releng@fedoraproject.org> - 2.35.1-26
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
 

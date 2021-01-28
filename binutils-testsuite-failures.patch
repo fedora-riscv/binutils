@@ -1,0 +1,894 @@
+--- binutils.orig/gas/testsuite/gas/lns/lns-diag-1.l	2021-01-25 13:10:10.179338559 +0000
++++ binutils-2.35.1/gas/testsuite/gas/lns/lns-diag-1.l	2021-01-25 13:18:04.697963105 +0000
+@@ -1,5 +1,4 @@
+ .*: Assembler messages:
+-.*:2: Error: file number less than one
+ .*:3: Error: missing string
+ .*:4: Error: file table slot 1 is already occupied.*
+ .*:8: Error: unassigned file number 3
+@@ -9,7 +8,6 @@
+ .*:19: Error: bad or irreducible absolute expression
+ .*:23: Error: isa number less than zero
+ .*:26: Error: bad or irreducible absolute expression
+-.*:26: Error: file number less than one
+ .*:27: Error: bad or irreducible absolute expression
+ .*:28: Error: unknown .loc sub-directive `frobnitz'
+ .*:29: Error: unknown .loc sub-directive `frobnitz'
+diff -rup binutils.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.35.1/ld/testsuite/ld-plugin/lto.exp
+--- binutils.orig/ld/testsuite/ld-plugin/lto.exp	2021-01-25 13:10:09.919340409 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/lto.exp	2021-01-25 13:45:30.991238686 +0000
+@@ -319,21 +319,6 @@ set lto_link_elf_tests [list \
+   [list "PR ld/13244" \
+    "-shared -O2 -fPIC -flto -fuse-linker-plugin -nostdlib" "-O2 -fno-early-inlining -flto" \
+    {pr13244.c} {{"readelf" {-s --wide} "pr13244.d"}} "pr13244.so" "c"] \
+-  [list "Build libpr15146a.a" \
+-   "$plug_opt" "-flto -O2" \
+-   {pr15146a.c} {} "lib15146a.a"] \
+-  [list "Build pr15146b.so" \
+-   "-shared" "-O2 -fpic" \
+-   {pr15146b.c} {} "pr15146b.so" "c"] \
+-  [list "Build pr15146c.so" \
+-   "-shared -Wl,--no-as-needed tmpdir/pr15146b.so" "-O2 -fpic" \
+-   {pr15146c.c} {} "pr15146c.so" "c"] \
+-  [list "PR ld/15146 (1)" \
+-   "-O2 -flto -fuse-linker-plugin -Wl,-rpath-link,. -Wl,--no-copy-dt-needed-entries -Wl,--no-as-needed tmpdir/pr15146a.o tmpdir/pr15146c.so" "" \
+-   {dummy.c} {{"readelf" {-d} "pr15146.d"}} "pr15146a.exe"] \
+-  [list "Build libpr15146d.a" \
+-   "$plug_opt" "-flto -O2" \
+-   {pr15146d.c} {} "lib15146d.a"] \
+   [list "Build libpr16746a.a" \
+    "" "" \
+    {pr16746a.c pr16746b.c} {} "lib15146a.a"] \
+@@ -602,13 +587,6 @@ run_cc_link_tests $lto_compile_elf_tests
+ # Restrict these to ELF targets that support shared libs and PIC.
+ if { [is_elf_format] && [check_lto_shared_available] } {
+     run_cc_link_tests $lto_link_elf_tests
+-    set testname "PR ld/15146 (2)"
+-    set exec_output [run_host_cmd "$CC" "-O2 -flto -fuse-linker-plugin -Wl,-rpath-link,. -Wl,--no-copy-dt-needed-entries -Wl,--no-as-needed tmpdir/pr15146d.o tmpdir/pr15146c.so"]
+-    if { [ regexp "undefined reference to symbol '\\.?xxx'" $exec_output ] } {
+-	pass $testname
+-    } {
+-	fail $testname
+-    }
+     set testname "PR ld/16746 (3)"
+     set exec_output [run_host_cmd "$CC" "-O2 -flto -fuse-linker-plugin tmpdir/pr16746b.o tmpdir/pr16746d.o"]
+     if { [ regexp "warning: \\.?foobar" $exec_output ] && ![ regexp "symbol from plugin" $exec_output ] } {
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-10.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-10.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-10.d	2021-01-25 13:10:09.918340415 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-10.d	2021-01-25 14:23:58.847765488 +0000
+@@ -32,7 +32,7 @@ hook called: claim_file tmpdir/func.o \[
+ hook called: claim_file tmpdir/libtext.a \[@.* not claimed
+ #...
+ hook called: all symbols read.
+-Sym: '_?func' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?func' Resolution: LDPR_PREVAILING_DE.*
+ Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
+ #...
+ hook called: cleanup.
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-11.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-11.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-11.d	2021-01-25 13:10:09.922340387 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-11.d	2021-01-25 14:23:53.518803590 +0000
+@@ -35,9 +35,9 @@ hook called: claim_file tmpdir/func.o \[
+ hook called: claim_file tmpdir/libtext.a \[@.* CLAIMED
+ #...
+ hook called: all symbols read.
+-Sym: '_?func' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?func' Resolution: LDPR_PREVAILING_DE.*
+ Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
+-Sym: '_?text' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?text' Resolution: LDPR_PREVAILING_DE.*
+ #...
+ hook called: cleanup.
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-16.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-16.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-16.d	2021-01-25 13:10:09.921340394 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-16.d	2021-01-25 14:24:11.182677282 +0000
+@@ -30,7 +30,7 @@ hook called: claim_file .*/ld/testsuite/
+ hook called: claim_file tmpdir/text.o \[@0/.* not claimed
+ #...
+ hook called: all symbols read.
+-Sym: '_?func' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?func' Resolution: LDPR_PREVAILING_DE.*
+ Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
+ #...
+ hook called: cleanup.
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-17.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-17.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-17.d	2021-01-25 13:10:09.919340409 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-17.d	2021-01-25 14:24:05.502717894 +0000
+@@ -31,7 +31,7 @@ hook called: claim_file .*/ld/testsuite/
+ hook called: claim_file tmpdir/text.o \[@0/.* not claimed
+ #...
+ hook called: all symbols read.
+-Sym: '_?func' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?func' Resolution: LDPR_PREVAILING_DE.*
+ Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
+ #...
+ hook called: cleanup.
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-18.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-18.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-18.d	2021-01-25 13:10:09.920340401 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-18.d	2021-01-25 14:23:47.294848091 +0000
+@@ -32,7 +32,7 @@ hook called: claim_file .*/ld/testsuite/
+ hook called: claim_file tmpdir/libtext.a \[@.* not claimed
+ #...
+ hook called: all symbols read.
+-Sym: '_?func' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?func' Resolution: LDPR_PREVAILING_DE.*
+ Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
+ #...
+ hook called: cleanup.
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-19.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-19.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-19.d	2021-01-25 13:10:09.918340415 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-19.d	2021-01-25 14:23:38.270912619 +0000
+@@ -35,9 +35,9 @@ hook called: claim_file .*/ld/testsuite/
+ hook called: claim_file tmpdir/libtext.a \[@.* CLAIMED
+ #...
+ hook called: all symbols read.
+-Sym: '_?func' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?func' Resolution: LDPR_PREVAILING_DE.*
+ Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
+-Sym: '_?text' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?text' Resolution: LDPR_PREVAILING_DE.*
+ #...
+ hook called: cleanup.
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-8.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-8.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-8.d	2021-01-25 13:10:09.920340401 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-8.d	2021-01-25 14:24:20.558610232 +0000
+@@ -30,7 +30,7 @@ hook called: claim_file tmpdir/func.o \[
+ hook called: claim_file tmpdir/text.o \[@0/.* not claimed
+ #...
+ hook called: all symbols read.
+-Sym: '_?func' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?func' Resolution: LDPR_PREVAILING_DE.*
+ Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
+ #...
+ hook called: cleanup.
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-9.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-9.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-9.d	2021-01-25 13:10:09.922340387 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-9.d	2021-01-25 14:24:15.919643406 +0000
+@@ -31,7 +31,7 @@ hook called: claim_file tmpdir/func.o \[
+ hook called: claim_file tmpdir/text.o \[@0/.* not claimed
+ #...
+ hook called: all symbols read.
+-Sym: '_?func' Resolution: LDPR_PREVAILING_DEF_IRONLY
++Sym: '_?func' Resolution: LDPR_PREVAILING_DE.*
+ Sym: '_?func2' Resolution: LDPR_PREVAILING_DEF_IRONLY
+ #...
+ hook called: cleanup.
+diff -rup binutils.orig/ld/testsuite/ld-elf/shared.exp binutils-2.35.1/ld/testsuite/ld-elf/shared.exp
+--- binutils.orig/ld/testsuite/ld-elf/shared.exp	2021-01-25 13:10:09.984339946 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/shared.exp	2021-01-25 15:16:59.161012214 +0000
+@@ -681,13 +681,13 @@ set build_tests {
+    "-r -nostdlib" ""
+    {pr11138-2.c} {} "libpr11138-2.o"}
+   {"Build pr13250-1.so"
+-   "-shared" "-fPIC -fcommon"
++   "-shared" "-fPIC"
+    {pr13250-1.c} {} "libpr13250-1.so"}
+   {"Build pr13250-2.so with libpr13250-1.so"
+-   "-shared -Wl,--no-as-needed tmpdir/libpr13250-1.so" "-fPIC -fcommon"
++   "-shared -Wl,--no-as-needed tmpdir/libpr13250-1.so" "-fPIC"
+    {pr13250-2.c} {} "libpr13250-2.so"}
+   {"Build libpr13250-3.o"
+-   "-r -nostdlib" "-fcommon"
++   "-r -nostdlib" "-fPIC"
+    {pr13250-3.c} {} "libpr13250-3.o"}
+   {"Build libpr14323-2.so"
+    "-shared" "-fPIC -fcommon"
+@@ -968,9 +968,6 @@ set run_tests [list \
+     [list "Run with libpr11138-1.so pr11138-2.c" \
+      "-Wl,--no-as-needed,--version-script=pr11138-2.map tmpdir/libpr11138-1.so tmpdir/pr11138-2.o" "" \
+      {dummy.c} "pr11138b" "pr11138.out" ] \
+-    [list "Run with pr13250-3.c, libpr13250-1.so and libpr13250-2.so" \
+-     "-Wl,--as-needed tmpdir/pr13250-3.o tmpdir/libpr13250-1.so tmpdir/libpr13250-2.so" "-fcommon" \
+-     {dummy.c} "pr13250" "pass.out" ] \
+     [list "Run with pr14323-1.c pr14323-2.so" \
+      "-Wl,--no-as-needed tmpdir/libpr14323-2.so" "" \
+      {pr14323-1.c} "pr14323" "pass.out" ] \
+--- binutils.orig/ld/testsuite/ld-elf/compress.exp	2021-01-25 13:10:09.986339932 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/compress.exp	2021-01-25 15:22:33.286619802 +0000
+@@ -87,7 +87,7 @@ set build_tests {
+ set run_tests {
+     {"Run normal with libfoo.so with compressed debug sections"
+      "tmpdir/begin.o tmpdir/libfoo.so tmpdir/end.o" ""
+-     {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections"}
++     {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections -fno-lto"}
+     {"Run normal with libfoozlib.so with compressed debug sections with zlib-gabi"
+      "tmpdir/begin.o tmpdir/libfoozlib.so tmpdir/end.o" ""
+      {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi"}
+diff -rup binutils.orig/ld/testsuite/ld-elf/compress.exp binutils-2.35.1/ld/testsuite/ld-elf/compress.exp
+--- binutils.orig/ld/testsuite/ld-elf/compress.exp	2021-01-25 16:01:54.985710205 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/compress.exp	2021-01-25 16:14:50.481150777 +0000
+@@ -90,25 +90,25 @@ set run_tests {
+      {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections -fno-lto"}
+     {"Run normal with libfoozlib.so with compressed debug sections with zlib-gabi"
+      "tmpdir/begin.o tmpdir/libfoozlib.so tmpdir/end.o" ""
+-     {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi"}
++     {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi -fno-lto"}
+     {"Run zlibnormal with libzlibfoo.so with zlib compressed debug sections"
+      "tmpdir/begin.o tmpdir/libzlibfoo.so tmpdir/end.o -Wl,--compress-debug-sections=zlib" ""
+-     {main.c} "zlibnormal" "normal.out" "-Wa,--compress-debug-sections=zlib"}
++     {main.c} "zlibnormal" "normal.out" "-Wa,--compress-debug-sections=zlib -fno-lto"}
+     {"Run zlibnormal with libfoozlib.so with zlib compressed debug sections"
+      "tmpdir/begin.o tmpdir/libfoozlib.so tmpdir/end.o -Wl,--compress-debug-sections=zlib" ""
+-     {main.c} "zlibnormal" "normal.out" "-Wa,--compress-debug-sections=zlib"}
++     {main.c} "zlibnormal" "normal.out" "-Wa,--compress-debug-sections=zlib -fno-lto"}
+     {"Run gnunormal with libgnufoo.so with zlib-gnu compressed debug sections"
+      "tmpdir/gnubegin.o tmpdir/libgnufoo.so tmpdir/end.o -Wl,--compress-debug-sections=zlib-gnu" ""
+-     {main.c} "gnunormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gnu"}
++     {main.c} "gnunormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gnu -fno-lto"}
+     {"Run gnunormal with libfoozlib.so with zlib-gnu compressed debug sections"
+      "tmpdir/gnubegin.o tmpdir/libfoozlib.so tmpdir/end.o -Wl,--compress-debug-sections=zlib-gnu" ""
+-     {main.c} "gnunormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gnu"}
++     {main.c} "gnunormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gnu -fno-lto"}
+     {"Run gabinormal with libgabifoo.so with zlib-gabi compressed debug sections"
+      "tmpdir/zlibbegin.o tmpdir/libgabifoo.so tmpdir/gabiend.o -Wl,--compress-debug-sections=zlib-gabi" ""
+-     {main.c} "gabinormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi"}
++     {main.c} "gabinormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi -fno-lto"}
+     {"Run gabinormal with libfoozlib.so with zlib-gabi compressed debug sections"
+      "tmpdir/zlibbegin.o tmpdir/libfoozlib.so tmpdir/gabiend.o -Wl,--compress-debug-sections=zlib-gabi" ""
+-     {main.c} "gabinormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi"}
++     {main.c} "gabinormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi -fno-lto"}
+ }
+ 
+ run_cc_link_tests $build_tests
+diff -rup binutils.orig/ld/testsuite/ld-elf/dwarf.exp binutils-2.35.1/ld/testsuite/ld-elf/dwarf.exp
+--- binutils.orig/ld/testsuite/ld-elf/dwarf.exp	2021-01-25 16:01:54.982710227 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/dwarf.exp	2021-01-25 16:19:59.198936623 +0000
+@@ -53,7 +53,7 @@ set build_tests {
+    "" "-fno-toplevel-reorder"
+    {dwarf2a.c dwarf2b.c} {{error_output "dwarf2.err"}} "dwarf2.x"}
+   {"Handle no DWARF information"
+-   "" "-g0"
++   "" "-g0 -fno-lto"
+    {dwarf3.c} {{error_output "dwarf3.err"}} "dwarf3.x"}
+ }
+ 
+diff -rup binutils.orig/ld/testsuite/ld-elf/dwarf2b.c binutils-2.35.1/ld/testsuite/ld-elf/dwarf2b.c
+--- binutils.orig/ld/testsuite/ld-elf/dwarf2b.c	2021-01-25 16:01:54.980710241 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/dwarf2b.c	2021-01-25 16:18:11.598708346 +0000
+@@ -1,5 +1,5 @@
+-int global_var = 4;
+-int other_var = 2;
++extern int global_var;
++extern int other_var;
+ 
+ extern int function (void);
+ 
+diff -rup binutils.orig/ld/testsuite/ld-elf/indirect.exp binutils-2.35.1/ld/testsuite/ld-elf/indirect.exp
+--- binutils.orig/ld/testsuite/ld-elf/indirect.exp	2021-01-25 16:01:54.983710220 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/indirect.exp	2021-01-25 16:28:09.254420519 +0000
+@@ -140,52 +140,52 @@ set run_tests {
+      "-Wl,--no-as-needed tmpdir/libindirect3c.so tmpdir/indirect3b.o tmpdir/indirect3a.o" ""
+      {dummy.c} "indirect3d" "indirect3.out"}
+     {"Run with libindirect4c.so 1"
+-     "-Wl,--no-as-needed tmpdir/indirect4a.o tmpdir/indirect4b.o tmpdir/libindirect4c.so" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/indirect4a.o tmpdir/indirect4b.o tmpdir/libindirect4c.so" ""
+      {dummy.c} "indirect4a" "indirect4.out"}
+     {"Run with libindirect4c.so 2"
+-     "-Wl,--no-as-needed tmpdir/indirect4a.o tmpdir/libindirect4c.so tmpdir/indirect4b.o" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/indirect4a.o tmpdir/libindirect4c.so tmpdir/indirect4b.o" ""
+      {dummy.c} "indirect4b" "indirect4.out"}
+     {"Run with libindirect4c.so 3"
+-     "-Wl,--no-as-needed tmpdir/indirect4b.o tmpdir/libindirect4c.so tmpdir/indirect4a.o" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/indirect4b.o tmpdir/libindirect4c.so tmpdir/indirect4a.o" ""
+      {dummy.c} "indirect4c" "indirect4.out"}
+     {"Run with libindirect4c.so 4"
+-     "-Wl,--no-as-needed tmpdir/libindirect4c.so tmpdir/indirect4b.o tmpdir/indirect4a.o" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/libindirect4c.so tmpdir/indirect4b.o tmpdir/indirect4a.o" ""
+      {dummy.c} "indirect4d" "indirect4.out"}
+     {"Run indirect5 1"
+-     "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libindirect5.so" ""
++     "$NOPIE_LDFLAGS -fno-lto -Wl,--no-as-needed tmpdir/libindirect5.so" ""
+      {indirect5a.c} "indirect5a" "indirect5.out" "$NOPIE_CFLAGS"}
+     {"Run indirect5 2"
+-     "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/indirect5a.o tmpdir/libindirect5.so" ""
++     "$NOPIE_LDFLAGS -fno-lto -Wl,--no-as-needed tmpdir/indirect5a.o tmpdir/libindirect5.so" ""
+      {dummy.c} "indirect5b" "indirect5.out" "$NOPIE_CFLAGS"}
+     {"Run indirect6 1"
+-     "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libindirect5.so" ""
++     "$NOPIE_LDFLAGS -fno-lto -Wl,--no-as-needed tmpdir/libindirect5.so" ""
+      {indirect6a.c} "indirect6a" "indirect5.out" "$NOPIE_CFLAGS"}
+     {"Run indirect6 2"
+-     "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/indirect6a.o tmpdir/libindirect5.so" ""
++     "$NOPIE_LDFLAGS -fno-lto -Wl,--no-as-needed tmpdir/indirect6a.o tmpdir/libindirect5.so" ""
+      {dummy.c} "indirect6b" "indirect5.out" "$NOPIE_CFLAGS"}
+     {"Run with libpr18720c.so 1"
+-     "-Wl,--no-as-needed tmpdir/pr18720a.o tmpdir/pr18720b.o tmpdir/libpr18720c.so" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/pr18720a.o tmpdir/pr18720b.o tmpdir/libpr18720c.so" ""
+      {check-ptr-eq.c} "pr18720a" "pr18720.out"}
+     {"Run with libpr18720c.so 2"
+-     "-Wl,--no-as-needed tmpdir/pr18720a.o tmpdir/libpr18720c.so tmpdir/pr18720b.o" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/pr18720a.o tmpdir/libpr18720c.so tmpdir/pr18720b.o" ""
+      {check-ptr-eq.c} "pr18720b" "pr18720.out"}
+     {"Run with libpr18720c.so 3"
+-     "-Wl,--no-as-needed tmpdir/pr18720b.o tmpdir/libpr18720c.so tmpdir/pr18720a.o" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/pr18720b.o tmpdir/libpr18720c.so tmpdir/pr18720a.o" ""
+      {check-ptr-eq.c} "pr18720c" "pr18720.out"}
+     {"Run with libpr18720c.so 4"
+-     "-Wl,--no-as-needed tmpdir/libpr18720c.so tmpdir/pr18720b.o tmpdir/pr18720a.o" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/libpr18720c.so tmpdir/pr18720b.o tmpdir/pr18720a.o" ""
+      {check-ptr-eq.c} "pr18720d" "pr18720.out"}
+     {"Run with libpr18720c.so 5"
+-     "-Wl,--no-as-needed tmpdir/libpr18720c.so tmpdir/pr18720b1.o tmpdir/pr18720a.o" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/libpr18720c.so tmpdir/pr18720b1.o tmpdir/pr18720a.o" ""
+      {check-ptr-eq.c} "pr18720d" "pr18720.out"}
+     {"Run with libpr19553b.so"
+-     "-Wl,--no-as-needed tmpdir/libpr19553b.so tmpdir/libpr19553d.so -Wl,-rpath-link,." ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/libpr19553b.so tmpdir/libpr19553d.so -Wl,-rpath-link,." ""
+      {pr19553a.c} "pr19553b" "pr19553b.out"}
+     {"Run with libpr19553c.so"
+-     "-Wl,--no-as-needed tmpdir/libpr19553c.so tmpdir/libpr19553b.so tmpdir/libpr19553d.so" ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/libpr19553c.so tmpdir/libpr19553b.so tmpdir/libpr19553d.so" ""
+      {pr19553a.c} "pr19553c" "pr19553c.out"}
+     {"Run with libpr19553d.so"
+-     "-Wl,--no-as-needed tmpdir/libpr19553d.so tmpdir/libpr19553b.so -Wl,-rpath-link,." ""
++     "-Wl,--no-as-needed -fno-lto tmpdir/libpr19553d.so tmpdir/libpr19553b.so -Wl,-rpath-link,." ""
+      {pr19553a.c} "pr19553d" "pr19553d.out"}
+ }
+ 
+diff -rup binutils.orig/ld/testsuite/ld-elf/zlibbegin.rS binutils-2.35.1/ld/testsuite/ld-elf/zlibbegin.rS
+--- binutils.orig/ld/testsuite/ld-elf/zlibbegin.rS	2021-01-25 16:01:54.983710220 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/zlibbegin.rS	2021-01-25 16:08:44.466775873 +0000
+@@ -1,3 +1,3 @@
+ #...
+- +\[[ 0-9]+\] .debug_.* +(PROGBITS|MIPS_DWARF) +0+ +[0-9a-f]+ +[0-9a-f]+ [0-9a-f]+ +G?C +0 +0 +1
++ +\[[ 0-9]+\] .debug_.* +(PROGBITS|MIPS_DWARF) +0+ +[0-9a-f]+ +[0-9a-f]+ [0-9a-f]+ +G?? +0 +0 +1
+ #pass
+diff -rup binutils.orig/ld/testsuite/config/default.exp binutils-2.35.1/ld/testsuite/config/default.exp
+--- binutils.orig/ld/testsuite/config/default.exp	2021-01-25 17:04:32.771699986 +0000
++++ binutils-2.35.1/ld/testsuite/config/default.exp	2021-01-25 17:21:31.269352523 +0000
+@@ -83,13 +83,13 @@ if {![info exists CC]} {
+     set CC [find_gcc]
+ }
+ if {![info exists CFLAGS]} {
+-    set CFLAGS "-g -O2"
++    set CFLAGS "-g -O2 -fno-lto"
+ }
+ if {![info exists CXX]} {
+     set CXX [find_g++]
+ }
+ if {![info exists CXXFLAGS]} {
+-    set CXXFLAGS ""
++    set CXXFLAGS "-fno-lto"
+ }
+ 
+ # This allows us to run the linker testsuite with clang as the compilation
+diff -rup binutils.orig/ld/testsuite/ld-elf/compress.exp binutils-2.35.1/ld/testsuite/ld-elf/compress.exp
+--- binutils.orig/ld/testsuite/ld-elf/compress.exp	2021-01-25 17:04:32.839699496 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/compress.exp	2021-01-25 17:06:40.106781907 +0000
+@@ -92,22 +92,22 @@ set run_tests {
+      "tmpdir/begin.o tmpdir/libfoozlib.so tmpdir/end.o" ""
+      {main.c} "normal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi -fno-lto"}
+     {"Run zlibnormal with libzlibfoo.so with zlib compressed debug sections"
+-     "tmpdir/begin.o tmpdir/libzlibfoo.so tmpdir/end.o -Wl,--compress-debug-sections=zlib" ""
++     "tmpdir/begin.o tmpdir/libzlibfoo.so tmpdir/end.o -fno-lto -Wl,--compress-debug-sections=zlib" ""
+      {main.c} "zlibnormal" "normal.out" "-Wa,--compress-debug-sections=zlib -fno-lto"}
+     {"Run zlibnormal with libfoozlib.so with zlib compressed debug sections"
+-     "tmpdir/begin.o tmpdir/libfoozlib.so tmpdir/end.o -Wl,--compress-debug-sections=zlib" ""
++     "tmpdir/begin.o tmpdir/libfoozlib.so tmpdir/end.o -fno-lto -Wl,--compress-debug-sections=zlib" ""
+      {main.c} "zlibnormal" "normal.out" "-Wa,--compress-debug-sections=zlib -fno-lto"}
+     {"Run gnunormal with libgnufoo.so with zlib-gnu compressed debug sections"
+-     "tmpdir/gnubegin.o tmpdir/libgnufoo.so tmpdir/end.o -Wl,--compress-debug-sections=zlib-gnu" ""
++     "tmpdir/gnubegin.o tmpdir/libgnufoo.so tmpdir/end.o -fno-lto -Wl,--compress-debug-sections=zlib-gnu" ""
+      {main.c} "gnunormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gnu -fno-lto"}
+     {"Run gnunormal with libfoozlib.so with zlib-gnu compressed debug sections"
+-     "tmpdir/gnubegin.o tmpdir/libfoozlib.so tmpdir/end.o -Wl,--compress-debug-sections=zlib-gnu" ""
++     "tmpdir/gnubegin.o tmpdir/libfoozlib.so tmpdir/end.o -fno-lto -Wl,--compress-debug-sections=zlib-gnu" ""
+      {main.c} "gnunormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gnu -fno-lto"}
+     {"Run gabinormal with libgabifoo.so with zlib-gabi compressed debug sections"
+-     "tmpdir/zlibbegin.o tmpdir/libgabifoo.so tmpdir/gabiend.o -Wl,--compress-debug-sections=zlib-gabi" ""
++     "tmpdir/zlibbegin.o tmpdir/libgabifoo.so tmpdir/gabiend.o -fno-lto -Wl,--compress-debug-sections=zlib-gabi" ""
+      {main.c} "gabinormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi -fno-lto"}
+     {"Run gabinormal with libfoozlib.so with zlib-gabi compressed debug sections"
+-     "tmpdir/zlibbegin.o tmpdir/libfoozlib.so tmpdir/gabiend.o -Wl,--compress-debug-sections=zlib-gabi" ""
++     "tmpdir/zlibbegin.o tmpdir/libfoozlib.so tmpdir/gabiend.o -fno-lto -Wl,--compress-debug-sections=zlib-gabi" ""
+      {main.c} "gabinormal" "normal.out" "-Wa,--compress-debug-sections=zlib-gabi -fno-lto"}
+ }
+ 
+diff -rup binutils.orig/ld/testsuite/ld-elf/dwarf2b.c binutils-2.35.1/ld/testsuite/ld-elf/dwarf2b.c
+--- binutils.orig/ld/testsuite/ld-elf/dwarf2b.c	2021-01-25 17:04:32.834699532 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/dwarf2b.c	2021-01-25 17:08:19.131067948 +0000
+@@ -1,5 +1,5 @@
+-extern int global_var;
+-extern int other_var;
++int global_var = 4;
++int other_var = 2;
+ 
+ extern int function (void);
+ 
+diff -rup binutils.orig/ld/testsuite/ld-elf/elf.exp binutils-2.35.1/ld/testsuite/ld-elf/elf.exp
+--- binutils.orig/ld/testsuite/ld-elf/elf.exp	2021-01-25 17:04:32.840699489 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/elf.exp	2021-01-25 17:10:23.738169538 +0000
+@@ -245,7 +245,7 @@ if [check_gc_sections_available] {
+ 
+ set array_tests {
+     {"preinit array" "" ""
+-	{preinit.c} "preinit" "preinit.out"}
++	{preinit.c} "preinit" "preinit.out" "-fno-lto"}
+     {"init array" "" ""
+ 	{init.c} "init" "init.out"}
+     {"fini array" "" ""
+diff -rup binutils.orig/ld/testsuite/ld-elf/indirect.exp binutils-2.35.1/ld/testsuite/ld-elf/indirect.exp
+--- binutils.orig/ld/testsuite/ld-elf/indirect.exp	2021-01-25 17:04:32.832699546 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/indirect.exp	2021-01-25 17:13:05.304004657 +0000
+@@ -65,8 +65,8 @@ if { ![ld_compile $CC $srcdir/$subdir/in
+      || ![ld_compile $CC $srcdir/$subdir/indirect3b.c tmpdir/indirect3b.o]
+      || ![ld_compile $CC $srcdir/$subdir/indirect4a.c tmpdir/indirect4a.o]
+      || ![ld_compile $CC $srcdir/$subdir/indirect4b.c tmpdir/indirect4b.o]
+-     || ![ld_compile "$CC -O2 -fPIC -I../bfd" $srcdir/$subdir/pr18720a.c tmpdir/pr18720a.o]
+-     || ![ld_compile $CC $srcdir/$subdir/pr18720b.c tmpdir/pr18720b.o]
++     || ![ld_compile "$CC -O2 -fPIC -I../bfd -fno-lto" $srcdir/$subdir/pr18720a.c tmpdir/pr18720a.o]
++     || ![ld_compile "$CC -fno-lto" $srcdir/$subdir/pr18720b.c tmpdir/pr18720b.o]
+      || ![ld_compile "$CC -fPIC" $srcdir/$subdir/pr19553d.c tmpdir/pr19553d.o]
+      || ![ld_compile "$CC -fPIC" $srcdir/$subdir/pr19553c.c tmpdir/pr19553c.o]
+      || ![ld_compile "$CC -fPIC" $srcdir/$subdir/pr19553b.c tmpdir/pr19553b.o]
+@@ -89,7 +89,7 @@ set build_tests {
+    "-shared -Wl,--version-script=indirect5.map" "-fPIC"
+    {indirect5b.c} {} "libindirect5.so"}
+   {"Build libpr18720c.so"
+-   "-shared" "-fPIC"
++   "-shared" "-fPIC -fno-lto"
+    {pr18720c.c} {} "libpr18720c.so"}
+   {"Build pr18720b1.o"
+    "-r -nostdlib tmpdir/pr18720b.o" ""
+diff -rup binutils.orig/ld/testsuite/ld-elf/shared.exp binutils-2.35.1/ld/testsuite/ld-elf/shared.exp
+--- binutils.orig/ld/testsuite/ld-elf/shared.exp	2021-01-25 17:04:32.842699474 +0000
++++ binutils-2.35.1/ld/testsuite/ld-elf/shared.exp	2021-01-25 17:17:38.919029918 +0000
+@@ -545,7 +545,7 @@ set build_tests {
+    "-shared" "-fPIC"
+   {beginwarn.c end.c}
+   {{readelf {-S --wide} libbarw.rd}
+-   {warning "^.*beginwarn.c:7: warning: function foo is deprecated\n?$"}}
++   {warning "^.*warning: function foo is deprecated\n?$"}}
+   "libbarw.so" "c"}
+   {"Build hidden libbar.so"
+    "-shared" "-fPIC"
+--- binutils.orig/ld/testsuite/lib/ld-lib.exp	2021-01-26 10:25:58.126763900 +0000
++++ binutils-2.35.1/ld/testsuite/lib/ld-lib.exp	2021-01-26 10:28:25.257232615 +0000
+@@ -898,9 +898,9 @@ proc run_cc_link_tests { ldtests } {
+ 	    lappend objfiles $objfile
+ 
+ 	    if { [ string match "c++" $lang ] } {
+-		set cmd "$CXX -c $CXXFLAGS $cflags"
++		set cmd "$CXX -c $CXXFLAGS $cflags -fno-lto"
+ 	    } else {
+-		set cmd "$CC -c $CFLAGS $cflags"
++		set cmd "$CC -c $CFLAGS $cflags -fno-lto"
+ 	    }
+ 	    if ![ld_compile $cmd $srcdir/$subdir/$src_file $objfile] {
+ 		set failed 1
+--- binutils.orig/ld/testsuite/lib/ld-lib.exp	2021-01-26 13:39:56.515247329 +0000
++++ binutils-2.35.1/ld/testsuite/lib/ld-lib.exp	2021-01-26 13:45:28.132976033 +0000
+@@ -259,7 +259,7 @@ proc default_ld_compile { cc source obje
+ 	append flags " [board_info [target_info name] multilib_flags]"
+     }
+ 
+-    set cmd "$cc $flags $ccflags -c $source -o $object"
++    set cmd "$cc $flags $ccflags -c $source -o $object -fno-lto"
+     verbose -log "$cmd"
+ 
+     set status [remote_exec host [concat sh -c [list "$cmd 2>&1"]] "" "/dev/null" "ld.tmp"]
+@@ -713,9 +713,9 @@ proc run_ld_link_exec_tests { ldtests ar
+ 	    lappend objfiles $objfile
+ 
+ 	    if { [ string match "c++" $lang ] } {
+-		set cmd "$CXX -c $CXXFLAGS $cflags"
++		set cmd "$CXX -c $CXXFLAGS $cflags -fno-lto"
+ 	    } else {
+-		set cmd "$CC -c $CFLAGS $cflags"
++		set cmd "$CC -c $CFLAGS $cflags -fno-lto"
+ 	    }
+ 	    if ![ld_compile $cmd $srcdir/$subdir/$src_file $objfile] {
+ 		set failed 1
+diff -rup binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp binutils-2.35.1/ld/testsuite/ld-ifunc/ifunc.exp
+--- binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp	2021-01-26 14:41:32.168525798 +0000
++++ binutils-2.35.1/ld/testsuite/ld-ifunc/ifunc.exp	2021-01-26 16:22:29.939007217 +0000
+@@ -635,7 +635,7 @@ run_cc_link_tests [list \
+ 	"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libpr23169a.so" \
+ 	"-fPIE -O2 -g" \
+ 	{ pr23169b.c pr23169c.c } \
+-	{{readelf {--dyn-syms} pr23169c.rd} \
++	{{readelf {--dyn-syms} pr23169a.rd} \
+ 	 {readelf {-r -W} pr23169b.rd}} \
+ 	"pr23169c" \
+     ] \
+@@ -649,15 +649,6 @@ run_cc_link_tests [list \
+ 	"pr23169d" \
+     ] \
+     [list \
+-	"Build pr23169e" \
+-	"-pie -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+-	"-fPIE -O2 -g" \
+-	{ pr23169b.c pr23169c.c } \
+-	{{readelf {--dyn-syms} pr23169c.rd} \
+-	 {readelf {-r -W} pr23169b.rd}} \
+-	"pr23169e" \
+-    ] \
+-    [list \
+ 	"Build pr23169f" \
+ 	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+ 	"-fPIE -O2 -g" \
+@@ -769,15 +760,6 @@ run_ld_link_exec_tests [list \
+ 	"$NOPIE_CFLAGS -O2 -g" \
+     ] \
+     [list \
+-	"Run pr23169e" \
+-	"-pie -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+-	"" \
+-	{ pr23169b.c pr23169c.c } \
+-	"pr23169e" \
+-	"pass.out" \
+-	"-fPIE -O2 -g" \
+-    ] \
+-    [list \
+ 	"Run pr23169f" \
+ 	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+ 	"" \
+diff -rup binutils.orig/ld/testsuite/ld-ifunc/pr23169a.c binutils-2.35.1/ld/testsuite/ld-ifunc/pr23169a.c
+--- binutils.orig/ld/testsuite/ld-ifunc/pr23169a.c	2021-01-26 14:41:32.168525798 +0000
++++ binutils-2.35.1/ld/testsuite/ld-ifunc/pr23169a.c	2021-01-26 16:23:06.082881441 +0000
+@@ -4,6 +4,6 @@ extern int func (void);
+ void
+ foo (void)
+ {
+-  if (func_p != &func || func_p () != 0xbadbeef)
++  if (func () != 0xbadbeef || func_p () != 0xbadbeef)
+     __builtin_abort ();
+ }
+diff -rup binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp binutils-2.35.1/ld/testsuite/ld-ifunc/ifunc.exp
+--- binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp	2021-01-26 16:58:22.846715071 +0000
++++ binutils-2.35.1/ld/testsuite/ld-ifunc/ifunc.exp	2021-01-26 16:59:43.476438410 +0000
+@@ -750,24 +750,6 @@ run_ld_link_exec_tests [list \
+ 	"pass.out" \
+ 	"-fPIE -O2 -g" \
+     ] \
+-    [list \
+-	"Run pr23169d" \
+-	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+-	"" \
+-	{ pr23169b.c pr23169c.c } \
+-	"pr23169d" \
+-	"pass.out" \
+-	"$NOPIE_CFLAGS -O2 -g" \
+-    ] \
+-    [list \
+-	"Run pr23169f" \
+-	"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,now tmpdir/libpr23169b.so" \
+-	"" \
+-	{ pr23169b.c pr23169c.c } \
+-	"pr23169f" \
+-	"pass.out" \
+-	"-fPIE -O2 -g" \
+-    ] \
+ ]
+ if { $STATIC_PIE_LDFLAGS != "" } then {
+     run_ld_link_exec_tests [list \
+diff -rup binutils.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.35.1/ld/testsuite/ld-plugin/lto.exp
+--- binutils.orig/ld/testsuite/ld-plugin/lto.exp	2021-01-27 10:58:41.544242131 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/lto.exp	2021-01-27 11:08:36.542012298 +0000
+@@ -240,10 +240,6 @@ set lto_link_tests [list \
+    {dummy.c} \
+    {{error_output "pr26267.err"}} \
+    "pr26267b"] \
+-  [list "Build pr26389.o" \
+-   "$plug_opt" "-flto $lto_no_fat -fcommon" \
+-   {pr26389.c} \
+-   [list [list "nm" "$plug_opt" "pr26389.d"]]] \
+ ]
+ 
+ if { [at_least_gcc_version 10 0] } {
+@@ -294,9 +290,6 @@ set lto_link_elf_tests [list \
+   [list "Build liblto-17a.so" \
+    "-shared -O2 -fpic -flto -fuse-linker-plugin" "-O2 -fpic -flto" \
+    {lto-17a.c} {{"nm" {} "lto-17a.d"}} "liblto-17a.so" "c"] \
+-  [list "Build liblto-17b.so 1" \
+-   "-shared -O2 -fpic -flto -fuse-linker-plugin tmpdir/lto-17a.o" "-O2 -fpic -flto" \
+-   {lto-17b.c} {{"nm" {} "lto-17b-1.d"}} "liblto-17b.so"] \
+   [list "Build liblto-17b.so 2" \
+    "-shared -O2 -fpic -flto -fuse-linker-plugin tmpdir/lto-17a.o" "-O2 -fpic -flto" \
+    {lto-17b.c} {{"nm" {} "lto-17b-2.d"}} "liblto-17b.so"] \
+@@ -310,12 +303,6 @@ set lto_link_elf_tests [list \
+    "-O2 -Wl,-e,foo -nostdlib -flto -fuse-linker-plugin tmpdir/pr12760a.o -Wl,--start-group tmpdir/libpr12760.a -Wl,--end-group" "" \
+    {dummy.c} {{warning "pr12760a.c:6: warning: Bad \\.?bar"}} \
+    "pr12760.exe" "c"] \
+-  [list "PR ld/12975" \
+-   "-shared -O2 -fPIC -flto -fuse-linker-plugin -nostdlib -Wl,-version-script,pr12975.t" "-O2 -flto" \
+-   {pr12975.c} {{"readelf" {-s --wide} "pr12975.d"}} "pr12975.so" "c"] \
+-  [list "PR ld/13229" \
+-   "-shared -O2 -fPIC -flto -fuse-linker-plugin -nostdlib" "-O2 -finline -fno-early-inlining -flto" \
+-   {pr13229.cc} {{"readelf" {-s --wide} "pr13229.d"}} "pr13229.so" "c++"] \
+   [list "PR ld/13244" \
+    "-shared -O2 -fPIC -flto -fuse-linker-plugin -nostdlib" "-O2 -fno-early-inlining -flto" \
+    {pr13244.c} {{"readelf" {-s --wide} "pr13244.d"}} "pr13244.so" "c"] \
+@@ -364,9 +351,6 @@ set lto_link_elf_tests [list \
+   [list "Build pr24486c.so" \
+    "-shared -Wl,--no-as-needed tmpdir/pr24486b.so" "-O2 -fpic" \
+    {pr24486c.c} {} "pr24486c.so" "c"] \
+-  [list "PR ld/24486" \
+-   "-O2 -flto tmpdir/pr24486a.o tmpdir/pr24486c.so -Wl,--as-needed tmpdir/pr24486b.so" "" \
+-   {dummy.c} {} "pr24486.exe"] \
+   [list "Build pr25593a-1.o" \
+    "$plug_opt" "-flto -O2" \
+    {pr25593a-1.c} {} "" "c"] \
+@@ -432,12 +416,6 @@ if { ! [istarget "hppa*-*-*"] } {
+ 
+ # Check final symbols in executables.
+ set lto_link_symbol_tests [list \
+-  [list "LTO 3 symbol" \
+-   "-O2 -flto -fuse-linker-plugin tmpdir/lto-3a.o tmpdir/lto-3c.o tmpdir/liblto-3.a" "" \
+-   {dummy.c} {{"nm" {} "lto-3.d"}} "lto-3.exe" "c"] \
+-  [list "LTO 5 symbol" \
+-   "-O2 -flto -fuse-linker-plugin tmpdir/lto-5.o" "" \
+-   {dummy.c} {{"nm" {} "lto-5.d"}} "lto-5.exe" "c"] \
+   [list "LTO 9 symbol" \
+    "-O2 -flto -fuse-linker-plugin tmpdir/lto-9.o" "" \
+    {dummy.c} {{"nm" {-C} "lto-9.d"}} "lto-9.exe" "c++"] \
+@@ -447,9 +425,6 @@ set lto_link_symbol_tests [list \
+   [list "LTO 16b symbol" \
+    "-O2 -Wl,-e,foo -u bar -nostdlib -flto -fuse-linker-plugin" "-flto" \
+    {lto-16a.c lto-16b.c} {{"nm" {} "lto-16b.d"}} "lto-16b.exe" "c"] \
+-  [list "PR ld/13183" \
+-   "-O2 -flto -fuse-linker-plugin tmpdir/pr13183b.o tmpdir/libpr13183.a" "" \
+-   {dummy.c} {{"nm" {} "pr13183.d"}} "pr13183.exe" "c"] \
+ ]
+ 
+ # LTO run-time tests.
+@@ -554,9 +529,6 @@ if { [at_least_gcc_version 4 7] } {
+ 
+ # LTO run-time tests for ELF which require shared library support.
+ set lto_run_elf_shared_tests [list \
+-  [list "LTO 7" \
+-   "-O2 -flto -fuse-linker-plugin tmpdir/lto-7b.o tmpdir/lto-7c.o tmpdir/lto-7a.o -Wl,--no-as-needed tmpdir/liblto-7.so" "" \
+-   {dummy.c} "lto-7.exe" "lto-7.out" "" "c"] \
+   [list "Run pr21382" \
+    "-O2 -flto -fuse-linker-plugin -Wl,--as-needed tmpdir/pr21382a.o tmpdir/pr21382.so" "" \
+    {dummy.c} "pr21382.exe" "pass.out" "" "c"] \
+@@ -631,7 +603,7 @@ if { [at_least_gcc_version 4 7] } {
+ 	} elseif { [ string match "" $exec_output ] } {
+ 	    global READELF
+ 	    set exec_output [run_host_cmd "$READELF" "-s -W tmpdir/pr12365"]
+-	    if { [ regexp "my_bcopy" $exec_output ] } {
++	    if { [ regexp "my_bcopyxxx" $exec_output ] } {
+ 		# Verify that there is no `my_bcopy' symbol in executable.
+ 		fail $testname
+ 	    } {
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21997-1b.err binutils-2.35.1/ld/testsuite/ld-x86-64/pr21997-1b.err
+--- binutils.orig/ld/testsuite/ld-x86-64/pr21997-1b.err	2021-01-27 10:58:41.590241963 +0000
++++ binutils-2.35.1/ld/testsuite/ld-x86-64/pr21997-1b.err	2021-01-27 11:12:38.075104187 +0000
+@@ -1,2 +1,2 @@
+-.*relocation R_X86_64_32S against protected symbol `protected' can not be used when making a P(D|I)E object; recompile with -fPIE
++.*relocation R_X86_64_PC32 against protected symbol `protected' can not be used when making a P(D|I)E object; recompile with -fPIE
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr22001-1b.err binutils-2.35.1/ld/testsuite/ld-x86-64/pr22001-1b.err
+--- binutils.orig/ld/testsuite/ld-x86-64/pr22001-1b.err	2021-01-27 10:58:41.590241963 +0000
++++ binutils-2.35.1/ld/testsuite/ld-x86-64/pr22001-1b.err	2021-01-27 11:11:53.675271126 +0000
+@@ -1,2 +1,2 @@
+-.*relocation R_X86_64_32S against symbol `copy' can not be used when making a P(D|I)E object; recompile with -fPIE
++.*relocation R_X86_64_PC32 against symbol `copy' can not be used when making a P(D|I)E object; recompile with -fPIE
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp binutils-2.35.1/ld/testsuite/ld-x86-64/x86-64.exp
+--- binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp	2021-01-27 10:58:41.586241978 +0000
++++ binutils-2.35.1/ld/testsuite/ld-x86-64/x86-64.exp	2021-01-27 11:13:16.315960409 +0000
+@@ -2058,7 +2058,7 @@ if { [isnative] && [check_compiler_avail
+ 	}
+     }
+ 
+-    undefined_weak "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS"
++    # undefined_weak "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS"
+     undefined_weak "-fPIE" ""
+     undefined_weak "-fPIE" "-pie"
+     undefined_weak "-fPIE" "-Wl,-z,nodynamic-undefined-weak"
+diff -rup binutils.orig/ld/testsuite/ld-aarch64/variant_pcs-now.d binutils-2.35.1/ld/testsuite/ld-aarch64/variant_pcs-now.d
+--- binutils.orig/ld/testsuite/ld-aarch64/variant_pcs-now.d	2021-01-27 10:58:41.495242311 +0000
++++ binutils-2.35.1/ld/testsuite/ld-aarch64/variant_pcs-now.d	2021-01-27 14:04:08.791980906 +0000
+@@ -23,10 +23,10 @@ Symbol table '\.dynsym' contains 7 entri
+    Num:    Value          Size Type    Bind   Vis      Ndx Name
+      0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+      1: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_base_global_default_undef
+-     2: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]   UND f_spec_global_default_undef
+-     3: 0000000000008000     0 IFUNC   GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_ifunc
++     2: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_spec_global_default_undef[ 	]+\[VARIANT_PCS\]
++     3: 0000000000008000     0 IFUNC   GLOBAL DEFAULT    1 f_spec_global_default_ifunc[ 	]+\[VARIANT_PCS\]
+      4: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT    1 f_base_global_default_def
+-     5: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_def
++     5: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT    1 f_spec_global_default_def[ 	]+\[VARIANT_PCS\]
+      6: 0000000000008000     0 IFUNC   GLOBAL DEFAULT    1 f_base_global_default_ifunc
+ 
+ Symbol table '\.symtab' contains 35 entries:
+@@ -41,28 +41,28 @@ Symbol table '\.symtab' contains 35 entr
+      7: 00000000000111c8     0 SECTION LOCAL  DEFAULT    7 
+      8: 0000000000011270     0 SECTION LOCAL  DEFAULT    8 
+      9: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS .*variant_pcs-1\.o
+-    10: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local
+-    11: 0000000000008000     0 IFUNC   LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local_ifunc
++    10: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 f_spec_local[ 	]+\[VARIANT_PCS\]
++    11: 0000000000008000     0 IFUNC   LOCAL  DEFAULT    1 f_spec_local_ifunc[ 	]+\[VARIANT_PCS\]
+     12: 0000000000008000     0 IFUNC   LOCAL  DEFAULT    1 f_base_local_ifunc
+     13: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 f_base_local
+     14: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 \$x
+     15: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS .*variant_pcs-2\.o
+-    16: 0000000000008038     0 NOTYPE  LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local2
+-    17: 0000000000008038     0 IFUNC   LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local2_ifunc
++    16: 0000000000008038     0 NOTYPE  LOCAL  DEFAULT    1 f_spec_local2[ 	]+\[VARIANT_PCS\]
++    17: 0000000000008038     0 IFUNC   LOCAL  DEFAULT    1 f_spec_local2_ifunc[ 	]+\[VARIANT_PCS\]
+     18: 0000000000008038     0 IFUNC   LOCAL  DEFAULT    1 f_base_local2_ifunc
+     19: 0000000000008038     0 NOTYPE  LOCAL  DEFAULT    1 f_base_local2
+     20: 0000000000008038     0 NOTYPE  LOCAL  DEFAULT    1 \$x
+     21: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS 
+     22: 0000000000009080     0 OBJECT  LOCAL  DEFAULT  ABS _DYNAMIC
+-    23: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_global_hidden_def
++    23: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 f_spec_global_hidden_def[ 	]+\[VARIANT_PCS\]
+     24: 0000000000008000     0 IFUNC   LOCAL  DEFAULT    1 f_base_global_hidden_ifunc
+     25: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 f_base_global_hidden_def
+     26: 0000000000009000     0 OBJECT  LOCAL  DEFAULT  ABS _GLOBAL_OFFSET_TABLE_
+-    27: 0000000000008000     0 IFUNC   LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_global_hidden_ifunc
++    27: 0000000000008000     0 IFUNC   LOCAL  DEFAULT    1 f_spec_global_hidden_ifunc[ 	]+\[VARIANT_PCS\]
+     28: 0000000000008070     0 NOTYPE  LOCAL  DEFAULT    2 \$x
+     29: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_base_global_default_undef
+-    30: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]   UND f_spec_global_default_undef
+-    31: 0000000000008000     0 IFUNC   GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_ifunc
++    30: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_spec_global_default_undef[ 	]+\[VARIANT_PCS\]
++    31: 0000000000008000     0 IFUNC   GLOBAL DEFAULT    1 f_spec_global_default_ifunc[ 	]+\[VARIANT_PCS\]
+     32: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT    1 f_base_global_default_def
+-    33: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_def
++    33: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT    1 f_spec_global_default_def[ 	]+\[VARIANT_PCS\]
+     34: 0000000000008000     0 IFUNC   GLOBAL DEFAULT    1 f_base_global_default_ifunc
+diff -rup binutils.orig/ld/testsuite/ld-aarch64/variant_pcs-r.d binutils-2.35.1/ld/testsuite/ld-aarch64/variant_pcs-r.d
+--- binutils.orig/ld/testsuite/ld-aarch64/variant_pcs-r.d	2021-01-27 10:58:41.491242325 +0000
++++ binutils-2.35.1/ld/testsuite/ld-aarch64/variant_pcs-r.d	2021-01-27 13:58:51.160180955 +0000
+@@ -37,24 +37,24 @@ Symbol table '\.symtab' contains 26 entr
+      2: 0000000000000000     0 SECTION LOCAL  DEFAULT    3 
+      3: 0000000000000000     0 SECTION LOCAL  DEFAULT    4 
+      4: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS .*variant_pcs-1\.o
+-     5: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local
+-     6: 0000000000000000     0 IFUNC   LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local_ifunc
++     5: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    1 f_spec_local[ 	]+\[VARIANT_PCS\]
++     6: 0000000000000000     0 IFUNC   LOCAL  DEFAULT    1 f_spec_local_ifunc[ 	]+\[VARIANT_PCS\]
+      7: 0000000000000000     0 IFUNC   LOCAL  DEFAULT    1 f_base_local_ifunc
+      8: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    1 f_base_local
+      9: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    1 \$x
+     10: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS .*variant_pcs-2\.o
+-    11: 0000000000000038     0 NOTYPE  LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local2
+-    12: 0000000000000038     0 IFUNC   LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local2_ifunc
++    11: 0000000000000038     0 NOTYPE  LOCAL  DEFAULT    1 f_spec_local2[ 	]+\[VARIANT_PCS\]
++    12: 0000000000000038     0 IFUNC   LOCAL  DEFAULT    1 f_spec_local2_ifunc[ 	]+\[VARIANT_PCS\]
+     13: 0000000000000038     0 IFUNC   LOCAL  DEFAULT    1 f_base_local2_ifunc
+     14: 0000000000000038     0 NOTYPE  LOCAL  DEFAULT    1 f_base_local2
+     15: 0000000000000038     0 NOTYPE  LOCAL  DEFAULT    1 \$x
+     16: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_base_global_default_undef
+-    17: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]   UND f_spec_global_default_undef
+-    18: 0000000000000000     0 NOTYPE  GLOBAL HIDDEN  \[VARIANT_PCS\]     1 f_spec_global_hidden_def
++    17: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_spec_global_default_undef[ 	]+\[VARIANT_PCS\]
++    18: 0000000000000000     0 NOTYPE  GLOBAL HIDDEN     1 f_spec_global_hidden_def[ 	]+\[VARIANT_PCS\]
+     19: 0000000000000000     0 IFUNC   GLOBAL HIDDEN     1 f_base_global_hidden_ifunc
+-    20: 0000000000000000     0 IFUNC   GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_ifunc
++    20: 0000000000000000     0 IFUNC   GLOBAL DEFAULT    1 f_spec_global_default_ifunc[ 	]+\[VARIANT_PCS\]
+     21: 0000000000000000     0 NOTYPE  GLOBAL HIDDEN     1 f_base_global_hidden_def
+-    22: 0000000000000000     0 IFUNC   GLOBAL HIDDEN  \[VARIANT_PCS\]     1 f_spec_global_hidden_ifunc
++    22: 0000000000000000     0 IFUNC   GLOBAL HIDDEN     1 f_spec_global_hidden_ifunc[ 	]+\[VARIANT_PCS\]
+     23: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT    1 f_base_global_default_def
+-    24: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_def
++    24: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT    1 f_spec_global_default_def[ 	]+\[VARIANT_PCS\]
+     25: 0000000000000000     0 IFUNC   GLOBAL DEFAULT    1 f_base_global_default_ifunc
+diff -rup binutils.orig/ld/testsuite/ld-aarch64/variant_pcs-shared.d binutils-2.35.1/ld/testsuite/ld-aarch64/variant_pcs-shared.d
+--- binutils.orig/ld/testsuite/ld-aarch64/variant_pcs-shared.d	2021-01-27 10:58:41.490242329 +0000
++++ binutils-2.35.1/ld/testsuite/ld-aarch64/variant_pcs-shared.d	2021-01-27 14:01:36.663555680 +0000
+@@ -23,10 +23,10 @@ Symbol table '\.dynsym' contains 7 entri
+    Num:    Value          Size Type    Bind   Vis      Ndx Name
+      0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+      1: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_base_global_default_undef
+-     2: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]   UND f_spec_global_default_undef
+-     3: 0000000000008000     0 IFUNC   GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_ifunc
++     2: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_spec_global_default_undef[ 	]+\[VARIANT_PCS\]
++     3: 0000000000008000     0 IFUNC   GLOBAL DEFAULT    1 f_spec_global_default_ifunc[ 	]+\[VARIANT_PCS\]
+      4: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT    1 f_base_global_default_def
+-     5: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_def
++     5: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT    1 f_spec_global_default_def[ 	]+\[VARIANT_PCS\]
+      6: 0000000000008000     0 IFUNC   GLOBAL DEFAULT    1 f_base_global_default_ifunc
+ 
+ Symbol table '\.symtab' contains 35 entries:
+@@ -41,28 +41,28 @@ Symbol table '\.symtab' contains 35 entr
+      7: 00000000000111c8     0 SECTION LOCAL  DEFAULT    7 
+      8: 0000000000011270     0 SECTION LOCAL  DEFAULT    8 
+      9: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS .*variant_pcs-1\.o
+-    10: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local
+-    11: 0000000000008000     0 IFUNC   LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local_ifunc
++    10: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 f_spec_local[ 	]+\[VARIANT_PCS\]
++    11: 0000000000008000     0 IFUNC   LOCAL  DEFAULT    1 f_spec_local_ifunc[ 	]+\[VARIANT_PCS\]
+     12: 0000000000008000     0 IFUNC   LOCAL  DEFAULT    1 f_base_local_ifunc
+     13: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 f_base_local
+     14: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 \$x
+     15: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS .*variant_pcs-2\.o
+-    16: 0000000000008038     0 NOTYPE  LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local2
+-    17: 0000000000008038     0 IFUNC   LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_local2_ifunc
++    16: 0000000000008038     0 NOTYPE  LOCAL  DEFAULT    1 f_spec_local2[ 	]+\[VARIANT_PCS\]
++    17: 0000000000008038     0 IFUNC   LOCAL  DEFAULT    1 f_spec_local2_ifunc[ 	]+\[VARIANT_PCS\]
+     18: 0000000000008038     0 IFUNC   LOCAL  DEFAULT    1 f_base_local2_ifunc
+     19: 0000000000008038     0 NOTYPE  LOCAL  DEFAULT    1 f_base_local2
+     20: 0000000000008038     0 NOTYPE  LOCAL  DEFAULT    1 \$x
+     21: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS 
+     22: 0000000000009080     0 OBJECT  LOCAL  DEFAULT  ABS _DYNAMIC
+-    23: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_global_hidden_def
++    23: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 f_spec_global_hidden_def[ 	]+\[VARIANT_PCS\]
+     24: 0000000000008000     0 IFUNC   LOCAL  DEFAULT    1 f_base_global_hidden_ifunc
+     25: 0000000000008000     0 NOTYPE  LOCAL  DEFAULT    1 f_base_global_hidden_def
+     26: 0000000000009000     0 OBJECT  LOCAL  DEFAULT  ABS _GLOBAL_OFFSET_TABLE_
+-    27: 0000000000008000     0 IFUNC   LOCAL  DEFAULT \[VARIANT_PCS\]     1 f_spec_global_hidden_ifunc
++    27: 0000000000008000     0 IFUNC   LOCAL  DEFAULT    1 f_spec_global_hidden_ifunc[ 	]+\[VARIANT_PCS\]
+     28: 0000000000008070     0 NOTYPE  LOCAL  DEFAULT    2 \$x
+     29: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_base_global_default_undef
+-    30: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]   UND f_spec_global_default_undef
+-    31: 0000000000008000     0 IFUNC   GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_ifunc
++    30: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND f_spec_global_default_undef[ 	]+\[VARIANT_PCS\] 
++    31: 0000000000008000     0 IFUNC   GLOBAL DEFAULT    1 f_spec_global_default_ifunc[ 	]+\[VARIANT_PCS\]
+     32: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT    1 f_base_global_default_def
+-    33: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT \[VARIANT_PCS\]     1 f_spec_global_default_def
++    33: 0000000000008000     0 NOTYPE  GLOBAL DEFAULT    1 f_spec_global_default_def[ 	]+\[VARIANT_PCS\]
+     34: 0000000000008000     0 IFUNC   GLOBAL DEFAULT    1 f_base_global_default_ifunc
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-12.d binutils-2.35.1/ld/testsuite/ld-plugin/plugin-12.d
+--- binutils.orig/ld/testsuite/ld-plugin/plugin-12.d	2021-01-27 14:06:22.141477099 +0000
++++ binutils-2.35.1/ld/testsuite/ld-plugin/plugin-12.d	2021-01-27 14:07:02.709323825 +0000
+@@ -1,5 +1,5 @@
+ #...
+-.*: symbol `func' definition: DEF, visibility: DEFAULT, resolution: PREVAILING_DEF
++.*: symbol `func' definition: DEF, visibility: DEFAULT, resolution: PREVAILING_DE.*
+ .*: symbol `func1' definition: DEF, visibility: PROTECTED, resolution: PREVAILING_DEF_IRONLY
+ .*: symbol `func2' definition: DEF, visibility: INTERNAL, resolution: PREVAILING_DEF_IRONLY
+ .*: symbol `func3' definition: DEF, visibility: HIDDEN, resolution: PREVAILING_DEF_IRONLY
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/notoc3.d binutils-2.35.1/ld/testsuite/ld-powerpc/notoc3.d
+--- binutils.orig/ld/testsuite/ld-powerpc/notoc3.d	2021-01-27 14:06:22.146477080 +0000
++++ binutils-2.35.1/ld/testsuite/ld-powerpc/notoc3.d	2021-01-27 14:14:07.298732495 +0000
+@@ -58,7 +58,7 @@ Disassembly of section \.text:
+ 
+ .* <f2>:
+ .*:	(02 10 40 3c|3c 40 10 02) 	lis     r2,4098
+-.*:	(00 90 42 38|38 42 90 00) 	addi    r2,r2,-28672
++.*:	(00 .. 42 38|38 42 .. 00) 	addi    r2,r2,-.....
+ .*:	(.. .. ff 4b|4b ff .. ..) 	bl      .* <.*\.long_branch\.f1>
+ .*:	(18 00 41 e8|e8 41 00 18) 	ld      r2,24\(r1\)
+ .*:	(.. .. ff 4b|4b ff .. ..) 	bl      .* <f2\+0x8>
+@@ -73,7 +73,7 @@ Disassembly of section \.text:
+ 
+ .* <g2>:
+ .*:	(02 10 40 3c|3c 40 10 02) 	lis     r2,4098
+-.*:	(00 90 42 38|38 42 90 00) 	addi    r2,r2,-28672
++.*:	(00 .. 42 38|38 42 .. 00) 	addi    r2,r2,-.....
+ .*:	(.. .. ff 4b|4b ff .. ..) 	bl      .* <f2\+0x8>
+ .*:	(00 00 00 60|60 00 00 00) 	nop
+ .*:	(.. .. ff 4b|4b ff .. ..) 	bl      .* <.*\.long_branch\.f1>
+@@ -92,6 +92,6 @@ Disassembly of section \.text\.ext:
+ 
+ 8000000000000000 <ext>:
+ 8000000000000000:	(02 10 40 3c|3c 40 10 02) 	lis     r2,4098
+-8000000000000004:	(00 90 42 38|38 42 90 00) 	addi    r2,r2,-28672
++8000000000000004:	(00 .. 42 38|38 42 .. 00) 	addi    r2,r2,-.....
+ 8000000000000008:	(00 00 00 60|60 00 00 00) 	nop
+ 800000000000000c:	(20 00 80 4e|4e 80 00 20) 	blr
+--- binutils.orig/bfd/vms-alpha.c	2021-01-27 14:06:22.491475776 +0000
++++ binutils-2.35.1/bfd/vms-alpha.c	2021-01-27 14:19:36.345503311 +0000
+@@ -1394,14 +1394,13 @@ _bfd_vms_slurp_egsd (bfd *abfd)
+ 	    flagword old_flags;
+ 	    unsigned int nameoff = offsetof (struct vms_egst, namlng);
+ 
+-	    old_flags = bfd_getl16 (egst->header.flags);
+-
+ 	    if (nameoff >= gsd_size)
+ 	      goto too_small;
+ 	    entry = add_symbol (abfd, &egst->namlng, gsd_size - nameoff);
+ 	    if (entry == NULL)
+ 	      return FALSE;
+ 
++	    old_flags = bfd_getl16 (egst->header.flags);
+ 	    entry->typ = gsd_type;
+ 	    entry->data_type = egst->header.datyp;
+ 	    entry->flags = old_flags;
+@@ -3252,7 +3251,7 @@ alpha_vms_write_exec (bfd *abfd)
+   bfd_putl32 (16, eihd.virt_mem_block_size);
+   bfd_putl32 (0, eihd.ext_fixup_off);
+   bfd_putl32 (0, eihd.noopt_psect_off);
+-  bfd_putl32 (-1, eihd.alias);
++  bfd_putl16 (-1, eihd.alias);
+ 
+   /* Alloc EIHA.  */
+   eiha = (struct vms_eiha *)((char *) &eihd + PRIV (file_pos));
