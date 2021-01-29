@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 27%{?dist}
+Release: 28%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -323,6 +323,10 @@ Patch33: binutils-DWARF-5-line-number-parsing.patch
 # Purpose:  Fix FAIL results in gas and ld testsuites.
 # Lifetime: Fixed in 2.36
 Patch34: binutils-testsuite-failures.patch
+
+# Purpose:  Remove a vulnerability in the smart_rename function.
+# Lifetime: Fixed in 2.36
+Patch35: binutils-CVE-2021-20197.patch
 
 #----------------------------------------------------------------------------
 
@@ -908,6 +912,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jan 29 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-28
+- Fix a vulnerability in the smart_rename function.  (#1913744)
+
 * Thu Jan 28 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-27
 - Fix failures is gas and ld testsuites.
 
