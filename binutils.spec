@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 28%{?dist}
+Release: 29%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -327,6 +327,10 @@ Patch34: binutils-testsuite-failures.patch
 # Purpose:  Remove a vulnerability in the smart_rename function.
 # Lifetime: Fixed in 2.36
 Patch35: binutils-CVE-2021-20197.patch
+
+# Purpose:  Add DWARF-5 sections to linker scripts.
+# Lifetime: Fixed in 2.37
+Patch36: binutils-ld-DWARF-5-sections.patch
 
 #----------------------------------------------------------------------------
 
@@ -912,6 +916,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 01 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-29
+- Add support for DWARF-5 sections to the bfd linker's scripts.  (#1922707)
+
 * Fri Jan 29 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-28
 - Fix a vulnerability in the smart_rename function.  (#1913744)
 
