@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 29%{?dist}
+Release: 30%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -916,6 +916,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Feb 02 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-30
+- Extend vulnerability fix.  (#1913744)
+
 * Mon Feb 01 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-29
 - Add support for DWARF-5 sections to the bfd linker's scripts.  (#1922707)
 
