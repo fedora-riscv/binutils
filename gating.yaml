@@ -4,7 +4,7 @@ product_versions:
 decision_context: bodhi_update_push_stable
 subject_type: koji_build
 rules:
-  - !PassingTestCaseRule {test_case_name: fedora-ci.koji-build.tier0.functional}
+  - !PassingTestCaseRule {test_case_name: baseos-qe.koji-build.scratch-build.validation}
 --- !Policy
 product_versions:
   - rhel-9
