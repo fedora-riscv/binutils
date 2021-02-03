@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 30%{?dist}
+Release: 31%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -534,40 +534,32 @@ case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
 esac
 
 # Extra targets to build along with the default one.
-# We add the BPF target so that strip will work on bpf files.
-
-case %{binutils_target} in ia64*)
-  CARGS="$CARGS --enable-targets=ia64-linux,bpf-unknown-none"
-  ;;
-esac
-
-case %{binutils_target} in ppc*|ppc64*)
-  CARGS="$CARGS --enable-targets=spu,bpf-unknown-none"
-  ;;
-esac
-
-case %{binutils_target} in ppc64-*)
-  CARGS="$CARGS --enable-targets=powerpc64le-linux,bpf-unknown-none"
-  ;;
-esac
-
-case %{binutils_target} in ppc64le*)
-    CARGS="$CARGS --enable-targets=powerpc-linux,bpf-unknown-none"
-    ;;
-esac
-
-case %{binutils_target} in s390*)
-    # FIXME: For some unknown reason settting --enable-targets=bpf-unknown-none
-    # here breaks the building of GOLD.  I have no idea why, and not enough
-    # knowledge of how gold is configured to fix quickly.  So instead I have
-    # found that supporting "all" targets works.
-    CARGS="$CARGS --enable-targets=all"
-    ;;
-esac
-
-case %{binutils_target} in x86_64*|i?86*|arm*|aarch64*|riscv*)
-  CARGS="$CARGS --enable-targets=x86_64-pep,bpf-unknown-none"
-  ;;
+#
+# BZ 1920373: Enable PEP support for all targets as the PERF package's
+# testsuite expects to be able to read PE format files ragrdless of
+# the host's architecture.
+#
+# Also enable the BPF target so that strip will work on BPF files.
+case %{binutils_target} in
+    s390*)
+	# FIXME: For some unknown reason settting --enable-targets=x86_64-pep
+	# here breaks the building of GOLD.  I have no idea why, and not enough
+	# knowledge of how gold is configured to fix quickly.  So instead I have
+	# found that supporting "all" targets works.
+	CARGS="$CARGS --enable-targets=all"
+	;;
+    ia64*)
+	CARGS="$CARGS --enable-targets=ia64-linux,x86_64-pep,bpf-unknown-none"
+	;;
+    ppc64-*)
+	CARGS="$CARGS --enable-targets=powerpc64le-linux,spu,x86_64-pep,bpf-unknown-none"
+	;;
+    ppc64le*)
+	CARGS="$CARGS --enable-targets=powerpc-linux,spu,x86_64-pep,bpf-unknown-none"
+	;;
+    *)
+        CARGS="$CARGS --enable-targets=x86_64-pep,bpf-unknown-none"
+	;;
 esac
 
 %if %{default_relro}
@@ -916,6 +908,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Feb 03 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-31
+- Enable PEP support for all targets.  (#1920373)
+
 * Tue Feb 02 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-30
 - Extend vulnerability fix.  (#1913744)
 
