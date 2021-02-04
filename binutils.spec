@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 31%{?dist}
+Release: 32%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -908,6 +908,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 04 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-32
+- Extend vulnerability fix again.  (#1913744)
+
 * Wed Feb 03 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-31
 - Enable PEP support for all targets.  (#1920373)
 
