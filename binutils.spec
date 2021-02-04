@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 32%{?dist}
+Release: 33%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -137,6 +137,11 @@ URL: https://sourceware.org/binutils
 # that is available at link time.  (They are present in the real
 # .so that is used at run time).
 %undefine _strict_symbol_defs_build
+
+# BZ 1924068.  Since applications that use the BFD library are
+# required to link against the static version, ensure that it retains
+# its debug informnation.
+%undefine __brp_strip_static_archive
 
 #----------------------------------------------------------------------------
 
@@ -435,6 +440,14 @@ dynamic libraries.
 
 Developers starting new projects are strongly encouraged to consider
 using libelf instead of BFD.
+
+# BZ 1924068.  Since applications that use the BFD library are
+# required to link against the static version, ensure that it retains
+# its debug informnation.
+# FIXME: Yes - this is being done twice.  I have no idea why this
+# second invocation is necessary but if both are not present the
+# static archives will be stripped.
+%undefine __brp_strip_static_archive
 
 #----------------------------------------------------------------------------
 
@@ -822,6 +835,7 @@ fi
 #----------------------------------------------------------------------------
 
 %post
+
 %__rm -f %{_bindir}/%{?cross}ld
 %{_sbindir}/alternatives --install %{_bindir}/%{?cross}ld %{?cross}ld \
   %{_bindir}/%{?cross}ld.bfd %{ld_bfd_priority}
@@ -908,6 +922,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 04 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-33
+- Preserve debug information in libbfd.a and libopcodes.a.  (#1924068)
+
 * Thu Feb 04 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-32
 - Extend vulnerability fix again.  (#1913744)
 
