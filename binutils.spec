@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 33%{?dist}
+Release: 34%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -922,6 +922,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 08 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-34
+- Extend vulnerability fix again.  (#1925779)
+
 * Thu Feb 04 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-33
 - Preserve debug information in libbfd.a and libopcodes.a.  (#1924068)
 
