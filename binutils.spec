@@ -38,8 +38,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
-Version: 2.35.1
-Release: 34%{?dist}
+Version: 2.36.1
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -154,8 +154,6 @@ Source2: binutils-2.19.50.0.1-output-format.sed
 
 #----------------------------------------------------------------------------
 
-Patch00: binutils-2.35.1-update.patch
-
 # Purpose:  Use /lib64 and /usr/lib64 instead of /lib and /usr/lib in the
 #           default library search path of 64-bit targets.
 # Lifetime: Permanent, but it should not be.  This is a bug in the libtool
@@ -163,12 +161,12 @@ Patch00: binutils-2.35.1-update.patch
 #           libtool.m4 file).  These are based on a version released in 2009
 #           (2.2.6?) rather than the latest version.  (Definitely fixed in
 #           libtool version 2.4.6).
-Patch01: binutils-2.20.51.0.2-libtool-lib64.patch
+Patch01: binutils-libtool-lib64.patch
 
 # Purpose:  Appends a RHEL or Fedora release string to the generic binutils
 #           version string.
 # Lifetime: Permanent.  This is a RHEL/Fedora specific patch.
-Patch02: binutils-2.25-version.patch
+Patch02: binutils-version.patch
 
 # Purpose:  Exports the demangle.h header file (associated with the libiberty
 #           sources) with the binutils-devel rpm.
@@ -184,7 +182,7 @@ Patch03: binutils-export-demangle.h.patch
 # FIXME:    It would be better if the packages using the bfd.h header were
 #           fixed so that they do include the header files in the correct
 #           order.
-Patch04: binutils-2.22.52.0.4-no-config-h-check.patch
+Patch04: binutils-no-config-h-check.patch
 
 # Purpose:  Include the filename concerned in readelf error messages.  This
 #           makes readelf's output more helpful when it is run on multiple
@@ -193,7 +191,7 @@ Patch04: binutils-2.22.52.0.4-no-config-h-check.patch
 #           making it better (IMHO) but also potentially breaking tools that
 #           depend upon readelf's current format.  Hence it remains a local
 #           patch.
-Patch05: binutils-2.29-filename-in-error-messages.patch
+Patch05: binutils-filename-in-error-messages.patch
 
 # Purpose:  Disable an x86/x86_64 optimization that moves functions from the
 #           PLT into the GOTPLT for faster access.  This optimization is
@@ -201,7 +199,7 @@ Patch05: binutils-2.29-filename-in-error-messages.patch
 #           as ltrace and LD_AUDIT.  See BZs 1452111 and 1333481.
 # Lifetime: Permanent.  But it should not be.
 # FIXME:    Replace with a configure time option.
-Patch06: binutils-2.29-revert-PLT-elision.patch
+Patch06: binutils-revert-PLT-elision.patch
 
 # Purpose:  Changes readelf so that when it displays extra information about
 #           a symbol, this information is placed at the end of the line.
@@ -221,88 +219,29 @@ Patch08: binutils-2.27-aarch64-ifunc.patch
 # Lifetime: Permanent.
 Patch09: binutils-do-not-link-with-static-libstdc++.patch
 
-# Purpose:  Add a .attach_to_group pseudo-op to the assembler for
-#           use by the annobin gcc plugin.
-# Lifetime: Permanent.
-Patch10: binutils-attach-to-group.patch
-
 # Purpose:  Allow OS specific sections in section groups.
 # Lifetime: Fixed in 2.36 (maybe)
-Patch11: binutils-special-sections-in-groups.patch
+Patch10: binutils-special-sections-in-groups.patch
 
 # Purpose:  Fix linker testsuite failures.
 # Lifetime: Fixed in 2.36 (maybe)
-Patch12: binutils-fix-testsuite-failures.patch
+Patch11: binutils-fix-testsuite-failures.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
 # Lifetime: Fixed in 2.36 (maybe)
-Patch13: binutils-gold-mismatched-section-flags.patch
+Patch12: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Add a check to the GOLD linker for a corrupt input file
 #            with a fuzzed section offset.
 # Lifetime: Fixed in 2.36 (maybe)
-Patch14: binutils-CVE-2019-1010204.patch
+Patch13: binutils-CVE-2019-1010204.patch
 
 # Purpose:  Change the gold configuration script to only warn about
 #            unsupported targets.  This allows the binutils to be built with
 #            BPF support enabled.
 # Lifetime: Permanent.
-Patch15: binutils-gold-warn-unsupported.patch
-
-# Purpose:  Fix compile time warning messages building s390 target with gcc-10.
-# Lifetime: Should be fixed in 2.36.
-Patch16: binutils-s390-build.patch
-
-# Purpose:  Fix LTO problems running config mini-builds.
-# Lifetime: Should be fixed in 2.36.
-Patch17: binutils-config.patch
-
-# Purpose:  Fix compile time warning messages building with gcc-10.
-# Lifetime: Should be fixed in 2.36.
-Patch18: binutils-warnings.patch
-
-# Purpose:  Fix compile time warning messages building with gcc-10. (part 2).
-# Lifetime: Should be fixed in 2.36.
-Patch19: binutils-gcc-10-fixes.patch
-
-# Purpose:  Fixes for linking LTO objects.
-# Lifetime: Fixed in 2.36
-Patch20: binutils-add-sym-cache-to-elf-link-hash.patch
-Patch21: binutils-elf-add-objects.patch
-
-# Purpose:  Fix handling of relocations for AArch64 conditional branches.
-# Lifetime: Fixed in 2.36
-Patch22: binutils-aarch64-condbranch-relocs.patch
-
-# Purpose:  Fix the PowerPC disassembler so that it ignores annobin symbols.
-# Lifetime: Fixed in 2.36
-Patch23: binutils-ppc-annobin-disassembly.patch
-
-# Purpose:  Fix the strip program to cope when merging multiple same-named
-#            sections.
-# Lifetime: Fixed in 2.36
-Patch24: binutils-strip-merge.patch
-
-# Purpose:  Fix various problems with the PowerPC arch10 extensions.
-# Lifetime: Fixed in 2.36
-# Patch25: binutils-Power10-fixes.patch
-
-# Purpose:  Allow plugin syms to mark as-needed shared libs needed.
-# Lifetime: Fixed in 2.36
-Patch26: binutils-plugin-as-needed.patch
-
-# Purpose:  Recursively follow .gnu_debuglink and .gnu_debugaltlink sections.
-# Lifetime: Fixed in 2.36
-Patch27: binutils-recursive-debuglink-following.patch
-
-# Purpose:  Correctly handle mixed SHF_LINK_ORDER and non-SHF_LINK_ORDER sections.
-# Lifetime: Fixed in 2.36
-Patch28: binutils-SHF_LINK_ORDER.patch
-
-# Purpose:  Correctly handle multiple same-named sections in linker scripts
-# Lifetime: Fixed in 2.36
-Patch29: binutils-duplicate-sections.patch
+Patch14: binutils-gold-warn-unsupported.patch
 
 # Purpose:  Use the "unsigned long long" type for pointers on hosts where
 #           long is a 32-bit type but pointers are a 64-bit type.  Necessary
@@ -310,32 +249,12 @@ Patch29: binutils-duplicate-sections.patch
 #           x86_64 versions of binutils-devel on the same machine, so they
 #           need to identical versions of the bfd.h header file.
 # Lifetime: Permanent.
-Patch30: binutils-use-long-long.patch
+Patch15: binutils-use-long-long.patch
 
-# Purpose:  Have the assembler automatically detect the use of DWARF-5
-#            file numbers, and enable DWARF-5 support.
-# Lifetime: Fixed in 2.36.
-Patch31: binutils-gas-auto-dwarf-5.patch
-
-# Purpose:  Update the GOLD linker to support x86 .note.gnu.property sections.
-# Lifetime: Fixed in 2.36
-Patch32: binutils-gold-gnu-properties.patch
-
-# Purpose:  Update the BFD library to handle DWARF-5 line number ranges.
-# Lifetime: Fixed in 2.36
-Patch33: binutils-DWARF-5-line-number-parsing.patch
-
-# Purpose:  Fix FAIL results in gas and ld testsuites.
-# Lifetime: Fixed in 2.36
-Patch34: binutils-testsuite-failures.patch
-
-# Purpose:  Remove a vulnerability in the smart_rename function.
-# Lifetime: Fixed in 2.36
-Patch35: binutils-CVE-2021-20197.patch
-
-# Purpose:  Add DWARF-5 sections to linker scripts.
+# Purpose:  Bring in changes to the 2.36 branch that were made after the
+#           2.36.1 release was created.
 # Lifetime: Fixed in 2.37
-Patch36: binutils-ld-DWARF-5-sections.patch
+Patch16: binutils-2.36-branch-updates.patch
 
 #----------------------------------------------------------------------------
 
@@ -555,10 +474,10 @@ esac
 # Also enable the BPF target so that strip will work on BPF files.
 case %{binutils_target} in
     s390*)
-	# FIXME: For some unknown reason settting --enable-targets=x86_64-pep
-	# here breaks the building of GOLD.  I have no idea why, and not enough
-	# knowledge of how gold is configured to fix quickly.  So instead I have
-	# found that supporting "all" targets works.
+        # FIXME: For some unknown reason settting --enable-targets=x86_64-pep
+        # here breaks the building of GOLD.  I have no idea why, and not enough
+        # knowledge of how gold is configured to fix quickly.  So instead I have
+        # found that supporting "all" targets works.
 	CARGS="$CARGS --enable-targets=all"
 	;;
     ia64*)
@@ -901,6 +820,8 @@ exit 0
 %{_libdir}/libctf*
 %exclude %{_libdir}/libbfd.so
 %exclude %{_libdir}/libopcodes.so
+%{_libdir}/bfd-plugins/libdep.so
+%exclude %{_exec_prefix}/lib/debug/%{_libdir}/bfd-plugins/libdep.so-*
 %endif
 
 %if %{isnative}
@@ -922,6 +843,33 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 11 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-1
+- Rebase to GNU Binutils 2.36.1.
+- Retire: binutils-2.35.1-update.patch
+- Retire: binutils-CVE-2021-20197.patch
+- Retire: binutils-DWARF-5-line-number-parsing.patch
+- Retire: binutils-LTO-fix.patch
+- Retire: binutils-Power10-fixes.patch
+- Retire: binutils-SHF_LINK_ORDER.patch
+- Retire: binutils-aarch64-condbranch-relocs.patch
+- Retire: binutils-add-sym-cache-to-elf-link-hash.patch
+- Retire: binutils-attach-to-group.patch
+- Retire: binutils-config.patch
+- Retire: binutils-duplicate-sections.patch
+- Retire: binutils-dwarf-DW_FORM_ref8.patch
+- Retire: binutils-dwarf-type-sign-2.patch
+- Retire: binutils-dwarf-type-sign.patch
+- Retire: binutils-elf-add-objects.patch
+- Retire: binutils-gas-auto-dwarf-5.patch
+- Retire: binutils-gold-gnu-properties.patch
+- Retire: binutils-plugin-as-needed.patch
+- Retire: binutils-ppc-annobin-disassembly.patch
+- Retire: binutils-recursive-debuglink-following.patch
+- Retire: binutils-s390-build.patch
+- Retire: binutils-strip-merge.patch
+- Retire: binutils-testsuite-failures.patch
+- Retire: binutils-warnings.patch
+
 * Mon Feb 08 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-34
 - Extend vulnerability fix again.  (#1925779)
 

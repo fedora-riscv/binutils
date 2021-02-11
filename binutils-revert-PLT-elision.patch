@@ -67,18 +67,6 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pltgot-2.d binutils-2.29.1/ld/tes
  #...
   +0x[0-9a-f]+ +\(PLTREL.*
  #...
-diff -rup binutils.orig/ld/testsuite/ld-x86-64/plt-main-bnd.dd binutils-2.29.1/ld/testsuite/ld-x86-64/plt-main-bnd.dd
---- binutils.orig/ld/testsuite/ld-x86-64/plt-main-bnd.dd	2017-11-15 13:32:39.405064420 +0000
-+++ binutils-2.29.1/ld/testsuite/ld-x86-64/plt-main-bnd.dd	2017-11-15 15:06:53.694623801 +0000
-@@ -1,7 +1,4 @@
--#...
--Disassembly of section .plt.got:
- 
--[a-f0-9]+ <[a-z_]+@plt>:
--[ 	]*[a-f0-9]+:	f2 ff 25 .. .. 20 00 	bnd jmpq \*0x20....\(%rip\)        # ...... <.*>
-+#...
- [ 	]*[a-f0-9]+:	90                   	nop
- #pass
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/plt-main.rd binutils-2.29.1/ld/testsuite/ld-x86-64/plt-main.rd
 --- binutils.orig/ld/testsuite/ld-x86-64/plt-main.rd	2017-11-15 13:32:39.407064397 +0000
 +++ binutils-2.29.1/ld/testsuite/ld-x86-64/plt-main.rd	2017-11-15 15:06:17.244054423 +0000
@@ -253,13 +241,3 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/tlspic2.rd binutils-2.29.1/ld/tes
  0+18 00000010 0000001c FDE cie=00000000 pc=00000128..00000133
    DW_CFA_nop
    DW_CFA_nop
---- binutils.orig/ld/testsuite/ld-x86-64/plt-main-ibt.dd	2020-07-24 14:55:25.370646189 +0100
-+++ binutils-2.35/ld/testsuite/ld-x86-64/plt-main-ibt.dd	2020-07-24 15:06:58.124189348 +0100
-@@ -1,7 +1,3 @@
- #...
--Disassembly of section .plt.got:
--
--[a-f0-9]+ <[_a-z]+@plt>:
- [ 	]*[a-f0-9]+:	f3 0f 1e fa          	endbr64 
--[ 	]*[a-f0-9]+:	f2 ff 25 .. .. 20 00 	bnd jmpq \*0x20....\(%rip\)        # ...... <.*>
- #pass
