@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -255,6 +255,10 @@ Patch15: binutils-use-long-long.patch
 #           2.36.1 release was created.
 # Lifetime: Fixed in 2.37
 Patch16: binutils-2.36-branch-updates.patch
+
+# Purpose:  Fix testsuite failures due to the patches applied here.
+# Lifetime: Permanent, but varying with each new rebase.
+Patch17: binutils-testsuite-fixes.patch
 
 #----------------------------------------------------------------------------
 
@@ -843,6 +847,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Feb 12 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-2
+- Fix testsuite failures triggered by locally applied patches.
+
 * Thu Feb 11 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-1
 - Rebase to GNU Binutils 2.36.1.
 - Retire: binutils-2.35.1-update.patch
