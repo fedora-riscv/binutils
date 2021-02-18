@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -259,6 +259,10 @@ Patch16: binutils-2.36-branch-updates.patch
 # Purpose:  Fix testsuite failures due to the patches applied here.
 # Lifetime: Permanent, but varying with each new rebase.
 Patch17: binutils-testsuite-fixes.patch
+
+# Purpose:  Fix merging empty ppc64le notes.
+# Lifetime: Fixed in 2.37
+Patch18: binutils-ppc64le-note-merge.patch
 
 #----------------------------------------------------------------------------
 
@@ -847,6 +851,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 18 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-3
+- Fix merging ppc64le notes.  (#1928936)
+
 * Fri Feb 12 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-2
 - Fix testsuite failures triggered by locally applied patches.
 
