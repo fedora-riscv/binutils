@@ -1,0 +1,14 @@
+--- binutils.orig/binutils/objcopy.c	2021-02-18 11:35:48.062479490 +0000
++++ binutils-2.30/binutils/objcopy.c	2021-02-18 11:36:52.207071148 +0000
+@@ -2224,6 +2224,11 @@ merge_gnu_build_notes (bfd *          ab
+ 	  goto done;
+ 	}
+ 
++      if (start > end)
++	/* This can happen with PPC64LE binaries where empty notes are
++	   encoded as start = end + 4.  */
++	start = end;
++
+       if (is_open_note (pnote))
+ 	{
+ 	  if (start)
