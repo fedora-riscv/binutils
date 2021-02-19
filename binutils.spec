@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -263,6 +263,11 @@ Patch17: binutils-testsuite-fixes.patch
 # Purpose:  Fix merging empty ppc64le notes.
 # Lifetime: Fixed in 2.37
 Patch18: binutils-ppc64le-note-merge.patch
+
+# Purpose:  Add support for Z instruction set extensions to the s390x
+#            architecture.
+# Lifetime: Fixed in 2.37
+Patch19: binutils-s390-arch14-insns.patch
 
 #----------------------------------------------------------------------------
 
@@ -851,6 +856,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Feb 19 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-4
+- Add support for the Z extensions to the s390x architecture.
+
 * Thu Feb 18 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-3
 - Fix merging ppc64le notes.  (#1928936)
 
