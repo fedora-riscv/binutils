@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 37%{?dist}
+Release: 38%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -935,6 +935,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 22 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-38
+- Fix another problem with note merging.
+
 * Mon Feb 22 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-37
 - Stop readelf from warning about gaps in notes.  (#1931356)
 
