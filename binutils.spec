@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 38%{?dist}
+Release: 39%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -349,6 +349,10 @@ Patch38: binutils-ppc64le-note-merge.patch
 # Purpose:  Stop readelf from warning about gaps in build notes.
 # Lifetime: Fixed in 2.37 ?
 Patch39: binutils-readelf-no-warn-gaps.patch
+
+# Purpose:  Stop readelf from complaining about an unexpected form 20.
+# Lifetime: Fixed in 2.37
+Patch40: binutils-unexpected-form-20.patch
 
 #----------------------------------------------------------------------------
 
@@ -935,6 +939,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Mar 05 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-39
+- Fix more testsuite failures.
+
 * Mon Feb 22 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-38
 - Fix another problem with note merging.
 
