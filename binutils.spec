@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -860,6 +860,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 11 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-7
+- Extend vulnerability fix yet again.  (#1925779)
+
 * Mon Feb 22 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-6
 - Fix merging ppc64le notes (again).  (#1928936)
 
