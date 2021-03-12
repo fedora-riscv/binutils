@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 40%{?dist}
+Release: 41%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -353,6 +353,11 @@ Patch39: binutils-readelf-no-warn-gaps.patch
 # Purpose:  Stop readelf from complaining about an unexpected form 20.
 # Lifetime: Fixed in 2.37
 Patch40: binutils-unexpected-form-20.patch
+
+# Purpose:  Prevent an illegal memory access when reading relocations
+#            for secondary reloc sections.
+# Lifetime: Fixed in 2.36
+Patch41: binutils-CVE-2021-20284.patch
 
 #----------------------------------------------------------------------------
 
@@ -939,6 +944,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Mar 12 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-41
+- Prevent an illegal memory access when reading relocations for secondary reloc sections.  (#1937784)
+
 * Thu Mar 11 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-40
 - Extend vulnerability fix yet again.  (#1925779)
 
