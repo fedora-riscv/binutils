@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.1
-Release: 41%{?dist}
+Release: 42%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -358,6 +358,10 @@ Patch40: binutils-unexpected-form-20.patch
 #            for secondary reloc sections.
 # Lifetime: Fixed in 2.36
 Patch41: binutils-CVE-2021-20284.patch
+
+# Purpose:  Bring in some bug fixes for Z14 support.
+# Lifetime: Fixed in 2.36
+Patch42: binutils-extend-s390-arch14-support.patch
 
 #----------------------------------------------------------------------------
 
@@ -944,6 +948,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 25 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-42
+- Extend support for s390 Z14 instructions.  (#1898533)
+
 * Fri Mar 12 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-41
 - Prevent an illegal memory access when reading relocations for secondary reloc sections.  (#1937784)
 
