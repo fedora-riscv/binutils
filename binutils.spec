@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -276,7 +276,8 @@ Patch20: binutils-CVE-2021-20197.patch
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
-BuildRequires: autoconf automake
+BuildRequires: autoconf = 2.69
+BuildRequires: automake
 
 %if %{with gold}
 # For now we make the binutils package require the gold sub-package.
@@ -422,9 +423,6 @@ Conflicts: gcc-c++ < 4.0.0
 
 %prep
 %autosetup -p1 -n binutils-%{version}
-
-# We cannot run autotools as there is an exact requirement of autoconf-2.59.
-# FIXME - this is no longer true.  Maybe try reinstating autotool use ?
 
 # On ppc64 and aarch64, we might use 64KiB pages
 sed -i -e '/#define.*ELF_COMMONPAGESIZE/s/0x1000$/0x10000/' bfd/elf*ppc.c
@@ -860,6 +858,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 25 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-8
+- Add an explicit dependency upon autoconf 2.69.  (#1942991)
+
 * Thu Mar 11 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-7
 - Extend vulnerability fix yet again.  (#1925779)
 
