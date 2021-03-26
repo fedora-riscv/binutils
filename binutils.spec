@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -258,6 +258,10 @@ Patch30: binutils-strip-merge.patch
 # Purpose:  Update the GOLD linker to support x86 .note.gnu.property sections.
 # Lifetime: Fixed in 2.36
 Patch31: binutils-gold-gnu-properties.patch
+
+# Purpose:  Fix an illegal memory access when using readelf to examine a corrupt file.
+# Lifetime: Fixed in 2.36
+Patch32: binutils-CVE-2021-20294.patch
 
 #----------------------------------------------------------------------------
 
@@ -832,6 +836,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Mar 26 2021 Nick Clifton  <nickc@redhat.com> - 2.35-19
+- Fix an illegal memory access when using readelf to examine a corrupt file. (#1943534)
+
 * Mon Jan 18 2021 Nick Clifton  <nickc@redhat.com> - 2.35-18
 - Update the GOLD linker to handle x86 .note.gnu.property sections.  (#1916925)
 
