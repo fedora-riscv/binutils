@@ -38,8 +38,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
-Version: 2.35.1
-Release: 42%{?dist}
+Version: 2.35.2
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -153,8 +153,6 @@ Source: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
 Source2: binutils-2.19.50.0.1-output-format.sed
 
 #----------------------------------------------------------------------------
-
-Patch00: binutils-2.35.1-update.patch
 
 # Purpose:  Use /lib64 and /usr/lib64 instead of /lib and /usr/lib in the
 #           default library search path of 64-bit targets.
@@ -312,56 +310,47 @@ Patch29: binutils-duplicate-sections.patch
 # Lifetime: Permanent.
 Patch30: binutils-use-long-long.patch
 
-# Purpose:  Have the assembler automatically detect the use of DWARF-5
-#            file numbers, and enable DWARF-5 support.
-# Lifetime: Fixed in 2.36.
-Patch31: binutils-gas-auto-dwarf-5.patch
-
 # Purpose:  Update the GOLD linker to support x86 .note.gnu.property sections.
 # Lifetime: Fixed in 2.36
-Patch32: binutils-gold-gnu-properties.patch
-
-# Purpose:  Update the BFD library to handle DWARF-5 line number ranges.
-# Lifetime: Fixed in 2.36
-Patch33: binutils-DWARF-5-line-number-parsing.patch
+Patch31: binutils-gold-gnu-properties.patch
 
 # Purpose:  Fix FAIL results in gas and ld testsuites.
 # Lifetime: Fixed in 2.36
-Patch34: binutils-testsuite-failures.patch
+Patch32: binutils-testsuite-failures.patch
 
 # Purpose:  Remove a vulnerability in the smart_rename function.
 # Lifetime: Fixed in 2.36
-Patch35: binutils-CVE-2021-20197.patch
+Patch33: binutils-CVE-2021-20197.patch
 
 # Purpose:  Add DWARF-5 sections to linker scripts.
 # Lifetime: Fixed in 2.37
-Patch36: binutils-ld-DWARF-5-sections.patch
+Patch34: binutils-ld-DWARF-5-sections.patch
 
 # Purpose:  Add support for Z instruction set extensions to the s390x
 #            architecture.
 # Lifetime: Fixed in 2.37
-Patch37: binutils-s390-arch14-insns.patch
+Patch35: binutils-s390-arch14-insns.patch
 
 # Purpose:  Fix merging empty ppc64le notes.
 # Lifetime: Fixed in 2.37
-Patch38: binutils-ppc64le-note-merge.patch
+Patch36: binutils-ppc64le-note-merge.patch
 
 # Purpose:  Stop readelf from warning about gaps in build notes.
 # Lifetime: Fixed in 2.37 ?
-Patch39: binutils-readelf-no-warn-gaps.patch
+Patch37: binutils-readelf-no-warn-gaps.patch
 
 # Purpose:  Stop readelf from complaining about an unexpected form 20.
 # Lifetime: Fixed in 2.37
-Patch40: binutils-unexpected-form-20.patch
+Patch38: binutils-unexpected-form-20.patch
 
 # Purpose:  Prevent an illegal memory access when reading relocations
 #            for secondary reloc sections.
 # Lifetime: Fixed in 2.36
-Patch41: binutils-CVE-2021-20284.patch
+Patch39: binutils-CVE-2021-20284.patch
 
 # Purpose:  Bring in some bug fixes for Z14 support.
 # Lifetime: Fixed in 2.36
-Patch42: binutils-extend-s390-arch14-support.patch
+Patch40: binutils-extend-s390-arch14-support.patch
 
 #----------------------------------------------------------------------------
 
@@ -948,6 +937,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Mar 30 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-1
+- Rebase to GNU Binutils 2.35.2.
+- Retire: binutils-2.35.1-update.patch
+- Retire: binutils-gas-auto-dwarf-5.patch
+- Retire: binutils-DWARF-5-line-number-parsing.patch
+
 * Thu Mar 25 2021 Nick Clifton  <nickc@redhat.com> - 2.35.1-42
 - Extend support for s390 Z14 instructions.  (#1898533)
 
