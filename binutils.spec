@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -262,6 +262,11 @@ Patch31: binutils-gold-gnu-properties.patch
 # Purpose:  Fix an illegal memory access when using readelf to examine a corrupt file.
 # Lifetime: Fixed in 2.36
 Patch32: binutils-CVE-2021-20294.patch
+
+# Purpose:  Fix excessive memory consumption when attempting to parse corrupt
+#            DWARF debug information.
+# Lifetime: Fixed in 2.36
+Patch33: binutils-CVE-2021-3487.patch
 
 #----------------------------------------------------------------------------
 
@@ -836,6 +841,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Apr 09 2021 Nick Clifton  <nickc@redhat.com> - 2.35-20
+- Fix excessive memory consumption parsing corrupt DWARF information. (#1947969)
+
 * Fri Mar 26 2021 Nick Clifton  <nickc@redhat.com> - 2.35-19
 - Fix an illegal memory access when using readelf to examine a corrupt file. (#1943534)
 
