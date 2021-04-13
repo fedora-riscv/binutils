@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -351,6 +351,11 @@ Patch39: binutils-CVE-2021-20284.patch
 # Purpose:  Bring in some bug fixes for Z14 support.
 # Lifetime: Fixed in 2.36
 Patch40: binutils-extend-s390-arch14-support.patch
+
+# Purpose:  Fix excessive memory consumption when attempting to parse corrupt
+#            DWARF debug information.
+# Lifetime: Fixed in 2.36
+Patch41: binutils-CVE-2021-3487.patch
 
 #----------------------------------------------------------------------------
 
@@ -937,6 +942,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Apr 13 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-2
+- Fix excessive memory consumption parsing corrupt DWARF information. (#1947969)
+
 * Tue Mar 30 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-1
 - Rebase to GNU Binutils 2.35.2.
 - Retire: binutils-2.35.1-update.patch
