@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.2
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -356,6 +356,10 @@ Patch40: binutils-extend-s390-arch14-support.patch
 #            DWARF debug information.
 # Lifetime: Fixed in 2.36
 Patch41: binutils-CVE-2021-3487.patch
+
+# Purpose:  Fix illegal memory access when parsing corrupt ELF files.
+# Lifetime: Fixed in 2.36
+Patch42: binutils-CVE-2020-35448.patch
 
 #----------------------------------------------------------------------------
 
@@ -942,6 +946,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Apr 19 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-3
+- Fix an illegal memory access when parsing a corrupt ELF file.  (#1950481)
+
 * Tue Apr 13 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-2
 - Fix excessive memory consumption parsing corrupt DWARF information. (#1947969)
 
