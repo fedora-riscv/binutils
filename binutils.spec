@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: %{?cross}binutils%{?_with_debug:-debug}
 Version: 2.35
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -267,6 +267,10 @@ Patch32: binutils-CVE-2021-20294.patch
 #            DWARF debug information.
 # Lifetime: Fixed in 2.36
 Patch33: binutils-CVE-2021-3487.patch
+
+# Purpose:  Fix illegal memory access when parsing corrupt ELF files.
+# Lifetime: Fixed in 2.36
+Patch34: binutils-CVE-2020-35448.patch
 
 #----------------------------------------------------------------------------
 
@@ -841,6 +845,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Apr 19 2021 Nick Clifton  <nickc@redhat.com> - 2.35-21
+- Fix an illegal memory access when parsing a corrupt ELF file.  (#1950481)
+
 * Fri Apr 09 2021 Nick Clifton  <nickc@redhat.com> - 2.35-20
 - Fix excessive memory consumption parsing corrupt DWARF information. (#1947969)
 
