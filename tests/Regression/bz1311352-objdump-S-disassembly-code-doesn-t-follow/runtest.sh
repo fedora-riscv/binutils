@@ -39,6 +39,7 @@ rlJournalStart
         rlLogInfo "REQUIRES=$REQUIRES"
         rlLogInfo "COLLECTIONS=$COLLECTIONS"
         rlLogInfo "SKIP_COLLECTION_METAPACKAGE_CHECK=$SKIP_COLLECTION_METAPACKAGE_CHECK"
+        rlRun "ARCH=$(arch)"
 
         # We optionally need to skip checking for the presence of the metapackage
         # because that would pull in all the dependent toolset subrpms.  We do not
@@ -53,7 +54,7 @@ rlJournalStart
 
         rlLogInfo "(without skipped) COLLECTIONS=$COLLECTIONS"
 
-        rpm -q glibc-debuginfo &>/dev/null || rlRun 'debuginfo-install -y glibc'
+        rpm -q glibc-debuginfo.${ARCH} &>/dev/null || rlRun "debuginfo-install -y glibc.${ARCH}"
 
         rlAssertRpm --all
 
