@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -272,6 +272,10 @@ Patch19: binutils-s390-arch14-insns.patch
 # Purpose:  Avoid renaming over existing files.
 # Lifetime: Fixed in 2.37
 Patch20: binutils-CVE-2021-20197.patch
+
+# Purpose:  Avoid stack exhaustion whilst demangling rust names
+# Lifetime: Fixed in 2.37
+Patch21: binutils-CVE-2021-3530.patch
 
 #----------------------------------------------------------------------------
 
@@ -858,6 +862,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri May 07 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-9
+- Fix stack exhaustion in the rust demangler.  (#1956424)
+
 * Thu Mar 25 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-8
 - Add an explicit dependency upon autoconf 2.69.  (#1942991)
 
