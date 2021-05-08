@@ -466,11 +466,10 @@ touch */configure
 
 %build
 echo target is %{binutils_target}
+%set_build_flags
 
 %ifarch %{power64}
-export CFLAGS="$RPM_OPT_FLAGS -Wno-error"
-%else
-export CFLAGS="$RPM_OPT_FLAGS"
+export CFLAGS="$CFLAGS -Wno-error"
 %endif
 
 CARGS=
@@ -523,9 +522,6 @@ esac
 export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %define enable_shared 0
 %endif
-
-# BZ 1541027 - include the linker flags from redhat-rpm-config as well.
-export LDFLAGS=$RPM_LD_FLAGS
 
 %if %{with clang}
 %define _with_cc_clang 1
@@ -656,19 +652,19 @@ make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
 # Future: Remove it together with its header file, projects should bundle it.
 %make_build -C libiberty clean
 %set_build_flags
-%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
+%make_build CFLAGS="-g -fPIC $CFLAGS" -C libiberty
 
 # Rebuild libbfd.a with -fPIC.
 # Without the hidden visibility the 3rd party shared libraries would export
 # the bfd non-stable ABI.
 %make_build -C bfd clean
 %set_build_flags
-%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
+%make_build CFLAGS="-g -fPIC $CFLAGS -fvisibility=hidden" -C bfd
 
 # Rebuild libopcodes.a with -fPIC.
 %make_build -C opcodes clean
 %set_build_flags
-%make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
+%make_build CFLAGS="-g -fPIC $CFLAGS" -C opcodes
 
 install -m 644 bfd/libbfd.a %{buildroot}%{_libdir}
 install -m 644 libiberty/libiberty.a %{buildroot}%{_libdir}
