@@ -599,10 +599,10 @@ popd
   || cat config.log
 
 %if %{with docs}
-%make_build %{_smp_mflags} tooldir=%{_prefix} all
-%make_build %{_smp_mflags} tooldir=%{_prefix} info
+%make_build tooldir=%{_prefix} all
+%make_build tooldir=%{_prefix} info
 %else
-%make_build %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
+%make_build tooldir=%{_prefix} MAKEINFO=true all
 %endif
 
 # Do not use %%check as it is run after %%install where libbfd.so is rebuilt
@@ -642,9 +642,9 @@ fi
 
 %install
 %if %{with docs}
-%make_install DESTDIR=%{buildroot}
+%make_install
 %else
-%make_install DESTDIR=%{buildroot} MAKEINFO=true
+%make_install MAKEINFO=true
 %endif
 
 %if %{isnative}
