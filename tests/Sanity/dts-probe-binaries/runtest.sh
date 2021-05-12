@@ -26,8 +26,6 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# This is for DTS.  But could be used even for RHEL versions.
-
 # Include Beaker environment
 . /usr/share/beakerlib/beakerlib.sh || exit 1
 
@@ -53,14 +51,13 @@ rlJournalStart
     for p in "${PACKAGES[@]}"; do
       rlAssertRpm "$p"
     done; unset p
-    rpm -q devtoolset-1.0-binutils
     rlRun "TmpDir=\$(mktemp -d)" 0 "Creating tmp directory"
     # Copy the GDB commands file and testcase.
     rlRun "cp -v check-localplt.c m.c popcnt.c virtual2.C $TmpDir"
     rlRun "pushd $TmpDir"
   rlPhaseEnd
 
-  rlPhaseStartTest "Prepare a DTS binary."
+  rlPhaseStartTest "Prepare a binary."
     # Compile a test case.
     rlRun "$GCC -O2 -g -std=gnu99 check-localplt.c -o localplt"
     rlAssertExists "localplt"
@@ -145,9 +142,6 @@ fi
     rm -vf [Ff]
   rlPhaseEnd
 
-# RHEL5/6 don't have elfedit.
-elfedit --help
-if test $? -eq 0; then
   rlPhaseStartTest "Test elfedit."
     rlRun "$ELFEDIT --help"
     # Change the Ehdr somewhat.
@@ -164,7 +158,6 @@ if test $? -eq 0; then
     rlAssertGrep "EXEC (Executable file)" r
     rm -vf r
   rlPhaseEnd
-fi
 
   rlPhaseStartTest "Test nm."
     rlRun "$NM --help"
@@ -176,18 +169,17 @@ fi
         rlAssertGrep "virtual2.C" o
     fi
     rlAssertGrep "_ZN1BD1Ev" o
-    rlAssertGrep ".dynstr" o
     # On PPC, we have .toc instead.
     if [ "$(rlGetPrimaryArch)" != "ppc64" ] && [ "$(rlGetPrimaryArch)" != "ppc64le" ]; then
         rlAssertGrep "_GLOBAL_OFFSET_TABLE_" o
     fi
     # Try -u.
     rlRun "$NM -u popcnt > u"
-    rlAssertGrep "printf@@GLIBC" u
+    rlAssertGrep "printf@GLIBC" u
     if [ "`rlGetPrimaryArch`" != "ppc64" ] || [ ! rlIsRHEL 7 ]; then
         rlAssertGrep "__gmon_start__" u
     fi
-    rlAssertGrep "__libc_start_main@@GLIBC" u
+    rlAssertGrep "__libc_start_main@GLIBC" u
     # Try -P --size-sort.
     rlRun "$NM -P --size-sort localplt > p"
 if test $(uname -i) = "ppc64" -a $(rlGetDistroRelease) -gt 5; then
@@ -207,24 +199,10 @@ fi
   rlPhaseStartTest "Test objcopy."
     rlRun "$OBJCOPY --help"
 
-# RHEL's dont know --compress-debug-sections.  :-(
-if ! :; then
-    # Try compressing.
-    cp -v virt zvirt
-    rlRun "$OBJCOPY --compress-debug-sections zvirt"
-    rlRun "$READELF -WS zvirt > c"
-    rlAssertGrep ".zdebug_*" c
-    rlRun "$OBJCOPY --decompress-debug-sections zvirt"
-    rlRun "$READELF -WS zvirt > v"
-    rlAssertNotGrep ".zdebug_*" v
-fi
-
     cp -v virt xvirt
-if ! rlIsRHEL 5; then
     rlRun "$OBJCOPY --only-section=.shstrtab xvirt"
     rlRun "$READELF -WS xvirt > x"
     rlAssertGrep ".shstrtab" x
-fi
 
     # Try to delete .interp section.
     cp -v virt virt2
@@ -339,9 +317,7 @@ fi
     rlAssertGrep "DW_AT_comp_dir" w
     rlAssertGrep "DW_TAG_structure_type" w
     rlRun "grep -E '<[0-9]+><[0-9a-f]+>\: Abbrev Number\: [0-9]+ \(DW_TAG_.*\)' w"
-if ! rlIsRHEL 5; then
     rlRun "grep -E '<[0-9]+>[\ \t]+DW_AT_.*\:' w"
-fi
 
     # Version info.
     rlRun "$READELF -V virt > V"
@@ -352,11 +328,7 @@ fi
     rlRun "$READELF -Wh /bin/true > H"
     rlAssertGrep "ELF Header:" H
     rlAssertGrep "7f 45 4c 46" H
-    if rlIsRHEL 8; then
-      rlAssertGrep "DYN (Shared object file)" H
-    else
-      rlAssertGrep "EXEC (Executable file)" H
-    fi
+    rlAssertGrep "DYN (Shared object file)" H
     rlAssertGrep "Section header string table index:" H
     rlAssertGrep "ABI Version:" H
 
@@ -387,7 +359,7 @@ fi
     rlRun "$SIZE -dB /bin/ed > S"
     rlAssertGrep "text.*data.*bss.*dec.*hex.*filename" S
 
-    rm -vf [Ss]    
+    rm -vf [Ss]
   rlPhaseEnd
 
   rlPhaseStartTest "Test strings."
@@ -406,7 +378,7 @@ fi
     rlAssertGrep "echo" S
     rlAssertGrep "POSIXLY_CORRECT" S
     rlAssertGrep "libc.so.6" S
-   
+
     rm -vf [Ss]
   rlPhaseEnd
 
