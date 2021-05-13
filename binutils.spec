@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -72,7 +72,7 @@ URL: https://sourceware.org/binutils
 
 # Enable support for generating new dtags in the linker
 # Disable if it is necessary to use RPATH instead.
-%define enable_new_dtags 0
+%define enable_new_dtags 1
 
 # Enable the compression of debug sections as default behaviour of the
 # assembler and linker.  This option is disabled for now.  The assembler and
@@ -858,6 +858,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu May 13 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-10
+- Enable use of new dtags.
+
 * Fri May 07 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-9
 - Fix stack exhaustion in the rust demangler.  (#1956424)
 
