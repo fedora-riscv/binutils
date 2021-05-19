@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 10%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -276,6 +276,10 @@ Patch20: binutils-CVE-2021-20197.patch
 # Purpose:  Avoid stack exhaustion whilst demangling rust names
 # Lifetime: Fixed in 2.37
 Patch21: binutils-CVE-2021-3530.patch
+
+# Purpose:  Generate PLT relocs for weak undefined PowerPC function symbols.
+# Lifetime: Fixed in 2.37
+Patch22: binutils-ppc-weak-undefined-plt-relocs.patch
 
 #----------------------------------------------------------------------------
 
@@ -858,6 +862,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 18 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-12
+- Generate PLT relocs for weak undefined PPC function symbols.  (#1960730)
+
+* Fri May 14 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-11
+- Enable file descriptor increase for plugin use.
+
 * Thu May 13 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-10
 - Enable use of new dtags.
 
