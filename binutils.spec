@@ -220,21 +220,21 @@ Patch08: binutils-2.27-aarch64-ifunc.patch
 Patch09: binutils-do-not-link-with-static-libstdc++.patch
 
 # Purpose:  Allow OS specific sections in section groups.
-# Lifetime: Fixed in 2.36 (maybe)
+# Lifetime: Fixed in 2.37 (maybe)
 Patch10: binutils-special-sections-in-groups.patch
 
 # Purpose:  Fix linker testsuite failures.
-# Lifetime: Fixed in 2.36 (maybe)
+# Lifetime: Fixed in 2.37 (maybe)
 Patch11: binutils-fix-testsuite-failures.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
-# Lifetime: Fixed in 2.36 (maybe)
+# Lifetime: Fixed in 2.37 (maybe)
 Patch12: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Add a check to the GOLD linker for a corrupt input file
 #            with a fuzzed section offset.
-# Lifetime: Fixed in 2.36 (maybe)
+# Lifetime: Fixed in 2.37 (maybe)
 Patch13: binutils-CVE-2019-1010204.patch
 
 # Purpose:  Change the gold configuration script to only warn about
@@ -470,10 +470,20 @@ touch */configure
 
 %build
 echo target is %{binutils_target}
+
 %set_build_flags
 
 %ifarch %{power64}
 export CFLAGS="$CFLAGS -Wno-error"
+%endif
+
+%if %{with debug}
+export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
+%define enable_shared 0
+%endif
+
+%if %{with clang}
+%define _with_cc_clang 1
 %endif
 
 CARGS=
@@ -522,15 +532,6 @@ esac
   CARGS="$CARGS --enable-relro=no"
 %endif
 
-%if %{with debug}
-export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
-%define enable_shared 0
-%endif
-
-%if %{with clang}
-%define _with_cc_clang 1
-%endif
-
 # Dependencies are not set up to rebuild the configure files
 # in the subdirectories.  So we just rebuild the ones we care
 # about after applying the configure patches
@@ -540,7 +541,6 @@ popd
 pushd intl
 autoconf
 popd
-
 
 # We could improve the cross build's size by setting --enable-shared but
 # the produced binaries may be less convenient in the embedded environment.
