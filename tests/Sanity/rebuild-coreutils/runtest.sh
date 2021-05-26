@@ -40,6 +40,8 @@ rlJournalStart
         rlRun "TmpDir=\$(mktemp -d)" 0 "Creating tmp directory"
         rlRun "pushd $TmpDir"
 
+        rlRun 'dnf -y update coreutils' 0-255
+
         rlRun "koji download-build --arch=src $(rpm -q coreutils)"
         rlRun "SRPM=`find . -name 'coreutils-*.src.rpm'`"
         rlRun "dnf builddep -y $SRPM"
