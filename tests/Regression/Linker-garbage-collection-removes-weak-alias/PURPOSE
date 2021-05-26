@@ -1,0 +1,5 @@
+PURPOSE of /tools/binutils/Regression/Linker-garbage-collection-removes-weak-alias
+Description: Test for BZ#1804696 (Linker garbage collection removes weak alias)
+Author: Martin Cermak <mcermak@redhat.com>
+Bug summary: Linker garbage collection removes weak alias references.
+Bugzilla link: https://bugzilla.redhat.com/show_bug.cgi?id=1804696

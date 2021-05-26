@@ -1,0 +1,17 @@
+summary: Test for BZ#1804696 (Linker garbage collection removes weak alias)
+description: |
+    Bug summary: Linker garbage collection removes weak alias references.
+    Bugzilla link: https://bugzilla.redhat.com/show_bug.cgi?id=1804696
+contact: Martin Cermak <mcermak@redhat.com>
+component:
+- binutils
+test: ./runtest.sh
+framework: beakerlib
+recommend:
+- binutils
+- gcc
+duration: 48h
+link:
+-   relates: https://bugzilla.redhat.com/show_bug.cgi?id=1804696
+extra-summary: /tools/binutils/Regression/Linker-garbage-collection-removes-weak-alias
+extra-task: /tools/binutils/Regression/Linker-garbage-collection-removes-weak-alias
