@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -281,6 +281,10 @@ Patch21: binutils-CVE-2021-3530.patch
 # Lifetime: Fixed in 2.37
 Patch22: binutils-ppc-weak-undefined-plt-relocs.patch
 
+# Purpose:  Increase the number of file descriptors available to plugins
+# Lifetime: Fixed in 2.37
+Patch23: binutils-plugin-file-descriptors.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -486,6 +490,12 @@ export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %define _with_cc_clang 1
 %endif
 
+# BZ 1541027 - include the linker flags from redhat-rpm-config as well.
+export LDFLAGS=$RPM_LD_FLAGS
+%if %{enable_new_dtags}
+export LDFLAGS="$LD_FLAGS -Wl,--enable-new-dtags"
+%endif
+
 CARGS=
 
 %if %{with debuginfod}
@@ -577,6 +587,7 @@ popd
 %endif
 %if %{enable_new_dtags}
   --enable-new-dtags \
+  --disable-rpath \  
 %endif
 %if %{default_compress_debug}
   --enable-compressed-debug-sections=all \
@@ -862,6 +873,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 18 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-13
+- Increase number of file descriptors available to plugins.  (#1918924)
+- Remove uses of RPATH.
+
 * Tue May 18 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-12
 - Generate PLT relocs for weak undefined PPC function symbols.  (#1960730)
 
