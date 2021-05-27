@@ -333,7 +333,7 @@ BuildRequires: findutils
 # It should not be required for: ld-elf/elf.exp static {preinit,init,fini} array
 %if %{with testsuite}
 # relro_test.sh uses dc which is part of the bc rpm, hence its inclusion here.
-BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc
+BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc, libstdc++
 %endif
 
 Requires(post): %{_sbindir}/alternatives
@@ -502,10 +502,9 @@ CARGS=
 CARGS="$CARGS --with-debuginfod"
 %endif
 
-case %{binutils_target} in i?86*|sparc*|ppc*|s390*|sh*|arm*|aarch64*|riscv*)
-  CARGS="$CARGS --enable-64-bit-bfd"
-  ;;
-esac
+%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
+CARGS="$CARGS --enable-64-bit-bfd"
+%endif
 
 # Extra targets to build along with the default one.
 #
@@ -587,7 +586,7 @@ popd
 %endif
 %if %{enable_new_dtags}
   --enable-new-dtags \
-  --disable-rpath \  
+  --disable-rpath \
 %endif
 %if %{default_compress_debug}
   --enable-compressed-debug-sections=all \
@@ -703,10 +702,10 @@ rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.so
 # Remove libtool files, which reference the .so libs
 rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.la
 
-# Sanity check --enable-64-bit-bfd really works.
-grep '^#define BFD_ARCH_SIZE 64$' %{buildroot}%{_prefix}/include/bfd.h
 # Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
 %ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
+# Sanity check --enable-64-bit-bfd really works.
+grep '^#define BFD_ARCH_SIZE 64$' %{buildroot}%{_prefix}/include/bfd.h
 sed -i -e '/^#include "ansidecl.h"/{p;s~^.*$~#include <bits/wordsize.h>~;}' \
     -e 's/^#define BFD_DEFAULT_TARGET_SIZE \(32\|64\) *$/#define BFD_DEFAULT_TARGET_SIZE __WORDSIZE/' \
     -e 's/^#define BFD_HOST_64BIT_LONG [01] *$/#define BFD_HOST_64BIT_LONG (__WORDSIZE == 64)/' \
