@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -114,14 +114,20 @@ URL: https://sourceware.org/binutils
 %bcond_without docs
 # Default: Always run the testsuite.
 %bcond_without testsuite
-# Use clang as the build time compiler.  Default: gcc
-%bcond_with clang 
 # Default: support debuginfod.
 %bcond_without debuginfod
 
 # Use the system supplied version of the zlib compress library.
 # Change this to use the binutils builtin version instead.
 %bcond_without systemzlib
+
+# Allow the user to override the compiler used to build the binutils.
+# The default build compiler is gcc if %%toolchain is not clang.
+%if "%toolchain" == "clang"
+%bcond_without clang
+%else
+%bcond_with clang
+%endif
 
 %if %{with bootstrap}
 %undefine with_docs
@@ -475,6 +481,14 @@ touch */configure
 %build
 echo target is %{binutils_target}
 
+# There is a problem with the clang+libtool+lto combination.
+# The LDFLAGS containing -flto are not being passed when linking the
+# libbfd.so, so the build fails.  Solution: disable LTO.
+%if %{with clang}
+%global _lto_cflags %{nil}
+%define enable_lto 0
+%endif
+
 %set_build_flags
 
 %ifarch %{power64}
@@ -651,6 +665,7 @@ fi
 #----------------------------------------------------------------------------
 
 %install
+
 %if %{with docs}
 %make_install
 %else
@@ -667,6 +682,10 @@ make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
 %make_build -C libiberty clean
 %set_build_flags
 %make_build CFLAGS="-g -fPIC $CFLAGS" -C libiberty
+
+%if %{enable_new_dtags}
+export LDFLAGS="$RPM_LD_FLAGS -Wl,--enable-new-dtags"
+%endif
 
 # Rebuild libbfd.a with -fPIC.
 # Without the hidden visibility the 3rd party shared libraries would export
@@ -780,6 +799,9 @@ if [ -x gold/ld-new ]; then
   cat %{?cross}gold.lang >> %{?cross}binutils.lang
 fi
 
+# Stop check-rpaths from complaining about standard runpaths.
+export QA_RPATHS=0x0001
+
 #----------------------------------------------------------------------------
 
 %post
@@ -872,6 +894,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jun 03 2021 Timm Bäder  <tabeder@redhat.com> - 2.36.1-14
+- Set clang bconf default based on %%toolchain.
+- Diable LTO when using clang.
+- Disable check-rpath's test for standard runpaths.
+- Make the existing tests have the gating effect.
+
 * Tue May 18 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-13
 - Increase number of file descriptors available to plugins.  (#1918924)
 - Remove uses of RPATH.
