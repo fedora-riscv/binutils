@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.36.1
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -290,6 +290,11 @@ Patch22: binutils-ppc-weak-undefined-plt-relocs.patch
 # Purpose:  Increase the number of file descriptors available to plugins
 # Lifetime: Fixed in 2.37
 Patch23: binutils-plugin-file-descriptors.patch
+
+# Purpose:  Enable the creation of .note.gnu.property sections by the GOLD
+#            linker for x86 binaries.
+# Lifetime: Fixed in 2.37 maybe
+Patch24: binutils-gold-i386-gnu-property-notes.patch
 
 #----------------------------------------------------------------------------
 
@@ -894,6 +899,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jun 21 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-15
+- Enable the creation of .note.gnu.property sections by the GOLD linker for x86 binaries.  (#1970961)
+
 * Thu Jun 03 2021 Timm Bäder  <tabeder@redhat.com> - 2.36.1-14
 - Set clang bconf default based on %%toolchain.
 - Diable LTO when using clang.
