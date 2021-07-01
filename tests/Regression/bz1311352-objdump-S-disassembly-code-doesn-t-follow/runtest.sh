@@ -54,7 +54,9 @@ rlJournalStart
 
         rlLogInfo "(without skipped) COLLECTIONS=$COLLECTIONS"
 
-        rpm -q glibc-debuginfo.${ARCH} &>/dev/null || rlRun "debuginfo-install -y glibc.${ARCH}"
+        for i in glibc nscd; do
+            rpm -q ${i}-debuginfo.${ARCH} &>/dev/null || rlRun "debuginfo-install -y ${i}.${ARCH}"
+        done
 
         rlAssertRpm --all
 
