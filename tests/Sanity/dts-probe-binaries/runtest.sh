@@ -183,10 +183,8 @@ fi
     # Try -P --size-sort.
     rlRun "$NM -P --size-sort localplt > p"
 if test $(uname -i) = "ppc64" -a $(rlGetDistroRelease) -gt 5; then
-    rlAssertGrep "__libc_csu_init D" p
     rlAssertGrep "main D" p
 else
-    rlAssertGrep "__libc_csu_init T" p
     rlAssertGrep "main T" p
 fi
     rlAssertGrep "completed.* b" p
