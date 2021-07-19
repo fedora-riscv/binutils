@@ -38,8 +38,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
-Version: 2.36.1
-Release: 15%{?dist}
+Version: 2.37
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -226,7 +226,7 @@ Patch08: binutils-2.27-aarch64-ifunc.patch
 Patch09: binutils-do-not-link-with-static-libstdc++.patch
 
 # Purpose:  Allow OS specific sections in section groups.
-# Lifetime: Fixed in 2.37 (maybe)
+# Lifetime: Fixed in 2.38 (maybe)
 Patch10: binutils-special-sections-in-groups.patch
 
 # Purpose:  Fix linker testsuite failures.
@@ -235,12 +235,12 @@ Patch11: binutils-fix-testsuite-failures.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
-# Lifetime: Fixed in 2.37 (maybe)
+# Lifetime: Fixed in 2.38 (maybe)
 Patch12: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Add a check to the GOLD linker for a corrupt input file
 #            with a fuzzed section offset.
-# Lifetime: Fixed in 2.37 (maybe)
+# Lifetime: Fixed in 2.38 (maybe)
 Patch13: binutils-CVE-2019-1010204.patch
 
 # Purpose:  Change the gold configuration script to only warn about
@@ -257,44 +257,14 @@ Patch14: binutils-gold-warn-unsupported.patch
 # Lifetime: Permanent.
 Patch15: binutils-use-long-long.patch
 
-# Purpose:  Bring in changes to the 2.36 branch that were made after the
-#           2.36.1 release was created.
-# Lifetime: Fixed in 2.37
-Patch16: binutils-2.36-branch-updates.patch
-
 # Purpose:  Fix testsuite failures due to the patches applied here.
 # Lifetime: Permanent, but varying with each new rebase.
-Patch17: binutils-testsuite-fixes.patch
-
-# Purpose:  Fix merging empty ppc64le notes.
-# Lifetime: Fixed in 2.37
-Patch18: binutils-ppc64le-note-merge.patch
-
-# Purpose:  Add support for Z instruction set extensions to the s390x
-#            architecture.
-# Lifetime: Fixed in 2.37
-Patch19: binutils-s390-arch14-insns.patch
-
-# Purpose:  Avoid renaming over existing files.
-# Lifetime: Fixed in 2.37
-Patch20: binutils-CVE-2021-20197.patch
-
-# Purpose:  Avoid stack exhaustion whilst demangling rust names
-# Lifetime: Fixed in 2.37
-Patch21: binutils-CVE-2021-3530.patch
-
-# Purpose:  Generate PLT relocs for weak undefined PowerPC function symbols.
-# Lifetime: Fixed in 2.37
-Patch22: binutils-ppc-weak-undefined-plt-relocs.patch
-
-# Purpose:  Increase the number of file descriptors available to plugins
-# Lifetime: Fixed in 2.37
-Patch23: binutils-plugin-file-descriptors.patch
+Patch16: binutils-testsuite-fixes.patch
 
 # Purpose:  Enable the creation of .note.gnu.property sections by the GOLD
 #            linker for x86 binaries.
-# Lifetime: Fixed in 2.37 maybe
-Patch24: binutils-gold-i386-gnu-property-notes.patch
+# Lifetime: Fixed in 2.38 maybe
+Patch17: binutils-gold-i386-gnu-property-notes.patch
 
 #----------------------------------------------------------------------------
 
@@ -899,6 +869,16 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jul 19 2021 Nick Clifton  <nickc@redhat.com> - 2.37-1
+- Rebase to GNU Binutils 2.37.
+- Retire: binutils-2.36-branch-updates.patch
+- Retire: binutils-CVE-2021-20197.patch
+- Retire: binutils-CVE-2021-3530.patch
+- Retire: binutils-plugin-file-descriptors.patch
+- Retire: binutils-ppc-weak-undefined-plt-relocs.patch
+- Retire: binutils-ppc64le-note-merge.patch
+- Retire: binutils-s390-arch14-insns.patch
+
 * Mon Jun 21 2021 Nick Clifton  <nickc@redhat.com> - 2.36.1-15
 - Enable the creation of .note.gnu.property sections by the GOLD linker for x86 binaries.  (#1970961)
 

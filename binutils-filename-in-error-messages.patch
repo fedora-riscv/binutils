@@ -1,11 +1,9 @@
---- binutils.orig/binutils/readelf.c	2020-07-24 14:55:25.163647522 +0100
-+++ binutils-2.35/binutils/readelf.c	2020-07-24 15:02:39.613851369 +0100
-@@ -20729,79 +20729,92 @@ process_file (char * file_name)
-   Filedata * filedata = NULL;
+--- binutils.orig/binutils/readelf.c	2021-07-19 12:39:14.206556025 +0100
++++ binutils-2.37/binutils/readelf.c	2021-07-19 12:44:37.712728732 +0100
+@@ -21873,45 +21873,52 @@ process_file (char * file_name)
    struct stat statbuf;
    char armag[SARMAG];
--  bfd_boolean ret = TRUE;
-+  bfd_boolean ret = FALSE;
+   bool ret = true;
 +  char * name;
 +  char * saved_program_name;
 +
@@ -25,7 +23,7 @@
        else
 -	error (_("Could not locate '%s'.  System error message: %s\n"),
 -	       file_name, strerror (errno));
--      return FALSE;
+-      return false;
 +	error (_("Could not locate file.  System error message: %s\n"),
 +	       strerror (errno));
 +      goto done;
@@ -34,7 +32,7 @@
    if (! S_ISREG (statbuf.st_mode))
      {
 -      error (_("'%s' is not an ordinary file\n"), file_name);
--      return FALSE;
+-      return false;
 +      error (_("Not an ordinary file\n"));
 +      goto done;
      }
@@ -43,7 +41,7 @@
    if (filedata == NULL)
      {
        error (_("Out of memory allocating file data structure\n"));
--      return FALSE;
+-      return false;
 +      goto done;
      }
  
@@ -53,7 +51,7 @@
      {
 -      error (_("Input file '%s' is not readable.\n"), file_name);
 -      free (filedata);
--      return FALSE;
+-      return false;
 +      error (_("Not readable\n"));
 +      goto done;
      }
@@ -61,28 +59,29 @@
    if (fread (armag, SARMAG, 1, filedata->handle) != 1)
      {
 -      error (_("%s: Failed to read file's magic number\n"), file_name);
-+      error (_("Failed to read file's magic number\n"));
-       fclose (filedata->handle);
+-      fclose (filedata->handle);
 -      free (filedata);
--      return FALSE;
+-      return false;
++      error (_("Failed to read file's magic number\n"));
 +      goto done;
      }
  
    filedata->file_size = (bfd_size_type) statbuf.st_size;
+@@ -21919,33 +21926,39 @@ process_file (char * file_name)
  
    if (memcmp (armag, ARMAG, SARMAG) == 0)
      {
--      if (! process_archive (filedata, FALSE))
--	ret = FALSE;
-+      if (process_archive (filedata, FALSE))
-+	ret = TRUE;
+-      if (! process_archive (filedata, false))
+-	ret = false;
++      if (process_archive (filedata, false))
++	ret = true;
      }
    else if (memcmp (armag, ARMAGT, SARMAG) == 0)
      {
--      if ( ! process_archive (filedata, TRUE))
--	ret = FALSE;
-+      if (process_archive (filedata, TRUE))
-+	ret = TRUE;
+-      if ( ! process_archive (filedata, true))
+-	ret = false;
++      if (process_archive (filedata, true))
++	ret = true;
      }
    else
      {
@@ -95,9 +94,9 @@
        filedata->archive_file_size = filedata->archive_file_offset = 0;
  
 -      if (! process_object (filedata))
--	ret = FALSE;
+-	ret = false;
 +      if (process_object (filedata))
-+	ret = TRUE;
++	ret = true;
      }
  
 -  fclose (filedata->handle);
@@ -109,7 +108,8 @@
 + done:
 +  if (filedata)
 +    {
-+      fclose (filedata->handle);
++      if (filedata->handle != NULL)
++	fclose (filedata->handle);
 +      free (filedata->section_headers);
 +      free (filedata->program_headers);
 +      free (filedata->string_table);
@@ -121,25 +121,3 @@
  
    free (ba_cache.strtab);
    ba_cache.strtab = NULL;
---- binutils.orig/binutils/readelf.c	2021-01-07 12:59:35.802994842 +0000
-+++ binutils-2.35.1/binutils/readelf.c	2021-01-07 13:02:36.591754005 +0000
-@@ -20818,7 +20818,8 @@ process_file (char * file_name)
-  done:
-   if (filedata)
-     {
--      fclose (filedata->handle);
-+      if (filedata->handle != NULL)
-+	fclose (filedata->handle);
-       free (filedata->section_headers);
-       free (filedata->program_headers);
-       free (filedata->string_table);
---- binutils.orig/binutils/readelf.c	2021-01-08 17:01:23.573093204 +0000
-+++ binutils-2.35.1/binutils/readelf.c	2021-01-08 17:02:23.095677242 +0000
-@@ -20787,7 +20787,6 @@ process_file (char * file_name)
-   if (fread (armag, SARMAG, 1, filedata->handle) != 1)
-     {
-       error (_("Failed to read file's magic number\n"));
--      fclose (filedata->handle);
-       goto done;
-     }
- 
