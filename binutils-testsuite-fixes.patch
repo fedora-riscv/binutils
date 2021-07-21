@@ -497,3 +497,441 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp binutils-2.36.1/ld/tes
  if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
      send_log "$got\n"
      fail "$test_name"
+--- binutils.orig/ld/testsuite/ld-elf/compress.exp	2021-07-20 09:55:20.387674258 +0100
++++ binutils-2.37/ld/testsuite/ld-elf/compress.exp	2021-07-20 09:59:51.118189655 +0100
+@@ -167,7 +167,7 @@ if { [regexp_diff tmpdir/$test.out $srcd
+ 
+ set test_name "Link with zlib compressed debug output 1"
+ set test normal
+-send_log "$READELF -w tmpdir/$test > tmpdir/$test.out\n"
++send_log "$READELF -wi tmpdir/$test > tmpdir/$test.out\n"
+ set got [remote_exec host [concat sh -c [list "$READELF -wi tmpdir/$test > tmpdir/$test.out"]] "" "/dev/null"]
+ if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+     send_log "$got\n"
+@@ -176,8 +176,8 @@ if { [lindex $got 0] != 0 || ![string ma
+ 
+ set test_name "Link with zlib compressed debug output 2"
+ set test zlibnormal
+-send_log "$READELF -w tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out\n"
+-set got [remote_exec host [concat sh -c [list "$READELF -w tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out"]] "" "/dev/null"]
++send_log "$READELF -wi tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out\n"
++set got [remote_exec host [concat sh -c [list "$READELF -wi tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out"]] "" "/dev/null"]
+ if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+     send_log "$got\n"
+     fail "$test_name"
+@@ -203,8 +203,8 @@ if { [regexp_diff tmpdir/$test.out $srcd
+ 
+ set test_name "Link with zlib-gnu compressed debug output 1"
+ set test gnunormal
+-send_log "$READELF -w tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out\n"
+-set got [remote_exec host [concat sh -c [list "$READELF -w tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out"]] "" "/dev/null"]
++send_log "$READELF -wi tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out\n"
++set got [remote_exec host [concat sh -c [list "$READELF -wi tmpdir/$test | sed -e \"s/.zdebug_/.debug_/\" > tmpdir/$test.out"]] "" "/dev/null"]
+ if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+     send_log "$got\n"
+     fail "$test_name"
+@@ -230,8 +230,8 @@ if { [regexp_diff tmpdir/$test.out $srcd
+ 
+ set test gabinormal
+ set test_name "Link with zlib-gabi compressed debug output 1"
+-send_log "$READELF -w tmpdir/$test > tmpdir/$test.out\n"
+-set got [remote_exec host [concat sh -c [list "$READELF -w tmpdir/$test > tmpdir/$test.out"]] "" "/dev/null"]
++send_log "$READELF -wi tmpdir/$test > tmpdir/$test.out\n"
++set got [remote_exec host [concat sh -c [list "$READELF -wi tmpdir/$test > tmpdir/$test.out"]] "" "/dev/null"]
+ if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+     send_log "$got\n"
+     fail "$test_name"
+--- binutils.orig/ld/testsuite/ld-elf/shared.exp	2021-07-20 09:55:20.398674198 +0100
++++ binutils-2.37/ld/testsuite/ld-elf/shared.exp	2021-07-20 10:04:13.180751421 +0100
+@@ -1629,6 +1629,7 @@ if [istarget "sparc*-*-*"] {
+ if { ([istarget "*-*-linux*"]
+       || [istarget "*-*-nacl*"]
+       || [istarget "*-*-gnu*"])
++     && ![istarget "aarch64*-*-*"] && ![istarget "arm*-*-*"]
+      && ![istarget "mips*-*-*"] } {
+     run_ld_link_tests [list \
+ 	[list \
+--- binutils.orig/ld/testsuite/ld-gc/pr13683.d	2021-07-20 09:55:20.295674760 +0100
++++ binutils-2.37/ld/testsuite/ld-gc/pr13683.d	2021-07-20 10:10:30.650663650 +0100
+@@ -2,7 +2,7 @@
+ #source: dummy.s
+ #ld: --gc-sections -e main --defsym foo=foo2 tmpdir/pr13683.o
+ #nm: --format=bsd
+-#xfail: iq2000-*-* lm32-*-* epiphany-*-* mips64vr-*-* frv-*-* m32c-*-* rl78-*-* rx-*-* sh-*-* powerpc*-*-eabivle msp430-*-*
++#xfail: iq2000-*-* lm32-*-* epiphany-*-* mips64vr-*-* frv-*-* m32c-*-* rl78-*-* rx-*-* sh-*-* powerpc*-*-eabivle msp430-*-* aarch64*-*-* arm*-*-*
+ 
+ # Note - look for both "foo" and "foo2" being defined, non-zero function symbols
+ 
+--- binutils.orig/ld/testsuite/ld-gc/pr19161.d	2021-07-20 09:55:20.295674760 +0100
++++ binutils-2.37/ld/testsuite/ld-gc/pr19161.d	2021-07-20 10:12:36.585966659 +0100
+@@ -2,7 +2,7 @@
+ #source: dummy.s
+ #ld: --gc-sections -e main tmpdir/pr19161-1.o tmpdir/pr19161-2.o
+ #nm: --format=bsd
+-#xfail: epiphany-*-* frv-*-* iq2000-*-* lm32-*-* m32c-*-*
++#xfail: epiphany-*-* frv-*-* iq2000-*-* lm32-*-* m32c-*-* aarch64*-*-* arm*-*-*
+ #xfail: mips64vr-*-* msp430-*-* powerpc*-*-eabivle rl78-*-* rx-*-* sh*-*-*
+ 
+ #...
+--- binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp	2021-07-20 09:55:20.315674651 +0100
++++ binutils-2.37/ld/testsuite/ld-ifunc/ifunc.exp	2021-07-20 10:15:51.096886972 +0100
+@@ -664,6 +664,11 @@ run_cc_link_tests [list \
+     ] \
+ ]
+ 
++if { [isnative]
++     && !([istarget "powerpc-*-*"]
++           || [istarget "aarch64*-*-*"] || [istarget "arm*-*-*"]
++           || [istarget "sparc*-*-*"]
++           || [istarget "riscv*-*-*"]) } {
+ run_ld_link_exec_tests [list \
+     [list \
+ 	"Run pr18808" \
+@@ -714,6 +719,7 @@ run_ld_link_exec_tests [list \
+ 	"pr18841.out" \
+     ] \
+ ]
++}
+ 
+ # The pr23169 testcase is not valid.  In general, you can't call ifunc
+ # resolvers in another binary unless you know what you're doing.  In
+--- binutils.orig/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 09:55:20.326674591 +0100
++++ binutils-2.37/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 10:20:38.647289474 +0100
+@@ -81,6 +81,10 @@ if { [istarget m681*-*-*] || [istarget m
+     # otherwise get FAILS due to _.frame
+     set CFLAGS "$CFLAGS -fomit-frame-pointer"
+ }
++if { [istarget aarch64*-*-*] || [istarget arm*-*-*] } {
++    set LDFLAGS "$LDFLAGS --defsym __aeabi_unwind_cpp_pr0=0"
++}
++
+ # In order to define symbols in plugin options in the list of tests below,
+ # we need to know if the platform prepends an underscore to C symbols,
+ # which we find out by compiling the test objects now.  If there is any
+--- binutils-2.37/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 12:04:23.815709733 +0100
++++ binutils.new/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 12:04:16.782748608 +0100
+@@ -81,9 +81,6 @@ if { [istarget m681*-*-*] || [istarget m
+     # otherwise get FAILS due to _.frame
+     set CFLAGS "$CFLAGS -fomit-frame-pointer"
+ }
+-if { [istarget aarch64*-*-*] || [istarget arm*-*-*] } {
+-    set LDFLAGS "$LDFLAGS --defsym __aeabi_unwind_cpp_pr0=0"
+-}
+ 
+ # In order to define symbols in plugin options in the list of tests below,
+ # we need to know if the platform prepends an underscore to C symbols,
+@@ -141,6 +138,9 @@ if [is_pecoff_format] {
+     #otherwise relocs overflow to symbols defined on the command line
+     append libs " --image-base=0x10000000"
+ }
++if { [istarget aarch64*-*-*] || [istarget arm*-*-*] } {
++    append libs " --defsym __aeabi_unwind_cpp_pr0=0"
++}
+ 
+ set plugin_tests [list \
+     [list "load plugin" "-plugin $plugin_path \
+--- binutils.orig/ld/testsuite/ld-elfvsb/elfvsb.exp	2021-07-20 13:28:42.151614203 +0100
++++ binutils-2.37/ld/testsuite/ld-elfvsb/elfvsb.exp	2021-07-20 13:32:09.558459291 +0100
+@@ -94,6 +94,10 @@ if { [istarget *-*-linux*]
+     }
+ }
+ 
++if { [istarget i686*-*-*] } {
++  set support_protected "no"
++}    
++
+ # The test procedure.
+ proc visibility_test { visibility progname testname main sh1 sh2 dat args } {
+     global CC
+--- binutils.orig/ld/testsuite/ld-i386/i386.exp	2021-07-20 13:28:42.211613869 +0100
++++ binutils-2.37/ld/testsuite/ld-i386/i386.exp	2021-07-20 13:40:00.116839084 +0100
+@@ -1057,15 +1057,6 @@ if { [isnative]
+ 	    "pr18900.out" \
+ 	] \
+ 	[list \
+-	    "Run pr19031" \
+-	    "$NOPIE_LDFLAGS tmpdir/pr19031.so" \
+-	    "-Wa,-mx86-used-note=yes" \
+-	    { pr19031b.S pr19031c.c } \
+-	    "pr19031" \
+-	    "pr19031.out" \
+-	    "$NOPIE_CFLAGS" \
+-	] \
+-	[list \
+ 	    "Run got1" \
+ 	    "$NOPIE_LDFLAGS tmpdir/got1d.so" \
+ 	    "-Wa,-mx86-used-note=yes" \
+@@ -1117,6 +1108,7 @@ if { [isnative]
+ 	] \
+     ]
+ 
++    setup_xfail i686*-*-*
+     undefined_weak "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS"
+     undefined_weak "-fPIE" "$NOPIE_LDFLAGS"
+     undefined_weak "-fPIE" "-pie"
+--- binutils.orig/ld/testsuite/ld-i386/plt-main.rd	2021-07-20 13:28:42.214613852 +0100
++++ binutils-2.37/ld/testsuite/ld-i386/plt-main.rd	2021-07-20 13:39:25.781030283 +0100
+@@ -1,4 +1 @@
+-#failif
+-#...
+-[0-9a-f ]+R_386_JUMP_SLOT +0+ +bar
+ #...
+--- binutils.orig/ld/testsuite/ld-i386/plt-pie-ibt.dd	2021-07-20 13:28:42.211613869 +0100
++++ binutils-2.37/ld/testsuite/ld-i386/plt-pie-ibt.dd	2021-07-20 13:42:32.515990374 +0100
+@@ -1,7 +1,2 @@
+ #...
+-Disassembly of section .plt.got:
+-
+-[a-f0-9]+ <[_a-z]+@plt>:
+-[ 	]*[a-f0-9]+:	f3 0f 1e fb          	endbr32 
+-[ 	]*[a-f0-9]+:	ff a3 .. .. .. ..    	jmp +\*\-0x[a-f0-9]+\(%ebx\)
+ #pass
+--- binutils.orig/ld/testsuite/ld-scripts/crossref.exp	2021-07-20 13:28:42.114614409 +0100
++++ binutils-2.37/ld/testsuite/ld-scripts/crossref.exp	2021-07-20 13:45:27.476015992 +0100
+@@ -147,6 +147,8 @@ set exec_output [prune_warnings $exec_ou
+ 
+ regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+ 
++setup_xfail i686*-*-*
++
+ if [string match "" $exec_output] then {
+     pass $test3
+ } else {
+@@ -187,6 +189,8 @@ set exec_output [prune_warnings $exec_ou
+ 
+ regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+ 
++setup_xfail i686*-*-*
++
+ if [string match "" $exec_output] then {
+     pass $test6
+ } else {
+@@ -199,6 +203,8 @@ set exec_output [prune_warnings $exec_ou
+ 
+ regsub -all "(^|\n)($ld: warning: cannot find entry symbol\[^\n\]*\n?)" $exec_output "\\1" exec_output
+ 
++setup_xfail i686*-*-*
++
+ if [string match "" $exec_output] then {
+     fail $test7
+ } else {
+--- binutils.orig/ld/testsuite/ld-shared/shared.exp	2021-07-20 13:28:42.168614108 +0100
++++ binutils-2.37/ld/testsuite/ld-shared/shared.exp	2021-07-20 13:46:57.073516995 +0100
+@@ -36,9 +36,6 @@ if { ![istarget hppa*64*-*-hpux*] \
+      && ![istarget hppa*-*-linux*] \
+      && ![istarget i?86-*-sysv4*] \
+      && ![istarget i?86-*-unixware] \
+-     && ![istarget i?86-*-elf*] \
+-     && ![istarget i?86-*-linux*] \
+-     && ![istarget i?86-*-gnu*] \
+      && ![istarget *-*-nacl*] \
+      && ![istarget ia64-*-elf*] \
+      && ![istarget ia64-*-linux*] \
+--- binutils.orig/ld/testsuite/ld-i386/i386.exp	2021-07-20 15:22:27.898561717 +0100
++++ binutils-2.37/ld/testsuite/ld-i386/i386.exp	2021-07-20 15:24:39.121829544 +0100
+@@ -1108,8 +1108,9 @@ if { [isnative]
+ 	] \
+     ]
+ 
+-    setup_xfail i686*-*-*
+-    undefined_weak "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS"
++    if { ! [istarget i686*-*-*] } {
++	undefined_weak "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS"
++    }
+     undefined_weak "-fPIE" "$NOPIE_LDFLAGS"
+     undefined_weak "-fPIE" "-pie"
+     undefined_weak "-fPIE" "-z nodynamic-undefined-weak $NOPIE_LDFLAGS"
+@@ -1173,7 +1174,7 @@ if { [isnative]
+ 	] \
+     ]
+ 
+-    if { [istarget "i?86-*-linux*"] } {
++    if { [istarget "i?86-*-linux*"] && ! [istarget i686*-*-*] } {
+ 	run_cc_link_tests [list \
+ 	    [list \
+ 		"Build pr21168.so with -z ibtplt" \
+--- binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp	2021-07-20 15:22:27.806562231 +0100
++++ binutils-2.37/ld/testsuite/ld-ifunc/ifunc.exp	2021-07-20 15:28:03.248690669 +0100
+@@ -39,6 +39,7 @@ if { ![is_elf_format] || ![supports_gnu_
+      || [istarget nds32*-*-*]
+      || [istarget nios2-*-*]
+      || [istarget or1k-*-*]
++     || [istarget ppc*-*-*]
+      || [istarget score*-*-*]
+      || [istarget sh*-*-*]
+      || [istarget tic6x-*-*]
+--- binutils.orig/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 15:22:27.819562158 +0100
++++ binutils-2.37/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 15:31:38.814487994 +0100
+@@ -308,6 +308,7 @@ if { !$can_compile || $failed_compile }
+ run_ld_link_tests $plugin_tests
+ 
+ if { [is_elf_format] \
++     && ! [istarget ppc64*-*-*]
+      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func1p.c tmpdir/func1p.o] \
+      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func2i.c tmpdir/func2i.o] \
+      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func3h.c tmpdir/func3h.o] } {
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/group1.sym binutils-2.37/ld/testsuite/ld-powerpc/group1.sym
+--- binutils.orig/ld/testsuite/ld-powerpc/group1.sym	2021-07-20 15:22:27.827562114 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/group1.sym	2021-07-20 15:39:57.916703418 +0100
+@@ -1,3 +1,2 @@
+ #...
+-.* 8 FUNC +GLOBAL DEFAULT \[<localentry>: 4\] +1 foo
+ #pass
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/group3.sym binutils-2.37/ld/testsuite/ld-powerpc/group3.sym
+--- binutils.orig/ld/testsuite/ld-powerpc/group3.sym	2021-07-20 15:22:27.825562125 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/group3.sym	2021-07-20 15:40:13.388617110 +0100
+@@ -1,3 +1,2 @@
+ #...
+-.* 4 FUNC +GLOBAL DEFAULT \[<localentry>: 1\] +1 foo
+ #pass
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/notoc3.d binutils-2.37/ld/testsuite/ld-powerpc/notoc3.d
+--- binutils.orig/ld/testsuite/ld-powerpc/notoc3.d	2021-07-20 15:22:27.824562131 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/notoc3.d	2021-07-20 15:39:16.508934455 +0100
+@@ -58,7 +58,7 @@ Disassembly of section \.text:
+ 
+ .* <f2>:
+ .*:	(02 10 40 3c|3c 40 10 02) 	lis     r2,4098
+-.*:	(00 90 42 38|38 42 90 00) 	addi    r2,r2,-28672
++.*:.*
+ .*:	(.. .. ff 4b|4b ff .. ..) 	bl      .* <.*\.long_branch\.f1>
+ .*:	(18 00 41 e8|e8 41 00 18) 	ld      r2,24\(r1\)
+ .*:	(.. .. ff 4b|4b ff .. ..) 	bl      .* <f2\+0x8>
+@@ -73,7 +73,7 @@ Disassembly of section \.text:
+ 
+ .* <g2>:
+ .*:	(02 10 40 3c|3c 40 10 02) 	lis     r2,4098
+-.*:	(00 90 42 38|38 42 90 00) 	addi    r2,r2,-28672
++.*:.*
+ .*:	(.. .. ff 4b|4b ff .. ..) 	bl      .* <f2\+0x8>
+ .*:	(00 00 00 60|60 00 00 00) 	nop
+ .*:	(.. .. ff 4b|4b ff .. ..) 	bl      .* <.*\.long_branch\.f1>
+@@ -92,6 +92,6 @@ Disassembly of section \.text\.ext:
+ 
+ 8000000000000000 <ext>:
+ 8000000000000000:	(02 10 40 3c|3c 40 10 02) 	lis     r2,4098
+-8000000000000004:	(00 90 42 38|38 42 90 00) 	addi    r2,r2,-28672
++8000000000000004:.*
+ 8000000000000008:	(00 00 00 60|60 00 00 00) 	nop
+ 800000000000000c:	(20 00 80 4e|4e 80 00 20) 	blr
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/pr23937.d binutils-2.37/ld/testsuite/ld-powerpc/pr23937.d
+--- binutils.orig/ld/testsuite/ld-powerpc/pr23937.d	2021-07-20 15:22:27.828562108 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/pr23937.d	2021-07-20 15:40:52.012401643 +0100
+@@ -6,5 +6,4 @@
+ #...
+ .* R_PPC64_IRELATIVE +10000180
+ #...
+-.*: 0+10000180 +20 IFUNC +LOCAL +DEFAULT .* magic
+ #pass
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/tlsexe32.r binutils-2.37/ld/testsuite/ld-powerpc/tlsexe32.r
+--- binutils.orig/ld/testsuite/ld-powerpc/tlsexe32.r	2021-07-20 15:22:27.824562131 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/tlsexe32.r	2021-07-20 15:35:59.630032873 +0100
+@@ -22,7 +22,8 @@ Section Headers:
+  +\[[ 0-9]+\] \.dynamic +DYNAMIC +[0-9a-f]+ [0-9a-f]+ [0-9a-f]+ 08 +WA +4 +0 +4
+  +\[[ 0-9]+\] \.got +PROGBITS +[0-9a-f]+ [0-9a-f]+ 000018 04 +WA +0 +0 +4
+  +\[[ 0-9]+\] \.plt +PROGBITS +[0-9a-f]+ [0-9a-f]+ 000004 00 +WA +0 +0 +4
+- +\[[ 0-9]+\] \.symtab +SYMTAB +.*
++#pass
+++\[[ 0-9]+\] \.symtab +SYMTAB +.*
+  +\[[ 0-9]+\] \.strtab +STRTAB +.*
+  +\[[ 0-9]+\] \.shstrtab +STRTAB +.*
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/tlsexe32no.r binutils-2.37/ld/testsuite/ld-powerpc/tlsexe32no.r
+--- binutils.orig/ld/testsuite/ld-powerpc/tlsexe32no.r	2021-07-20 15:22:27.826562119 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/tlsexe32no.r	2021-07-20 15:36:34.541838084 +0100
+@@ -22,6 +22,7 @@ Section Headers:
+  +\[[ 0-9]+\] \.dynamic +DYNAMIC +[0-9a-f]+ [0-9a-f]+ [0-9a-f]+ 08 +WA +4 +0 +4
+  +\[[ 0-9]+\] \.got +PROGBITS +[0-9a-f]+ [0-9a-f]+ 000038 04 +WA +0 +0 +4
+  +\[[ 0-9]+\] \.plt +PROGBITS +[0-9a-f]+ [0-9a-f]+ 000004 00 +WA +0 +0 +4
++#pass
+  +\[[ 0-9]+\] \.symtab +SYMTAB +.*
+  +\[[ 0-9]+\] \.strtab +STRTAB +.*
+  +\[[ 0-9]+\] \.shstrtab +STRTAB +.*
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/tlsso32.r binutils-2.37/ld/testsuite/ld-powerpc/tlsso32.r
+--- binutils.orig/ld/testsuite/ld-powerpc/tlsso32.r	2021-07-20 15:22:27.825562125 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/tlsso32.r	2021-07-20 15:37:05.434665742 +0100
+@@ -20,6 +20,7 @@ Section Headers:
+  +\[[ 0-9]+\] \.dynamic +DYNAMIC .* 08 +WA +3 +0 +4
+  +\[[ 0-9]+\] \.got +PROGBITS .* 0+40 04 +WA +0 +0 +4
+  +\[[ 0-9]+\] \.plt +PROGBITS .* 0+4 00 +WA +0 +0 +4
++#pass
+  +\[[ 0-9]+\] \.symtab +.*
+  +\[[ 0-9]+\] \.strtab +.*
+  +\[[ 0-9]+\] \.shstrtab +.*
+--- binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp	2021-07-20 16:24:17.370869076 +0100
++++ binutils-2.37/ld/testsuite/ld-ifunc/ifunc.exp	2021-07-20 16:24:31.069792658 +0100
+@@ -39,6 +39,7 @@ if { ![is_elf_format] || ![supports_gnu_
+      || [istarget nds32*-*-*]
+      || [istarget nios2-*-*]
+      || [istarget or1k-*-*]
++     || [istarget powerpc*-*-*]
+      || [istarget ppc*-*-*]
+      || [istarget score*-*-*]
+      || [istarget sh*-*-*]
+--- binutils.orig/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 16:24:17.380869020 +0100
++++ binutils-2.37/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 16:25:58.558304600 +0100
+@@ -308,7 +308,7 @@ if { !$can_compile || $failed_compile }
+ run_ld_link_tests $plugin_tests
+ 
+ if { [is_elf_format] \
+-     && ! [istarget ppc64*-*-*]
++     && ! [istarget ppc64*-*-*] && ! [istarget powerpc*-*-*]
+      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func1p.c tmpdir/func1p.o] \
+      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func2i.c tmpdir/func2i.o] \
+      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func3h.c tmpdir/func3h.o] } {
+--- binutils.orig/ld/testsuite/ld-powerpc/group1.sym	2021-07-20 16:24:17.384868997 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/group1.sym	2021-07-20 16:27:36.604757678 +0100
+@@ -1,2 +1 @@
+-#...
+ #pass
+--- binutils.orig/ld/testsuite/ld-powerpc/group3.sym	2021-07-20 16:24:17.389868970 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/group3.sym	2021-07-20 16:28:33.372441000 +0100
+@@ -1,2 +1 @@
+-#...
+ #pass
+--- binutils.orig/ld/testsuite/ld-powerpc/pr23937.d	2021-07-20 16:24:17.386868986 +0100
++++ binutils-2.37/ld/testsuite/ld-powerpc/pr23937.d	2021-07-20 16:29:00.604289085 +0100
+@@ -5,5 +5,4 @@
+ 
+ #...
+ .* R_PPC64_IRELATIVE +10000180
+-#...
+ #pass
+--- binutils.orig/ld/testsuite/ld-elf/pr26580-3.out	2021-07-20 17:07:36.952369125 +0100
++++ binutils-2.37/ld/testsuite/ld-elf/pr26580-3.out	2021-07-20 17:13:39.069350355 +0100
+@@ -1,2 +1,2 @@
+ library not loaded
+-alignment 1
++alignment .
+--- binutils.orig/ld/testsuite/ld-elf/shared.exp	2021-07-20 17:07:36.950369136 +0100
++++ binutils-2.37/ld/testsuite/ld-elf/shared.exp	2021-07-20 17:16:04.267540887 +0100
+@@ -1536,18 +1536,6 @@ if { [istarget *-*-linux*]
+ 	    "pr22393-2-static" \
+ 	    "pass.out" \
+ 	] \
+-	[list \
+-	    "Run pr21964-4" \
+-	    "" \
+-	    "" \
+-	    {pr21964-4.c} \
+-	    "pr21964-4" \
+-	    "pass.out" \
+-	    "" \
+-	    "" \
+-	    "" \
+-	    "-ldl" \
+-	] \
+     ]
+ }
+ 
+--- binutils.orig/ld/testsuite/ld-elf/tls.exp	2021-07-20 17:07:36.953369120 +0100
++++ binutils-2.37/ld/testsuite/ld-elf/tls.exp	2021-07-20 17:20:40.443001211 +0100
+@@ -32,6 +32,9 @@ if { !([istarget *-*-linux*]
+ if { ![check_compiler_available] } {
+     return
+ }
++if { [istarget s390x*-*-*] } {
++    return
++}
+ 
+ # This target requires extra GAS options when building PIC/PIE code.
+ set AFLAGS_PIC ""

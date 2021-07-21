@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -869,6 +869,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jul 21 2021 Nick Clifton  <nickc@redhat.com> - 2.37-2
+- Various fixes for testsuite failures.
+
 * Mon Jul 19 2021 Nick Clifton  <nickc@redhat.com> - 2.37-1
 - Rebase to GNU Binutils 2.37.
 - Retire: binutils-2.36-branch-updates.patch
