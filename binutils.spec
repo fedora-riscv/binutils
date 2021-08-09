@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.2
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -360,6 +360,11 @@ Patch41: binutils-CVE-2021-3487.patch
 # Purpose:  Fix illegal memory access when parsing corrupt ELF files.
 # Lifetime: Fixed in 2.36
 Patch42: binutils-CVE-2020-35448.patch
+
+# Purpose:  Ensure that the 0'th entry in DWARF-5 directory tables generated
+#            by gas contains the current working directory.
+# Lifetime: Fixed in 2.38
+Patch43: binutils-dwarf-5-dir0.patch
 
 #----------------------------------------------------------------------------
 
@@ -946,6 +951,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Aug 09 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-4
+- Ensure that dir[0] contains pwd in gas generated DWARF-5 directory tables.  (#1966987)
+
 * Mon Apr 19 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-3
 - Fix an illegal memory access when parsing a corrupt ELF file.  (#1950481)
 
