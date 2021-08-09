@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -127,6 +127,12 @@ URL: https://sourceware.org/binutils
 %bcond_without clang
 %else
 %bcond_with clang
+%endif
+
+%if %{with clang}
+%global toolchain clang
+%else
+%global toolchain gcc
 %endif
 
 %if %{with bootstrap}
@@ -265,6 +271,11 @@ Patch16: binutils-testsuite-fixes.patch
 #            linker for x86 binaries.
 # Lifetime: Fixed in 2.38 maybe
 Patch17: binutils-gold-i386-gnu-property-notes.patch
+
+# Purpose:  Ensure that the 0'th entry in DWARF-5 directory tables generated
+#            by gas contains the current working directory.
+# Lifetime: Fixed in 2.38
+Patch18: binutils-dwarf-5-dir0.patch
 
 #----------------------------------------------------------------------------
 
@@ -869,6 +880,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Aug 09 2021 Nick Clifton  <nickc@redhat.com> - 2.37-4
+- Ensure that dir[0] contains pwd in gas generated DWARF-5 directory tables.  (#1966987)
+
 * Wed Jul 21 2021 Fedora Release Engineering <releng@fedoraproject.org> - 2.37-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_35_Mass_Rebuild
 
