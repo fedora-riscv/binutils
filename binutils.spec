@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -280,6 +280,12 @@ Patch18: binutils-dwarf-5-dir0.patch
 # Purpose:  Ensure that the manual pages are generated.
 # Lifetime: Fixed in 2.38
 Patch19: binutils-missing-man-pages.patch
+
+# Purpose: Close the file descriptor if there is no archive plugin file
+# descriptor to avoid running out of file descriptors on thin archives with
+# many archive members.
+# Lifetime: Fixed in 2.38
+Patch20: binutils-bfd-close-fds.patch
 
 #----------------------------------------------------------------------------
 
@@ -889,6 +895,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Aug 11 2021 Stephen Gallagher <sgallagh@redhat.com> - 2.37-8
+- Backport upstream patch to fix fd exhaustion
+- Resolves: https://sourceware.org/bugzilla/show_bug.cgi?id=28138
+
 * Tue Aug 10 2021 Nick Clifton  <nickc@redhat.com> - 2.37-6
 - Ensure that the manual pages are generated.  (#1989836)
 
