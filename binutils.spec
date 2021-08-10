@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -277,6 +277,10 @@ Patch17: binutils-gold-i386-gnu-property-notes.patch
 # Lifetime: Fixed in 2.38
 Patch18: binutils-dwarf-5-dir0.patch
 
+# Purpose:  Ensure that the manual pages are generated.
+# Lifetime: Fixed in 2.38
+Patch19: binutils-missing-man-pages.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -456,6 +460,11 @@ touch */configure
 # The -print is there just to confirm that the command is working.
 %if %{without docs}
   find . -name *.info -print -exec touch {} \;
+%endif
+# If we are creating the docs, touch the texi files so that the info and
+# man pages will be rebuilt.
+%if %{with docs}
+  find . -name *.texi -print -exec touch {} \;
 %endif
 
 %ifarch %{power64}
@@ -880,6 +889,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 10 2021 Nick Clifton  <nickc@redhat.com> - 2.37-6
+- Ensure that the manual pages are generated.  (#1989836)
+
 * Tue Aug 10 2021 Nick Clifton  <nickc@redhat.com> - 2.37-5
 - Fix a local change to readelf which resulted in a success exit code for non-existant files.  (#1990817)
 
