@@ -121,3 +121,14 @@
  
    free (ba_cache.strtab);
    ba_cache.strtab = NULL;
+--- binutils.orig/binutils/readelf.c	2021-08-10 10:15:22.088016072 +0100
++++ binutils-2.37/binutils/readelf.c	2021-08-10 10:15:55.567907891 +0100
+@@ -21884,7 +21884,7 @@ process_file (char * file_name)
+   Filedata * filedata = NULL;
+   struct stat statbuf;
+   char armag[SARMAG];
+-  bool ret = true;
++  bool ret = false;
+   char * name;
+   char * saved_program_name;
+ 

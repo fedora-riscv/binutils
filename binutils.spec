@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -880,6 +880,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 10 2021 Nick Clifton  <nickc@redhat.com> - 2.37-5
+- Fix a local change to readelf which resulted in a success exit code for non-existant files.  (#1990817)
+
 * Mon Aug 09 2021 Nick Clifton  <nickc@redhat.com> - 2.37-4
 - Ensure that dir[0] contains pwd in gas generated DWARF-5 directory tables.  (#1966987)
 
