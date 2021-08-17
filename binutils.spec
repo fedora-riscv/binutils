@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.2
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -72,7 +72,7 @@ URL: https://sourceware.org/binutils
 
 # Enable support for generating new dtags in the linker
 # Disable if it is necessary to use RPATH instead.
-%define enable_new_dtags 0
+%define enable_new_dtags 1
 
 # Enable the compression of debug sections as default behaviour of the
 # assembler and linker.  This option is disabled for now.  The assembler and
@@ -617,6 +617,9 @@ export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 
 # BZ 1541027 - include the linker flags from redhat-rpm-config as well.
 export LDFLAGS=$RPM_LD_FLAGS
+%if %{enable_new_dtags}
+export LDFLAGS="$LD_FLAGS -Wl,--enable-new-dtags"
+%endif
 
 %if %{with clang}
 %define _with_cc_clang 1
@@ -668,6 +671,7 @@ popd
 %endif
 %if %{enable_new_dtags}
   --enable-new-dtags \
+  --disable-rpath \
 %endif
 %if %{default_compress_debug}
   --enable-compressed-debug-sections=all \
@@ -748,6 +752,10 @@ make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
 %make_build -C libiberty clean
 %set_build_flags
 %make_build CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
+
+%if %{enable_new_dtags}
+export LDFLAGS="$RPM_LD_FLAGS -Wl,--enable-new-dtags"
+%endif
 
 # Rebuild libbfd.a with -fPIC.
 # Without the hidden visibility the 3rd party shared libraries would export
@@ -951,6 +959,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 17 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-5
+- Enable the use of new dtags.  (#1992736)
+
 * Mon Aug 09 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-4
 - Ensure that dir[0] contains pwd in gas generated DWARF-5 directory tables.  (#1966987)
 
