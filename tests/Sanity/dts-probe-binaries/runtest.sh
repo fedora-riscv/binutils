@@ -326,7 +326,7 @@ fi
     rlRun "$READELF -Wh /bin/true > H"
     rlAssertGrep "ELF Header:" H
     rlAssertGrep "7f 45 4c 46" H
-    rlAssertGrep "DYN (Shared object file)" H
+    rlAssertGrep "DYN (Position-Independent Executable file)" H
     rlAssertGrep "Section header string table index:" H
     rlAssertGrep "ABI Version:" H
 

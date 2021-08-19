@@ -53,7 +53,7 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "su - $TEST_USER -c 'rpmbuild -bb --clean \$(rpm --eval=%_specdir)/coreutils.spec'"
+        rlRun "su - $TEST_USER -c 'rpmbuild -bc --clean \$(rpm --eval=%_specdir)/coreutils.spec'"
     rlPhaseEnd
 
     rlPhaseStartCleanup

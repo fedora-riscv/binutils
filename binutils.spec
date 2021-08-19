@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 7%{?dist}
+Release: 9%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -895,6 +895,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Aug 18 2021 Nick Clifton  <nickc@redhat.com> - 2.37-9
+- Fix a few testsuite failures.
+
 * Wed Aug 11 2021 Stephen Gallagher <sgallagh@redhat.com> - 2.37-8
 - Backport upstream patch to fix fd exhaustion
 - Resolves: https://sourceware.org/bugzilla/show_bug.cgi?id=28138

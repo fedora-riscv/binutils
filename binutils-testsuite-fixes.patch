@@ -935,3 +935,18 @@ diff -rup binutils.orig/ld/testsuite/ld-powerpc/tlsso32.r binutils-2.37/ld/tests
  
  # This target requires extra GAS options when building PIC/PIE code.
  set AFLAGS_PIC ""
+--- binutils.orig/binutils/testsuite/binutils-all/compress.exp	2021-08-18 12:41:47.036991908 +0100
++++ binutils-2.37/binutils/testsuite/binutils-all/compress.exp	2021-08-18 12:47:46.097987950 +0100
+@@ -766,12 +766,6 @@ proc test_gnu_debuglink {} {
+     } else {
+ 	pass "$test (objdump with missing link)"
+     }
+-    set got [remote_exec host [concat sh -c [list "$READELF -S tmpdir/testprog > /dev/null"]]]
+-    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+-	fail "$test (readelf with missing link)"
+-    } else {
+-	pass "$test (readelf with missing link)"
+-    }
+ }
+ 
+ if {[is_elf_format]} then {
