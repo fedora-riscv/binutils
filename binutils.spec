@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -282,15 +282,20 @@ Patch18: binutils-dwarf-5-dir0.patch
 Patch19: binutils-missing-man-pages.patch
 
 # Purpose: Close the file descriptor if there is no archive plugin file
-# descriptor to avoid running out of file descriptors on thin archives with
-# many archive members.
+#          descriptor to avoid running out of file descriptors on thin archives
+#          with many archive members.
 # Lifetime: Fixed in 2.38
 Patch20: binutils-bfd-close-fds.patch
+
+# Purpose: Allow the binutils to be configured with any (recent) version of
+#          autoconf.
+# Lifetime: Fixed in 2.38 (maybe ?)
+Patch21: binutils-autoconf-version.patch
 
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
-BuildRequires: autoconf = 2.69
+BuildRequires: autoconf
 BuildRequires: automake
 
 %if %{with gold}
@@ -460,7 +465,6 @@ do
   sed -i -e "2aDEJATOOL = $tool" $tool/Makefile.am
   sed -i -e "s/^DEJATOOL = .*/DEJATOOL = $tool/" $tool/Makefile.in
 done
-touch */configure
 # Touch the .info files so that they are newer then the .texi files and
 # hence do not need to be rebuilt.  This eliminates the need for makeinfo.
 # The -print is there just to confirm that the command is working.
@@ -555,16 +559,6 @@ esac
 %else
   CARGS="$CARGS --enable-relro=no"
 %endif
-
-# Dependencies are not set up to rebuild the configure files
-# in the subdirectories.  So we just rebuild the ones we care
-# about after applying the configure patches
-pushd libiberty
-autoconf
-popd
-pushd intl
-autoconf
-popd
 
 # We could improve the cross build's size by setting --enable-shared but
 # the produced binaries may be less convenient in the embedded environment.
@@ -895,6 +889,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 31 2021 Nick Clifton  <nickc@redhat.com> - 2.37-10
+- Allow configuring with autonconf 2.71.  (#1999437)
+
 * Wed Aug 18 2021 Nick Clifton  <nickc@redhat.com> - 2.37-9
 - Fix a few testsuite failures.
 
