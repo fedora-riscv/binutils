@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -95,6 +95,10 @@ URL: https://sourceware.org/binutils
 # themselves.  See BZ 1636479 for more details.  This option is made
 # configurable in case there is ever a need to disable thread support.
 %define enable_threading 1
+
+# Enable the use of separate code and data segments for all architectures,
+# not just x86/x86_64.
+%define enable_separate_code 1
 
 #----End of Configure Options------------------------------------------------
 
@@ -612,6 +616,9 @@ esac
 %else
   --enable-threads=no \
 %endif
+%if %{enable_separate_code}
+  --enable-separate-code=yes \
+%endif
   $CARGS \
   --enable-plugins \
   --with-bugurl=http://bugzilla.redhat.com/bugzilla/ \
@@ -889,6 +896,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 31 2021 Nick Clifton  <nickc@redhat.com> - 2.37-11
+- Enable -separate-code for all architectures, not just x86/x86_64.
+
 * Tue Aug 31 2021 Nick Clifton  <nickc@redhat.com> - 2.37-10
 - Allow configuring with autonconf 2.71.  (#1999437)
 
