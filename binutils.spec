@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -494,8 +494,17 @@ echo target is %{binutils_target}
 # The LDFLAGS containing -flto are not being passed when linking the
 # libbfd.so, so the build fails.  Solution: disable LTO.
 %if %{with clang}
-%global _lto_cflags %{nil}
 %define enable_lto 0
+%endif
+
+# Disable LTO on arm due to:
+# https://bugzilla.redhat.com/show_bug.cgi?id=1918924
+%ifarch %{arm}
+%define enable_lto 0
+%endif
+
+%if !0%{?enable_lto}
+%global _lto_cflags %{nil}
 %endif
 
 %set_build_flags
@@ -896,6 +905,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Sep 13 2021 Tom Stellard <tstellar@redhat.com> - 2.37-12
+- Disable LTO on arm. (#1918924)
+
 * Tue Aug 31 2021 Nick Clifton  <nickc@redhat.com> - 2.37-11
 - Enable -separate-code for all architectures, not just x86/x86_64.
 
