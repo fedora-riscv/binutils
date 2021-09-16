@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -486,8 +486,17 @@ echo target is %{binutils_target}
 # The LDFLAGS containing -flto are not being passed when linking the
 # libbfd.so, so the build fails.  Solution: disable LTO.
 %if %{with clang}
-%global _lto_cflags %{nil}
 %define enable_lto 0
+%endif
+
+# Disable LTO on arm due to:
+# https://bugzilla.redhat.com/show_bug.cgi?id=1918924
+%ifarch %{arm}
+%define enable_lto 0
+%endif
+
+%if !0%{?enable_lto}
+%global _lto_cflags %{nil}
 %endif
 
 %set_build_flags
@@ -895,6 +904,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Sep 16 2021 Tom Stellard <tstellar@redhat.com> - 2.37-10
+- Disable LTO on arm. (#1918924)
+
 * Fri Aug 20 2021 Nick Clifton  <nickc@redhat.com> - 2.37-9
 - Fix a few testsuite failures.
 - Backport upstream patch to fix fd exhaustion
