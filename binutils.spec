@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.35.2
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -558,6 +558,16 @@ touch */configure
 %build
 echo target is %{binutils_target}
 
+# Disable LTO on arm due to:
+# https://bugzilla.redhat.com/show_bug.cgi?id=1918924
+%ifarch %{arm}
+%define enable_lto 0
+%endif
+
+%if !0%{?enable_lto}
+%global _lto_cflags %{nil}
+%endif
+
 %ifarch %{power64}
 export CFLAGS="$RPM_OPT_FLAGS -Wno-error"
 %else
@@ -959,6 +969,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Sep 16 2021 Tom Stellard <tstellar@redhat.com> - 2.35.2-6
+- Disable LTO on arm. (#1918924)
+
 * Tue Aug 17 2021 Nick Clifton  <nickc@redhat.com> - 2.35.2-5
 - Enable the use of new dtags.  (#1992736)
 
