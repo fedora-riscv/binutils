@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -295,6 +295,11 @@ Patch20: binutils-bfd-close-fds.patch
 #          autoconf.
 # Lifetime: Fixed in 2.38 (maybe ?)
 Patch21: binutils-autoconf-version.patch
+
+# Purpose:  Set the entry address of shared libraries to 0, so that they can
+#           be detected by the loader and not run as an executable.
+# Lifetime: Permanent.
+Patch22: binutils-ld-default-entry-of-0-for-shared.patch
 
 #----------------------------------------------------------------------------
 
@@ -905,6 +910,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Sep 17 2021 Nick Clifton  <nickc@redhat.com> - 2.27-13
+- Default to an entry address of 0 for shared libraries.  (#2004952)
+
 * Mon Sep 13 2021 Tom Stellard <tstellar@redhat.com> - 2.37-12
 - Disable LTO on arm. (#1918924)
 
