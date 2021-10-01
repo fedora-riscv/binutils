@@ -24,3 +24,75 @@
      }
  }
  
+diff -rup binutils.orig/ld/testsuite/ld-arm/tls-gdesc-got.d binutils-2.37/ld/testsuite/ld-arm/tls-gdesc-got.d
+--- binutils.orig/ld/testsuite/ld-arm/tls-gdesc-got.d	2021-09-29 13:17:21.501277341 +0100
++++ binutils-2.37/ld/testsuite/ld-arm/tls-gdesc-got.d	2021-09-29 13:20:04.481132127 +0100
+@@ -2,7 +2,7 @@
+ .*/tls-lib2-got.so:     file format elf32-.*arm.*
+ architecture: arm.*, flags 0x00000150:
+ HAS_SYMS, DYNAMIC, D_PAGED
+-start address 0x0+8(1e8|220)
++start address 0x[0-9a-f]+
+ 
+ 
+ Disassembly of section .got:
+diff -rup binutils.orig/ld/testsuite/ld-i386/tlsnopic.rd binutils-2.37/ld/testsuite/ld-i386/tlsnopic.rd
+--- binutils.orig/ld/testsuite/ld-i386/tlsnopic.rd	2021-09-29 13:17:21.588276729 +0100
++++ binutils-2.37/ld/testsuite/ld-i386/tlsnopic.rd	2021-09-29 13:20:59.456745814 +0100
+@@ -26,7 +26,7 @@ Key to Flags:
+ #...
+ 
+ Elf file type is DYN \(Shared object file\)
+-Entry point 0x1000
++Entry point 0x[0-9a-f]+
+ There are [0-9]+ program headers, starting at offset [0-9]+
+ 
+ Program Headers:
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr14207.d binutils-2.37/ld/testsuite/ld-x86-64/pr14207.d
+--- binutils.orig/ld/testsuite/ld-x86-64/pr14207.d	2021-09-29 13:17:21.551276989 +0100
++++ binutils-2.37/ld/testsuite/ld-x86-64/pr14207.d	2021-09-29 13:21:27.632547838 +0100
+@@ -5,7 +5,7 @@
+ #target: x86_64-*-linux*
+ 
+ Elf file type is DYN \(Shared object file\)
+-Entry point 0x149
++Entry point 0x[0-9a-f]+
+ There are 4 program headers, starting at offset 64
+ 
+ Program Headers:
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/tlsdesc.rd binutils-2.37/ld/testsuite/ld-x86-64/tlsdesc.rd
+--- binutils.orig/ld/testsuite/ld-x86-64/tlsdesc.rd	2021-09-29 13:17:21.554276968 +0100
++++ binutils-2.37/ld/testsuite/ld-x86-64/tlsdesc.rd	2021-09-29 13:21:47.920405285 +0100
+@@ -29,7 +29,7 @@ Key to Flags:
+ #...
+ 
+ Elf file type is DYN \(Shared object file\)
+-Entry point 0x1000
++Entry point 0x[0-9a-f]+
+ There are [0-9]+ program headers, starting at offset [0-9]+
+ 
+ Program Headers:
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/tlspic.rd binutils-2.37/ld/testsuite/ld-x86-64/tlspic.rd
+--- binutils.orig/ld/testsuite/ld-x86-64/tlspic.rd	2021-09-29 13:17:21.546277025 +0100
++++ binutils-2.37/ld/testsuite/ld-x86-64/tlspic.rd	2021-09-29 13:22:04.224290720 +0100
+@@ -29,7 +29,7 @@ Key to Flags:
+ #...
+ 
+ Elf file type is DYN \(Shared object file\)
+-Entry point 0x1000
++Entry point 0x[0-9a-f]+
+ There are [0-9]+ program headers, starting at offset [0-9]+
+ 
+ Program Headers:
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/tlspic2.rd binutils-2.37/ld/testsuite/ld-x86-64/tlspic2.rd
+--- binutils.orig/ld/testsuite/ld-x86-64/tlspic2.rd	2021-09-29 13:17:21.552276982 +0100
++++ binutils-2.37/ld/testsuite/ld-x86-64/tlspic2.rd	2021-09-29 13:22:18.432190887 +0100
+@@ -30,7 +30,7 @@ Key to Flags:
+ #...
+ 
+ Elf file type is DYN \(Shared object file\)
+-Entry point 0x1000
++Entry point 0x[0-9a-f]+
+ There are [0-9]+ program headers, starting at offset [0-9]+
+ 
+ Program Headers:

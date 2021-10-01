@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -910,6 +910,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Sep 29 2021 Nick Clifton  <nickc@redhat.com> - 2.27-14
+- Fix linker testsuite failures triggered by 2.27-13 patch.  (#2008203)
+
 * Fri Sep 17 2021 Nick Clifton  <nickc@redhat.com> - 2.27-13
 - Default to an entry address of 0 for shared libraries.  (#2004952)
 
