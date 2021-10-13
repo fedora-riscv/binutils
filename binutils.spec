@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -300,6 +300,10 @@ Patch21: binutils-autoconf-version.patch
 #           be detected by the loader and not run as an executable.
 # Lifetime: Permanent.
 Patch22: binutils-ld-default-entry-of-0-for-shared.patch
+
+# Purpose:  Fix a seg-fault compiling the efivar libraries.
+# Lifetime: Fixed in 2.38.
+Patch23: binutils-empty-MIND-string.patch
 
 #----------------------------------------------------------------------------
 
@@ -910,6 +914,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Oct 13 2021 Nick Clifton  <nickc@redhat.com> - 2.27-15
+- Fix linker seg-fault compiling efivar libraries.  (#2012247)
+
 * Wed Sep 29 2021 Nick Clifton  <nickc@redhat.com> - 2.27-14
 - Fix linker testsuite failures triggered by 2.27-13 patch.  (#2008203)
 

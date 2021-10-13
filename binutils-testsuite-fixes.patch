@@ -950,3 +950,14 @@ diff -rup binutils.orig/ld/testsuite/ld-powerpc/tlsso32.r binutils-2.37/ld/tests
  }
  
  if {[is_elf_format]} then {
+--- binutils.orig/ld/testsuite/ld-plugin/lto.exp	2021-10-13 13:21:02.540433685 +0100
++++ binutils-2.37/ld/testsuite/ld-plugin/lto.exp	2021-10-13 13:37:08.559139599 +0100
+@@ -31,8 +31,6 @@ if { ![check_plugin_api_available]
+ 
+ set saved_CFLAGS "$CFLAGS"
+ set saved_CXXFLAGS "$CXXFLAGS"
+-regsub -all "(\\-Wp,)?-D_FORTIFY_SOURCE=\[0-9\]+" $CFLAGS "" CFLAGS
+-regsub -all "(\\-Wp,)?-D_FORTIFY_SOURCE=\[0-9\]+" $CXXFLAGS "" CXXFLAGS
+ 
+ proc restore_notify { } {
+   global saved_CFLAGS
