@@ -740,6 +740,7 @@ rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.so
 
 # Remove libtool files, which reference the .so libs
 rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.la
+rm -f %{buildroot}%{_libdir}/*.la
 
 # Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
 %ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
