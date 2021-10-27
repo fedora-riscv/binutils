@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -304,6 +304,10 @@ Patch22: binutils-ld-default-entry-of-0-for-shared.patch
 # Purpose:  Fix a seg-fault compiling the efivar libraries.
 # Lifetime: Fixed in 2.38.
 Patch23: binutils-empty-MIND-string.patch
+
+# Purpose:  Fix ccache test failure introduced with 
+# Lifetime: Fixed in 2.38.
+Patch24: binutils-gas-Use-the-directory-name-in-.file-0.patch
 
 #----------------------------------------------------------------------------
 
@@ -915,6 +919,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Oct 27 2021 Orion Poplawski <orion@nwra.com> - 2.37-16
+- Add upstream patch to use the directory name in .file 0, fixes ccache FTBFS
+  (bz#1996936)
+
 * Wed Oct 13 2021 Nick Clifton  <nickc@redhat.com> - 2.27-15
 - Fix linker seg-fault compiling efivar libraries.  (#2012247)
 
