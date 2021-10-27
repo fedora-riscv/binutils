@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -305,7 +305,7 @@ Patch22: binutils-ld-default-entry-of-0-for-shared.patch
 # Lifetime: Fixed in 2.38.
 Patch23: binutils-empty-MIND-string.patch
 
-# Purpose:  Fix ccache test failure introduced with 
+# Purpose:  Fix ccache test failure introduced with 2.37
 # Lifetime: Fixed in 2.38.
 Patch24: binutils-gas-Use-the-directory-name-in-.file-0.patch
 
@@ -743,7 +743,6 @@ chmod +x %{buildroot}%{_libdir}/lib*.so*
 rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.so
 
 # Remove libtool files, which reference the .so libs
-rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.la
 rm -f %{buildroot}%{_libdir}/*.la
 
 # Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
@@ -798,7 +797,7 @@ rm -rf %{buildroot}%{_infodir}
 #rm -rf {buildroot}{_mandir}
 rm -rf %{buildroot}%{_libdir}/libiberty.a
 # Remove libtool files, which reference the .so libs
-rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.la
+rm -f %{buildroot}%{_libdir}/*.la
 %endif
 
 # This one comes from gcc
@@ -919,9 +918,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Wed Oct 27 2021 Orion Poplawski <orion@nwra.com> - 2.37-16
+* Wed Oct 27 2021 Orion Poplawski <orion@nwra.com> - 2.37-17
 - Add upstream patch to use the directory name in .file 0, fixes ccache FTBFS
   (bz#1996936)
+
+* Tue Oct 26 2021 Timm Baeder  <tbaeder@redhat.com> - 2.27-16
+- Remove leftover libtool files.
 
 * Wed Oct 13 2021 Nick Clifton  <nickc@redhat.com> - 2.27-15
 - Fix linker seg-fault compiling efivar libraries.  (#2012247)
