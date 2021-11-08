@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -286,6 +286,10 @@ Patch19: binutils-missing-man-pages.patch
 # many archive members.
 # Lifetime: Fixed in 2.38
 Patch20: binutils-bfd-close-fds.patch
+
+# Purpose:  Fix ccache test failure introduced with 2.37
+# Lifetime: Fixed in 2.38.
+Patch21: binutils-gas-Use-the-directory-name-in-.file-0.patch
 
 #----------------------------------------------------------------------------
 
@@ -904,6 +908,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Nov 08 2021 Nick Clifton  <nickc@redhat.com> - 2.37-11
+- Add upstream patch to use the directory name in .file 0, fixes ccache FTBFS (#1996936)
+
 * Thu Sep 16 2021 Tom Stellard <tstellar@redhat.com> - 2.37-10
 - Disable LTO on arm. (#1918924)
 
