@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -290,6 +290,10 @@ Patch20: binutils-bfd-close-fds.patch
 # Purpose:  Fix ccache test failure introduced with 2.37
 # Lifetime: Fixed in 2.38.
 Patch21: binutils-gas-Use-the-directory-name-in-.file-0.patch
+
+# Purpose:  Add ability to show unicode characters to display tools
+# Lifetime: Fixed in 2.38.
+Patch22: binutils.unicode.patch
 
 #----------------------------------------------------------------------------
 
@@ -908,6 +912,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Nov 09 2021 Nick Clifton <nickc@redhat.com> - 2.37-12
+- Add ability to show unicode characters to display tools.
+
 * Mon Nov 08 2021 Nick Clifton  <nickc@redhat.com> - 2.37-11
 - Add upstream patch to use the directory name in .file 0, fixes ccache FTBFS (#1996936)
 
