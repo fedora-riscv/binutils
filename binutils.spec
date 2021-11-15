@@ -323,6 +323,9 @@ Provides: bundled(libiberty)
 BuildRequires: autoconf
 BuildRequires: automake
 
+# Can be dropped once binutils-ld-read-only-script.patch is removed
+BuildRequires: bison
+
 %if %{with gold}
 # For now we make the binutils package require the gold sub-package.
 # That way other packages that have a requirement on "binutils" but
