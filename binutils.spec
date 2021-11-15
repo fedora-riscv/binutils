@@ -313,6 +313,10 @@ Patch24: binutils-gas-Use-the-directory-name-in-.file-0.patch
 # Lifetime: Fixed in 2.38.
 Patch25: binutils.unicode.patch
 
+# Purpose:  Add ability to create read-only notes via linker scripts
+# Lifetime: Fixed in 2.38.
+Patch26: binutils-ld-read-only-script.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
