@@ -38,6 +38,7 @@ GCC="${GCC:-$(which gcc)}"
 BUILT_BY="${BUILT_BY:-$(which built-by)}"
 
 PACKAGE="${PACKAGE:-$(rpm --qf '%{name}\n' -qf $(which $LD) | head -1)}"
+NVR="$(rpm -q --qf='%{NAME}-%{VERSION}-%{RELEASE}' $PACKAGE)"
 GCC_PACKAGE="${GCC_PACKAGE:-$(rpm --qf '%{name}\n' -qf $(which $GCC) | head -1)}"
 ANNOBIN_PACKAGE="${ANNOBIN_PACKAGE:-$(rpm --qf '%{name}\n' -qf $(which $BUILT_BY) | head -1)}"
 
@@ -50,6 +51,7 @@ rlJournalStart
         rlLogInfo "REQUIRES=$REQUIRES"
         rlLogInfo "COLLECTIONS=$COLLECTIONS"
         rlLogInfo "PACKAGE=$PACKAGE"
+        rlLogInfo "NVR=$NVR"
         rlLogInfo "LD=$LD"
         rlLogInfo "GCC=$GCC"
         rlLogInfo "SKIP_COLLECTION_METAPACKAGE_CHECK=$SKIP_COLLECTION_METAPACKAGE_CHECK"
@@ -80,9 +82,9 @@ rlJournalStart
         rlRun "LOGDIR=$TmpDir/LOGS"
 
         # fetch'n'build the source
-        rlRun "koji download-build --arch=src $(rpm -q binutils)"
-        rlRun "dnf builddep -y *.src.rpm"
-        rlRun "rpm -i *.src.rpm"
+        rlRun "dnf download --disablerepo='*' --enablerepo=test-artifacts --source $NVR || cp /var/share/test-artifacts/$NVR.src.rpm ."
+        rlRun "dnf builddep -y $NVR.src.rpm"
+        rlRun "rpm -i $NVR.src.rpm"
         export SPECDIR=`rpm --eval=%_specdir`
         export BUILDDIR=`rpm --eval=%_builddir`
         export CURRENT_BUILD=${BUILDDIR}/binutils-`rpmquery $PACKAGE --queryformat=%{VERSION}`
