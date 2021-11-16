@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -929,6 +929,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Nov 16 2021 Luca Boccassi <luca.boccassi@microsoft.com> - 2.37-19
+- Allows linker scripts to set the SEC_READONLY flag.
+
 * Tue Nov 09 2021 Nick Clifton <nickc@redhat.com> - 2.37-18
 - Add ability to show unicode characters to display tools.
 
