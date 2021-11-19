@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -294,6 +294,10 @@ Patch21: binutils-gas-Use-the-directory-name-in-.file-0.patch
 # Purpose:  Add ability to show unicode characters to display tools
 # Lifetime: Fixed in 2.38.
 Patch22: binutils.unicode.patch
+
+# Purpose:  Add ability to warn about unicode characters in the assembler
+# Lifetime: Fixed in 2.38.
+Patch23: binutils-gas-multibyte-warnings.patch
 
 #----------------------------------------------------------------------------
 
@@ -912,6 +916,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Nov 19 2021 Nick Clifton <nickc@redhat.com> - 2.37-13
+- Add ability to warn about multibyte characters in the assembler.  (#2018848)
+
 * Tue Nov 09 2021 Nick Clifton <nickc@redhat.com> - 2.37-12
 - Add ability to show unicode characters to display tools.
 
