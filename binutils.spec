@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -316,6 +316,10 @@ Patch25: binutils.unicode.patch
 # Purpose:  Add ability to create read-only notes via linker scripts
 # Lifetime: Fixed in 2.38.
 Patch26: binutils-ld-read-only-script.patch
+
+# Purpose:  Add ability to warn about unicode characters in the assembler
+# Lifetime: Fixed in 2.38.
+Patch27: binutils-gas-multibyte-warnings.patch
 
 #----------------------------------------------------------------------------
 
@@ -929,6 +933,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Nov 18 2021 Nick Clifton <nickc@redhat.com> - 2.37-20
+- Add ability to warn about multibyte characters in the assembler.  (#2018848)
+
 * Tue Nov 16 2021 Luca Boccassi <luca.boccassi@microsoft.com> - 2.37-19
 - Allows linker scripts to set the SEC_READONLY flag.
 
