@@ -325,6 +325,10 @@ Patch27: binutils-gas-multibyte-warnings.patch
 # Lifetime: Fixed in 2.38.
 Patch28: binutils-AArch64-EFI.patch
 
+# Purpose: Recognize FDO Packaging Metadata ELF note in readelf
+# Lifetime: Fixed in 2.38.
+Patch29: binutils-readelf-recognize-FDO-Packaging-Metadata-ELF-note.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
