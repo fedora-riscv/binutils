@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -298,6 +298,10 @@ Patch22: binutils.unicode.patch
 # Purpose:  Add ability to warn about unicode characters in the assembler
 # Lifetime: Fixed in 2.38.
 Patch23: binutils-gas-multibyte-warnings.patch
+
+# Purpose:  Add support for the EFI format to the AArch64 target.
+# Lifetime: Fixed in 2.38.
+Patch24: binutils-AArch64-EFI.patch
 
 #----------------------------------------------------------------------------
 
@@ -916,6 +920,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Dec 01 2021 Nick Clifton <nickc@redhat.com> - 2.37-14
+- Add support for the EFI format to the AArch64 target.  (#2027515)
+
 * Fri Nov 19 2021 Nick Clifton <nickc@redhat.com> - 2.37-13
 - Add ability to warn about multibyte characters in the assembler.  (#2018848)
 
