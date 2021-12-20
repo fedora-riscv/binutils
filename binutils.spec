@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -328,6 +328,10 @@ Patch28: binutils-AArch64-EFI.patch
 # Purpose:  Recognize FDO Packaging Metadata ELF note in readelf.
 # Lifetime: Fixed in 2.38.
 Patch29: binutils-readelf-recognize-FDO-Packaging-Metadata-ELF-note.patch
+
+# Purpose:  Fix a potential illegal memory access parsing a corrupt COFF file.
+# Lifetime: Fixed in 2.38.
+Patch30: binutils-CVE-2021-45078.patch
 
 #----------------------------------------------------------------------------
 
@@ -941,6 +945,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Dec 20 2021 Nick Clifton  <nickc@redhat.comn> - 2.37-23
+- Fix a potential illegal memory access parsing a COFF format file.  (#2033716)
+
 * Thu Dec 02 2021 Luca Boccassi  <luca.boccassi@microsoft.com> - 2.37-22
 - Backport upstream patch to allow readelf to recognize packaging metadata note.
 
