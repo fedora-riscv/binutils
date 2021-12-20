@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 14%{?dist}
+Release: 15%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -302,6 +302,10 @@ Patch23: binutils-gas-multibyte-warnings.patch
 # Purpose:  Add support for the EFI format to the AArch64 target.
 # Lifetime: Fixed in 2.38.
 Patch24: binutils-AArch64-EFI.patch
+
+# Purpose:  Fix a potential illegal memory access parsing a corrupt COFF file.
+# Lifetime: Fixed in 2.38.
+Patch25: binutils-CVE-2021-45078.patch
 
 #----------------------------------------------------------------------------
 
@@ -920,6 +924,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Dec 20 2021 Nick Clifton  <nickc@redhat.comn> - 2.37-15
+- Fix a potential illegal memory access parsing a COFF format file.  (#2033716)
+
 * Wed Dec 01 2021 Nick Clifton <nickc@redhat.com> - 2.37-14
 - Add support for the EFI format to the AArch64 target.  (#2027515)
 
