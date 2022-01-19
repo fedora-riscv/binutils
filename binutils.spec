@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -945,6 +945,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jan 19 2022 Fedora Release Engineering <releng@fedoraproject.org> - 2.37-24
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
+
 * Mon Dec 20 2021 Nick Clifton  <nickc@redhat.comn> - 2.37-23
 - Fix a potential illegal memory access parsing a COFF format file.  (#2033716)
 
