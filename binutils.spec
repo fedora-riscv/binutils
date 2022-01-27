@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -332,6 +332,10 @@ Patch29: binutils-readelf-recognize-FDO-Packaging-Metadata-ELF-note.patch
 # Purpose:  Fix a potential illegal memory access parsing a corrupt COFF file.
 # Lifetime: Fixed in 2.38.
 Patch30: binutils-CVE-2021-45078.patch
+
+# Purpose:  Stop libtool from inserting useless runpaths into binaries.
+# Lifetime: Who knows.
+Patch31: gcc12-libtool-no-rpath.patch
 
 #----------------------------------------------------------------------------
 
@@ -850,9 +854,6 @@ if [ -x gold/ld-new ]; then
   cat %{?cross}gold.lang >> %{?cross}binutils.lang
 fi
 
-# Stop check-rpaths from complaining about standard runpaths.
-export QA_RPATHS=0x0001
-
 #----------------------------------------------------------------------------
 
 %post
@@ -945,6 +946,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-25
+- Borrow a patch from the GCC package to stop libtool from inserting needless runpaths into binaries.  (#2030667)
+
 * Wed Jan 19 2022 Fedora Release Engineering <releng@fedoraproject.org> - 2.37-24
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
 
