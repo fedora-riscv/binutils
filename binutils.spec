@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -306,6 +306,10 @@ Patch24: binutils-AArch64-EFI.patch
 # Purpose:  Fix a potential illegal memory access parsing a corrupt COFF file.
 # Lifetime: Fixed in 2.38.
 Patch25: binutils-CVE-2021-45078.patch
+
+# Purpose:  Fix a potential illegal memory access parsing a corrupt ELF file.
+# Lifetime: Fixed in 2.38.
+Patch26: binutils-readelf-corrupt-program-headers.patch
 
 #----------------------------------------------------------------------------
 
@@ -924,6 +928,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-16
+- Fix a potential illegal memory access parsing a corrupt ELF format file.  (#2052522)
+
 * Mon Dec 20 2021 Nick Clifton  <nickc@redhat.comn> - 2.37-15
 - Fix a potential illegal memory access parsing a COFF format file.  (#2033716)
 
