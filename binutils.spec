@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 25%{?dist}
+Release: 26%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -336,6 +336,10 @@ Patch30: binutils-CVE-2021-45078.patch
 # Purpose:  Stop libtool from inserting useless runpaths into binaries.
 # Lifetime: Who knows.
 Patch31: gcc12-libtool-no-rpath.patch
+
+# Purpose:  Fix a potential illegal memory access parsing a corrupt ELF file.
+# Lifetime: Fixed in 2.38.
+Patch32: binutils-readelf-corrupt-program-headers.patch
 
 #----------------------------------------------------------------------------
 
@@ -946,6 +950,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Feb 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-26
+- Fix a potential illegal memory access parsing a corrupt ELF format file.  (#2052522)
+
 * Thu Jan 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-25
 - Borrow a patch from the GCC package to stop libtool from inserting needless runpaths into binaries.  (#2030667)
 
