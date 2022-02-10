@@ -101,149 +101,6 @@ diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin-9.d binutils-2.36.1/ld/tes
  #...
  hook called: cleanup.
 diff -rup binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp binutils-2.36.1/ld/testsuite/ld-x86-64/x86-64.exp
---- binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp	2021-02-12 10:13:11.177049047 +0000
-+++ binutils-2.36.1/ld/testsuite/ld-x86-64/x86-64.exp	2021-02-12 10:57:23.339975059 +0000
-@@ -1437,22 +1437,6 @@ if { [isnative] && [check_compiler_avail
-     } else {
- 	run_cc_link_tests [list \
- 	    [list \
--		"Build pr22001-1b" \
--		"$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed,-z,notext tmpdir/pr22001-1.so" \
--		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
--		{ pr22001-1c.c } \
--		{{error_output "pr22001-1b.err"}} \
--		"pr22001-1b" \
--	    ] \
--	    [list \
--		"Build pr21997-1b" \
--		"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,notext tmpdir/pr21997-1.so" \
--		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
--		{ pr21997-1c.c } \
--		{{error_output "pr21997-1b.err"}} \
--		"pr21997-1b" \
--	    ] \
--	    [list \
- 		"Build lam-u48.so" \
- 		"-shared -Wl,-z,lam-u48" \
- 		"" \
-@@ -1766,49 +1750,6 @@ if { [isnative] && [check_compiler_avail
-     if { [istarget "x86_64-*-linux*"] \
- 	 && ![istarget "x86_64-*-linux*-gnux32"]} {
- 
--	run_cc_link_tests [list \
--	    [list \
--		"Build plt-main with -z bndplt" \
--		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
--		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z bndplt \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-Wa,-mx86-used-note=yes $NOCF_PROTECTION_CFLAGS" \
--		{ plt-main5.c } \
--		{{objdump {-drw} plt-main-bnd.dd}} \
--		"plt-main-bnd" \
--	    ] \
--	    [list \
--		"Build plt-main with PIE and -z bndplt" \
--		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
--		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z bndplt -pie \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-fPIC -Wa,-mx86-used-note=yes $NOCF_PROTECTION_CFLAGS" \
--		{ plt-main5.c } \
--		{{objdump {-drw} plt-main-bnd.dd}} \
--		"plt-main-pie-bnd" \
--	    ] \
--	    [list \
--		"Build plt-main with -z bndplt -z now" \
--		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
--		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z bndplt -z now \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-Wa,-mx86-used-note=yes $NOCF_PROTECTION_CFLAGS" \
--		{ plt-main5.c } \
--		{{readelf {-SW} plt-main-bnd-now.rd} {objdump {-drw} plt-main-bnd.dd}} \
--		"plt-main-bnd-now" \
--	    ] \
--	    [list \
--		"Build plt-main with PIE and -z bndplt -z now" \
--		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
--		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z bndplt -z now -pie \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-fPIC -Wa,-mx86-used-note=yes $NOCF_PROTECTION_CFLAGS" \
--		{ plt-main5.c } \
--		{{readelf {-SW} plt-main-bnd-now.rd} {objdump {-drw} plt-main-bnd.dd}} \
--		"plt-main-pie-bnd-now" \
--	    ] \
--	]
--
- 	run_ld_link_exec_tests [list \
- 	    [list \
- 		"Run plt-main with -z bndplt" \
-@@ -1893,66 +1834,6 @@ if { [isnative] && [check_compiler_avail
- 	    set pltdump {{objdump {-drw} plt-main-ibt.dd}}
- 	    set pltsecdump {{readelf {-SW} plt-main-ibt-now.rd} {objdump {-drw} plt-main-ibt.dd}}
- 	}
--	run_cc_link_tests [list \
--	    [list \
--		"Build plt-main with -z ibtplt" \
--		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
--		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z ibtplt \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-Wa,-mx86-used-note=yes" \
--		{ plt-main5.c } \
--		$pltdump \
--		"plt-main-ibt" \
--	    ] \
--	    [list \
--		"Build plt-main with PIE and -z ibtplt" \
--		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
--		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z ibtplt -pie \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-fPIC -Wa,-mx86-used-note=yes" \
--		{ plt-main5.c } \
--		$pltdump \
--		"plt-main-pie-ibt" \
--	    ] \
--	    [list \
--		"Build plt-main with -z ibtplt -z now" \
--		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
--		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z ibtplt -z now \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-Wa,-mx86-used-note=yes" \
--		{ plt-main5.c } \
--		$pltsecdump \
--		"plt-main-ibt-now" \
--	    ] \
--	    [list \
--		"Build plt-main with PIE and -z ibtplt -z now" \
--		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
--		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z ibtplt -z now -pie \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-fPIC -Wa,-mx86-used-note=yes" \
--		{ plt-main5.c } \
--		$pltsecdump \
--		"plt-main-pie-ibt-now" \
--	    ] \
--	    [list \
--		"Build libibtplt-lib.so with -z ibtplt" \
--		"-shared -z ibtplt \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-fPIC -Wa,-mx86-used-note=yes" \
--		{ plt-main1.c plt-main2.c plt-main3.c plt-main4.c} \
--		$pltdump \
--		"libibtplt-lib.so" \
--	    ] \
--	    [list \
--		"Build libibtplt--now-lib.so with -z ibtplt -z now" \
--		"-shared -z ibtplt -z now \
--		 -z noseparate-code -z max-page-size=0x200000" \
--		"-fPIC -Wa,-mx86-used-note=yes" \
--		{ plt-main1.c plt-main2.c plt-main3.c plt-main4.c} \
--		$pltdump \
--		"libibtplt-now-lib.so" \
--	    ] \
--	]
- 
- 	run_ld_link_exec_tests [list \
- 	    [list \
-diff -rup binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp binutils-2.36.1/ld/testsuite/ld-x86-64/x86-64.exp
 --- binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp	2021-02-12 11:44:39.121364751 +0000
 +++ binutils-2.36.1/ld/testsuite/ld-x86-64/x86-64.exp	2021-02-12 11:46:27.505597689 +0000
 @@ -1878,24 +1878,6 @@ if { [isnative] && [check_compiler_avail
@@ -595,54 +452,6 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp binutils-2.36.1/ld/tes
  
  # The pr23169 testcase is not valid.  In general, you can't call ifunc
  # resolvers in another binary unless you know what you're doing.  In
---- binutils.orig/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 09:55:20.326674591 +0100
-+++ binutils-2.37/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 10:20:38.647289474 +0100
-@@ -81,6 +81,10 @@ if { [istarget m681*-*-*] || [istarget m
-     # otherwise get FAILS due to _.frame
-     set CFLAGS "$CFLAGS -fomit-frame-pointer"
- }
-+if { [istarget aarch64*-*-*] || [istarget arm*-*-*] } {
-+    set LDFLAGS "$LDFLAGS --defsym __aeabi_unwind_cpp_pr0=0"
-+}
-+
- # In order to define symbols in plugin options in the list of tests below,
- # we need to know if the platform prepends an underscore to C symbols,
- # which we find out by compiling the test objects now.  If there is any
---- binutils-2.37/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 12:04:23.815709733 +0100
-+++ binutils.new/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 12:04:16.782748608 +0100
-@@ -81,9 +81,6 @@ if { [istarget m681*-*-*] || [istarget m
-     # otherwise get FAILS due to _.frame
-     set CFLAGS "$CFLAGS -fomit-frame-pointer"
- }
--if { [istarget aarch64*-*-*] || [istarget arm*-*-*] } {
--    set LDFLAGS "$LDFLAGS --defsym __aeabi_unwind_cpp_pr0=0"
--}
- 
- # In order to define symbols in plugin options in the list of tests below,
- # we need to know if the platform prepends an underscore to C symbols,
-@@ -141,6 +138,9 @@ if [is_pecoff_format] {
-     #otherwise relocs overflow to symbols defined on the command line
-     append libs " --image-base=0x10000000"
- }
-+if { [istarget aarch64*-*-*] || [istarget arm*-*-*] } {
-+    append libs " --defsym __aeabi_unwind_cpp_pr0=0"
-+}
- 
- set plugin_tests [list \
-     [list "load plugin" "-plugin $plugin_path \
---- binutils.orig/ld/testsuite/ld-elfvsb/elfvsb.exp	2021-07-20 13:28:42.151614203 +0100
-+++ binutils-2.37/ld/testsuite/ld-elfvsb/elfvsb.exp	2021-07-20 13:32:09.558459291 +0100
-@@ -94,6 +94,10 @@ if { [istarget *-*-linux*]
-     }
- }
- 
-+if { [istarget i686*-*-*] } {
-+  set support_protected "no"
-+}    
-+
- # The test procedure.
- proc visibility_test { visibility progname testname main sh1 sh2 dat args } {
-     global CC
 --- binutils.orig/ld/testsuite/ld-i386/i386.exp	2021-07-20 13:28:42.211613869 +0100
 +++ binutils-2.37/ld/testsuite/ld-i386/i386.exp	2021-07-20 13:40:00.116839084 +0100
 @@ -1057,15 +1057,6 @@ if { [isnative]
@@ -760,16 +569,6 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp binutils-2.36.1/ld/tes
       || [istarget score*-*-*]
       || [istarget sh*-*-*]
       || [istarget tic6x-*-*]
---- binutils.orig/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 15:22:27.819562158 +0100
-+++ binutils-2.37/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 15:31:38.814487994 +0100
-@@ -308,6 +308,7 @@ if { !$can_compile || $failed_compile }
- run_ld_link_tests $plugin_tests
- 
- if { [is_elf_format] \
-+     && ! [istarget ppc64*-*-*]
-      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func1p.c tmpdir/func1p.o] \
-      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func2i.c tmpdir/func2i.o] \
-      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func3h.c tmpdir/func3h.o] } {
 diff -rup binutils.orig/ld/testsuite/ld-powerpc/group1.sym binutils-2.37/ld/testsuite/ld-powerpc/group1.sym
 --- binutils.orig/ld/testsuite/ld-powerpc/group1.sym	2021-07-20 15:22:27.827562114 +0100
 +++ binutils-2.37/ld/testsuite/ld-powerpc/group1.sym	2021-07-20 15:39:57.916703418 +0100
@@ -867,17 +666,6 @@ diff -rup binutils.orig/ld/testsuite/ld-powerpc/tlsso32.r binutils-2.37/ld/tests
       || [istarget ppc*-*-*]
       || [istarget score*-*-*]
       || [istarget sh*-*-*]
---- binutils.orig/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 16:24:17.380869020 +0100
-+++ binutils-2.37/ld/testsuite/ld-plugin/plugin.exp	2021-07-20 16:25:58.558304600 +0100
-@@ -308,7 +308,7 @@ if { !$can_compile || $failed_compile }
- run_ld_link_tests $plugin_tests
- 
- if { [is_elf_format] \
--     && ! [istarget ppc64*-*-*]
-+     && ! [istarget ppc64*-*-*] && ! [istarget powerpc*-*-*]
-      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func1p.c tmpdir/func1p.o] \
-      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func2i.c tmpdir/func2i.o] \
-      && [ld_compile "$CC $CFLAGS" $srcdir/$subdir/func3h.c tmpdir/func3h.o] } {
 --- binutils.orig/ld/testsuite/ld-powerpc/group1.sym	2021-07-20 16:24:17.384868997 +0100
 +++ binutils-2.37/ld/testsuite/ld-powerpc/group1.sym	2021-07-20 16:27:36.604757678 +0100
 @@ -1,2 +1 @@
@@ -950,14 +738,3 @@ diff -rup binutils.orig/ld/testsuite/ld-powerpc/tlsso32.r binutils-2.37/ld/tests
  }
  
  if {[is_elf_format]} then {
---- binutils.orig/ld/testsuite/ld-plugin/lto.exp	2021-10-13 13:21:02.540433685 +0100
-+++ binutils-2.37/ld/testsuite/ld-plugin/lto.exp	2021-10-13 13:37:08.559139599 +0100
-@@ -31,8 +31,6 @@ if { ![check_plugin_api_available]
- 
- set saved_CFLAGS "$CFLAGS"
- set saved_CXXFLAGS "$CXXFLAGS"
--regsub -all "(\\-Wp,)?-D_FORTIFY_SOURCE=\[0-9\]+" $CFLAGS "" CFLAGS
--regsub -all "(\\-Wp,)?-D_FORTIFY_SOURCE=\[0-9\]+" $CXXFLAGS "" CXXFLAGS
- 
- proc restore_notify { } {
-   global saved_CFLAGS

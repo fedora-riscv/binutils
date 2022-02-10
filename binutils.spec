@@ -38,8 +38,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
-Version: 2.37
-Release: 25%{?dist}
+Version: 2.38
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -276,66 +276,14 @@ Patch16: binutils-testsuite-fixes.patch
 # Lifetime: Fixed in 2.38 maybe
 Patch17: binutils-gold-i386-gnu-property-notes.patch
 
-# Purpose:  Ensure that the 0'th entry in DWARF-5 directory tables generated
-#            by gas contains the current working directory.
-# Lifetime: Fixed in 2.38
-Patch18: binutils-dwarf-5-dir0.patch
-
-# Purpose:  Ensure that the manual pages are generated.
-# Lifetime: Fixed in 2.38
-Patch19: binutils-missing-man-pages.patch
-
-# Purpose: Close the file descriptor if there is no archive plugin file
-#          descriptor to avoid running out of file descriptors on thin archives
-#          with many archive members.
-# Lifetime: Fixed in 2.38
-Patch20: binutils-bfd-close-fds.patch
-
-# Purpose: Allow the binutils to be configured with any (recent) version of
-#          autoconf.
-# Lifetime: Fixed in 2.38 (maybe ?)
-Patch21: binutils-autoconf-version.patch
-
-# Purpose:  Set the entry address of shared libraries to 0, so that they can
-#           be detected by the loader and not run as an executable.
-# Lifetime: Permanent.
-Patch22: binutils-ld-default-entry-of-0-for-shared.patch
-
-# Purpose:  Fix a seg-fault compiling the efivar libraries.
-# Lifetime: Fixed in 2.38.
-Patch23: binutils-empty-MIND-string.patch
-
-# Purpose:  Fix ccache test failure introduced with 2.37
-# Lifetime: Fixed in 2.38.
-Patch24: binutils-gas-Use-the-directory-name-in-.file-0.patch
-
-# Purpose:  Add ability to show unicode characters to display tools
-# Lifetime: Fixed in 2.38.
-Patch25: binutils.unicode.patch
-
-# Purpose:  Add ability to create read-only notes via linker scripts
-# Lifetime: Fixed in 2.38.
-Patch26: binutils-ld-read-only-script.patch
-
-# Purpose:  Add ability to warn about unicode characters in the assembler
-# Lifetime: Fixed in 2.38.
-Patch27: binutils-gas-multibyte-warnings.patch
-
-# Purpose:  Add support for the EFI format to the AArch64 target.
-# Lifetime: Fixed in 2.38.
-Patch28: binutils-AArch64-EFI.patch
-
-# Purpose:  Recognize FDO Packaging Metadata ELF note in readelf.
-# Lifetime: Fixed in 2.38.
-Patch29: binutils-readelf-recognize-FDO-Packaging-Metadata-ELF-note.patch
-
-# Purpose:  Fix a potential illegal memory access parsing a corrupt COFF file.
-# Lifetime: Fixed in 2.38.
-Patch30: binutils-CVE-2021-45078.patch
+# Purpose:  Allow the binutils to be configured with any (recent) version of
+#            autoconf.
+# Lifetime: Fixed in 2.39 (maybe ?)
+Patch18: binutils-autoconf-version.patch
 
 # Purpose:  Stop libtool from inserting useless runpaths into binaries.
 # Lifetime: Who knows.
-Patch31: gcc12-libtool-no-rpath.patch
+Patch19: gcc12-libtool-no-rpath.patch
 
 #----------------------------------------------------------------------------
 
@@ -915,6 +863,7 @@ exit 0
 %{_infodir}/gprof.info.*
 %{_infodir}/ld.info.*
 %{_infodir}/bfd.info.*
+%{_infodir}/ctf-spec.info.*
 %endif
 %endif
 
@@ -946,6 +895,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Feb 09 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-1
+- Rebase on GNU Binutils 2.38.
+
 * Thu Jan 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-25
 - Borrow a patch from the GCC package to stop libtool from inserting needless runpaths into binaries.  (#2030667)
 
