@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -284,6 +284,10 @@ Patch18: binutils-autoconf-version.patch
 # Purpose:  Stop libtool from inserting useless runpaths into binaries.
 # Lifetime: Who knows.
 Patch19: gcc12-libtool-no-rpath.patch
+
+# Purpose:  Add support for specifying section types in linker scripts.
+# Lifetime: Fixed in 2.39
+Patch20: binutils-section-type.patch
 
 #----------------------------------------------------------------------------
 
@@ -895,6 +899,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Feb 16 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-2
+- Add support for specifying a section type in linker scripts.  (#2052801
+
 * Wed Feb 09 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-1
 - Rebase on GNU Binutils 2.38.
 
