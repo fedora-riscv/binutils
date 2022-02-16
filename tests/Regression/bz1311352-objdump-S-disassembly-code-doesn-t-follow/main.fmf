@@ -10,7 +10,7 @@ framework: beakerlib
 recommend:
 - binutils
 - strace
-- nscd
+- coreutils
 duration: 15m
 extra-summary: /tools/binutils/Regression/bz1311352-objdump-S-disassembly-code-doesn-t-follow
 extra-task: /tools/binutils/Regression/bz1311352-objdump-S-disassembly-code-doesn-t-follow

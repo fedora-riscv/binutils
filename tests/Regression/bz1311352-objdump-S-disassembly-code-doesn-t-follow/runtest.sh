@@ -54,7 +54,7 @@ rlJournalStart
 
         rlLogInfo "(without skipped) COLLECTIONS=$COLLECTIONS"
 
-        for i in glibc nscd; do
+        for i in glibc coreutils; do
             rpm -q ${i}-debuginfo.${ARCH} &>/dev/null || rlRun "debuginfo-install -y ${i}.${ARCH}"
         done
 
@@ -67,12 +67,12 @@ rlJournalStart
     rlPhaseEnd
 
     rlPhaseStartTest
-        rlRun "strace -e trace=open,openat -o strace.out $OBJDUMP -drS /usr/sbin/nscd &> out"
+        rlRun "strace -e trace=open,openat -o strace.out $OBJDUMP -drS /usr/bin/ls &> out"
         rlRun "grep '/usr/lib/debug' strace.out"
 
-        # Check whether objdump output contains source code snippets
-        # NSCD sources can change in time, but I'm quite sure there'll
-        # always be at least one "int i;"
+        # Check whether objdump output contains source code snippets.
+        # ls sources can change in time, but it's likely there always
+        # will be at least one "int i;".
         rlRun "grep 'int i' out > /dev/null" 0 "Checking for source code snippets in objdump output"
 
         rlLogInfo "$(head -n20 out)"
