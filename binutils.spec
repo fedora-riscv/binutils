@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -858,6 +858,9 @@ exit 0
 # %%verify(symlink) does not work for some reason, so using "owner" instead.
 %verify(owner) %{_bindir}/%{?cross}ld
 %{_bindir}/%{?cross}ld.bfd
+# Do not export any Windows tools (if they were built)
+%exclude %{_bindir}/%{?cross}dll*
+%exclude %{_bindir}/%{?cross}wind*
 
 %if %{with docs}
 %{_mandir}/man1/
@@ -899,8 +902,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Feb 28 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-3
+- Do not export any windows tools (if they were built).  (#2057636)
+
 * Wed Feb 16 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-2
-- Add support for specifying a section type in linker scripts.  (#2052801
+- Add support for specifying a section type in linker scripts.  (#2052801)
 
 * Wed Feb 09 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-1
 - Rebase on GNU Binutils 2.38.
