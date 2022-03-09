@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -236,21 +236,21 @@ Patch08: binutils-2.27-aarch64-ifunc.patch
 Patch09: binutils-do-not-link-with-static-libstdc++.patch
 
 # Purpose:  Allow OS specific sections in section groups.
-# Lifetime: Fixed in 2.38 (maybe)
+# Lifetime: Fixed in 2.39 (maybe)
 Patch10: binutils-special-sections-in-groups.patch
 
 # Purpose:  Fix linker testsuite failures.
-# Lifetime: Fixed in 2.37 (maybe)
+# Lifetime: Fixed in 2.39 (maybe)
 Patch11: binutils-fix-testsuite-failures.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
-# Lifetime: Fixed in 2.38 (maybe)
+# Lifetime: Fixed in 2.39 (maybe)
 Patch12: binutils-gold-mismatched-section-flags.patch
 
 # Purpose:  Add a check to the GOLD linker for a corrupt input file
 #            with a fuzzed section offset.
-# Lifetime: Fixed in 2.38 (maybe)
+# Lifetime: Fixed in 2.39 (maybe)
 Patch13: binutils-CVE-2019-1010204.patch
 
 # Purpose:  Change the gold configuration script to only warn about
@@ -288,6 +288,10 @@ Patch19: gcc12-libtool-no-rpath.patch
 # Purpose:  Add support for specifying section types in linker scripts.
 # Lifetime: Fixed in 2.39
 Patch20: binutils-section-type.patch
+
+# Purpose:  Simplify the evaluation of assembler loc view expression chains.
+# Lifetime: Fixed in 2.39
+Patch21: binutils-gas-loc-view.patch
 
 #----------------------------------------------------------------------------
 
@@ -902,6 +906,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Mar 09 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-4
+- Simplify the assembler's evaluation of chained .loc view expressions.  (#2059646)
+
 * Mon Feb 28 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-3
 - Do not export any windows tools (if they were built).  (#2057636)
 
