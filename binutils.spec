@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 26%{?dist}
+Release: 27%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -340,6 +340,10 @@ Patch31: gcc12-libtool-no-rpath.patch
 # Purpose:  Fix a potential illegal memory access parsing a corrupt ELF file.
 # Lifetime: Fixed in 2.38.
 Patch32: binutils-readelf-corrupt-program-headers.patch
+
+# Purpose:  Add an option to disable access to debuginfod servers.
+# Lifetime: Fixed in 2.39
+Patch33: binutils-do-not-use-debuginfod.patch
 
 #----------------------------------------------------------------------------
 
@@ -950,6 +954,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-27
+- Add an option to objdump/readelf to disable accessing debuginfod servers.  (#2051741)
+
 * Thu Feb 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-26
 - Fix a potential illegal memory access parsing a corrupt ELF format file.  (#2052522)
 
