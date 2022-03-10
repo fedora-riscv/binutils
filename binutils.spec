@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -292,6 +292,10 @@ Patch20: binutils-section-type.patch
 # Purpose:  Simplify the evaluation of assembler loc view expression chains.
 # Lifetime: Fixed in 2.39
 Patch21: binutils-gas-loc-view.patch
+
+# Purpose:  Add an option to disable access to debuginfod servers.
+# Lifetime: Fixed in 2.39
+Patch22: binutils-do-not-use-debuginfod.patch
 
 #----------------------------------------------------------------------------
 
@@ -906,6 +910,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-5
+- Add an option to objdump/readelf to disable accessing debuginfod servers.  (#2051741)
+
 * Wed Mar 09 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-4
 - Simplify the assembler's evaluation of chained .loc view expressions.  (#2059646)
 
