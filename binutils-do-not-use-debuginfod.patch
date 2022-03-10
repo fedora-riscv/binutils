@@ -1,0 +1,972 @@
+diff -rup binutils.orig/binutils/NEWS binutils-2.37/binutils/NEWS
+--- binutils.orig/binutils/NEWS	2022-03-10 10:52:01.090309329 +0000
++++ binutils-2.37/binutils/NEWS	2022-03-10 10:52:35.149087511 +0000
+@@ -1,5 +1,8 @@
+ -*- text -*-
+ 
+++* Add an option to objdump and readelf to prevent attempts to access debuginfod
+++  servers when following links.
+++
+ * Tools which display symbols or strings (readelf, strings, nm, objdump)
+   have a new command line option which controls how unicode characters are
+   handled.  By default they are treated as normal for the tool.  Using
+diff -rup binutils.orig/binutils/NEWS.orig binutils-2.37/binutils/NEWS.orig
+--- binutils.orig/binutils/NEWS.orig	2022-03-10 10:52:01.072309446 +0000
++++ binutils-2.37/binutils/NEWS.orig	2022-03-10 10:52:09.778252743 +0000
+@@ -1,5 +1,17 @@
+ -*- text -*-
+ 
++* Tools which display symbols or strings (readelf, strings, nm, objdump)
++  have a new command line option which controls how unicode characters are
++  handled.  By default they are treated as normal for the tool.  Using
++  --unicode=locale will display them according to the current locale.
++  Using --unicode=hex will display them as hex byte values, whilst
++  --unicode=escape will display them as escape sequences.  In addition
++  using --unicode=highlight will display them as unicode escape sequences
++  highlighted in red (if supported by the output device).
++
++* Support for efi-app-aarch64, efi-rtdrv-aarch64 and efi-bsdrv-aarch64 has been
++  added to objcopy in order to enable UEFI development using binutils.
++
+ Changes in 2.37:
+ 
+ * The readelf tool has a new command line option which can be used to specify
+diff -rup binutils.orig/binutils/NEWS.rej binutils-2.37/binutils/NEWS.rej
+--- binutils.orig/binutils/NEWS.rej	2022-03-10 10:52:01.090309329 +0000
++++ binutils-2.37/binutils/NEWS.rej	2022-03-10 10:52:09.778252743 +0000
+@@ -1,18 +1,11 @@
+ --- binutils/NEWS
+ +++ binutils/NEWS
+-@@ -2,6 +2,15 @@
++@@ -1,5 +1,8 @@
++ -*- text -*-
+  
+- * Add support for the LoongArch instruction set.
+- 
+-+* Tools which display symbols or strings (readelf, strings, nm, objdump)
+-+  have a new command line option which controls how unicode characters are
+-+  handled.  By default they are treated as normal for the tool.  Using
+-+  --unicode=locale will display them according to the current locale.
+-+  Using --unicode=hex will display them as hex byte values, whilst
+-+  --unicode=escape will display them as escape sequences.  In addition
+-+  using --unicode=highlight will display them as unicode escape sequences
+-+  highlighted in red (if supported by the output device).
+++* Add an option to objdump and readelf to prevent attempts to access debuginfod
+++  servers when following links.
+ +
+- Changes in 2.37:
++ Changes in 2.38:
+  
+- * The readelf tool has a new command line option which can be used to specify
++ * elfedit: Add --output-abiversion option to update ABIVERSION.
+diff -rup binutils.orig/binutils/doc/binutils.texi binutils-2.37/binutils/doc/binutils.texi
+--- binutils.orig/binutils/doc/binutils.texi	2022-03-10 10:52:01.073309440 +0000
++++ binutils-2.37/binutils/doc/binutils.texi	2022-03-10 10:52:09.779252737 +0000
+@@ -2241,6 +2241,8 @@ objdump [@option{-a}|@option{--archive-h
+          @option{--dwarf}[=rawline,=decodedline,=info,=abbrev,=pubnames,=aranges,=macro,=frames,=frames-interp,=str,=str-offsets,=loc,=Ranges,=pubtypes,=trace_info,=trace_abbrev,=trace_aranges,=gdb_index,=addr,=cu_index,=links]]
+         [@option{-WK}|@option{--dwarf=follow-links}]
+         [@option{-WN}|@option{--dwarf=no-follow-links}]
++        [@option{-wD}|@option{--dwarf=use-debuginfod}]
++        [@option{-wE}|@option{--dwarf=do-not-use-debuginfod}]
+         [@option{-L}|@option{--process-links}]
+         [@option{--ctf=}@var{section}]
+         [@option{-G}|@option{--stabs}]
+@@ -4869,6 +4871,8 @@ readelf [@option{-a}|@option{--all}]
+          @option{--debug-dump}[=rawline,=decodedline,=info,=abbrev,=pubnames,=aranges,=macro,=frames,=frames-interp,=str,=str-offsets,=loc,=Ranges,=pubtypes,=trace_info,=trace_abbrev,=trace_aranges,=gdb_index,=addr,=cu_index,=links]]
+         [@option{-wK}|@option{--debug-dump=follow-links}]
+         [@option{-wN}|@option{--debug-dump=no-follow-links}]
++        [@option{-wD}|@option{--debug-dump=use-debuginfod}]
++        [@option{-wE}|@option{--debug-dump=do-not-use-debuginfod}]
+         [@option{-P}|@option{--process-links}]
+         [@option{--dwarf-depth=@var{n}}]
+         [@option{--dwarf-start=@var{n}}]
+@@ -5482,7 +5486,8 @@ deduced from the input file
+ @cindex separate debug files
+ 
+ debuginfod is a web service that indexes ELF/DWARF debugging resources
+-by build-id and serves them over HTTP.
++by build-id and serves them over HTTP.  For more information see:
++@emph{https://sourceware.org/elfutils/Debuginfod.html}
+ 
+ Binutils can be built with the debuginfod client library
+ @code{libdebuginfod} using the @option{--with-debuginfod} configure option.
+@@ -5494,6 +5499,10 @@ separate debug files when the files are
+ debuginfod is packaged with elfutils, starting with version 0.178.
+ You can get the latest version from `https://sourceware.org/elfutils/'.
+ 
++The DWARF info dumping tools (@command{readelf} and @command{objdump})
++have options to control when they should access the debuginfod
++servers.  By default this access is enabled.
++
+ @node Reporting Bugs
+ @chapter Reporting Bugs
+ @cindex bugs
+Only in binutils-2.37/binutils/doc: binutils.texi.orig
+diff -rup binutils.orig/binutils/doc/debug.options.texi binutils-2.37/binutils/doc/debug.options.texi
+--- binutils.orig/binutils/doc/debug.options.texi	2022-03-10 10:52:01.073309440 +0000
++++ binutils-2.37/binutils/doc/debug.options.texi	2022-03-10 10:52:09.779252737 +0000
+@@ -68,10 +68,27 @@ chosen when configuring the binutils via
+ @option{--enable-follow-debug-links=no} options.  If these are not
+ used then the default is to enable the following of debug links.
+ 
++Note - if support for the debuginfod protocol was enabled when the
++binutils were built then this option will also include an attempt to
++contact any debuginfod servers mentioned in the @var{DEBUGINFOD_URLS}
++environment variable.  This could take some time to resolve.  This
++behaviour can be disabled via the @option{=do-not-use-debuginfod} debug
++option.
++
+ @item N
+ @itemx =no-follow-links
+ Disables the following of links to separate debug info files.
+ 
++@item D
++@itemx =use-debuginfod
++Enables contacting debuginfod servers if there is a need to follow
++debug links.  This is the default behaviour.
++
++@item E
++@itemx =do-not-use-debuginfod
++Disables contacting debuginfod servers when there is a need to follow
++debug links.
++
+ @item l
+ @itemx =rawline
+ Displays the contents of the @samp{.debug_line} section in a raw
+diff -rup binutils.orig/binutils/dwarf.c binutils-2.37/binutils/dwarf.c
+--- binutils.orig/binutils/dwarf.c	2022-03-10 10:52:01.066309485 +0000
++++ binutils-2.37/binutils/dwarf.c	2022-03-10 10:52:09.779252737 +0000
+@@ -109,6 +109,9 @@ int do_debug_cu_index;
+ int do_wide;
+ int do_debug_links;
+ int do_follow_links = DEFAULT_FOR_FOLLOW_LINKS;
++#ifdef HAVE_LIBDEBUGINFOD
++int use_debuginfod = 1;
++#endif
+ bool do_checks;
+ 
+ int dwarf_cutoff_level = -1;
+@@ -11003,7 +11006,7 @@ debuginfod_fetch_separate_debug_info (st
+ 
+   return false;
+ }
+-#endif
++#endif /* HAVE_LIBDEBUGINFOD  */
+ 
+ static void *
+ load_separate_debug_info (const char *            main_filename,
+@@ -11117,9 +11120,10 @@ load_separate_debug_info (const char *
+   {
+     char * tmp_filename;
+ 
+-    if (debuginfod_fetch_separate_debug_info (xlink,
+-                                              & tmp_filename,
+-                                              file))
++    if (use_debuginfod
++	&& debuginfod_fetch_separate_debug_info (xlink,
++						 & tmp_filename,
++						 file))
+       {
+         /* File successfully downloaded from server, replace
+            debug_filename with the file's path.  */
+@@ -11167,13 +11171,15 @@ load_separate_debug_info (const char *
+       warn (_("tried: %s\n"), debug_filename);
+ 
+ #if HAVE_LIBDEBUGINFOD
+-      {
+-	char *urls = getenv (DEBUGINFOD_URLS_ENV_VAR);
+-	if (urls == NULL)
+-	  urls = "";
++      if (use_debuginfod)
++	{
++	  char *urls = getenv (DEBUGINFOD_URLS_ENV_VAR);
+ 
+-	warn (_("tried: DEBUGINFOD_URLS=%s\n"), urls);
+-      }
++	  if (urls == NULL)
++	    urls = "";
++
++	  warn (_("tried: DEBUGINFOD_URLS=%s\n"), urls);
++	}
+ #endif
+     }
+ 
+@@ -11547,6 +11553,9 @@ dwarf_select_sections_by_names (const ch
+       { "aranges", & do_debug_aranges, 1 },
+       { "cu_index", & do_debug_cu_index, 1 },
+       { "decodedline", & do_debug_lines, FLAG_DEBUG_LINES_DECODED },
++#ifdef HAVE_LIBDEBUGINFOD
++      { "do-not-use-debuginfod", & use_debuginfod, 0 },
++#endif
+       { "follow-links", & do_follow_links, 1 },
+       { "frames", & do_debug_frames, 1 },
+       { "frames-interp", & do_debug_frames_interp, 1 },
+@@ -11570,6 +11579,9 @@ dwarf_select_sections_by_names (const ch
+       { "trace_abbrev", & do_trace_abbrevs, 1 },
+       { "trace_aranges", & do_trace_aranges, 1 },
+       { "trace_info", & do_trace_info, 1 },
++#ifdef HAVE_LIBDEBUGINFOD
++      { "use-debuginfod", & use_debuginfod, 1 },
++#endif
+       { NULL, NULL, 0 }
+     };
+ 
+@@ -11623,6 +11635,10 @@ dwarf_select_sections_by_letters (const
+       case 'A':	do_debug_addr = 1; break;
+       case 'a':	do_debug_abbrevs = 1; break;
+       case 'c':	do_debug_cu_index = 1; break;
++#ifdef HAVE_LIBDEBUGINFOD
++      case 'D': use_debuginfod = 1; break;
++      case 'E': use_debuginfod = 0; break;
++#endif
+       case 'F':	do_debug_frames_interp = 1; /* Fall through.  */
+       case 'f':	do_debug_frames = 1; break;
+       case 'g':	do_gdb_index = 1; break;
+Only in binutils-2.37/binutils/: dwarf.c.orig
+diff -rup binutils.orig/binutils/dwarf.h binutils-2.37/binutils/dwarf.h
+--- binutils.orig/binutils/dwarf.h	2022-03-10 10:52:01.066309485 +0000
++++ binutils-2.37/binutils/dwarf.h	2022-03-10 10:52:09.780252730 +0000
+@@ -221,6 +221,9 @@ extern int do_debug_cu_index;
+ extern int do_wide;
+ extern int do_debug_links;
+ extern int do_follow_links;
++#ifdef HAVE_LIBDEBUGINFOD
++extern int use_debuginfod;
++#endif
+ extern bool do_checks;
+ 
+ extern int dwarf_cutoff_level;
+Only in binutils-2.37/binutils/: dwarf.h.orig
+diff -rup binutils.orig/binutils/objdump.c binutils-2.37/binutils/objdump.c
+--- binutils.orig/binutils/objdump.c	2022-03-10 10:52:01.090309329 +0000
++++ binutils-2.37/binutils/objdump.c	2022-03-10 10:52:09.780252730 +0000
+@@ -280,6 +280,14 @@ usage (FILE *stream, int status)
+                            Do not follow links to separate debug info files\n\
+                             (default)\n"));
+ #endif
++#if HAVE_LIBDEBUGINFOD
++  fprintf (stream, _("\
++  -WD --dwarf=use-debuginfod\n\
++                           When following links, also query debuginfod servers (default)\n"));
++  fprintf (stream, _("\
++  -WE --dwarf=do-not-use-debuginfod\n\
++                           When following links, do not query debuginfod servers\n"));
++#endif
+   fprintf (stream, _("\
+   -L, --process-links      Display the contents of non-debug sections in\n\
+                             separate debuginfo files.  (Implies -WK)\n"));
+diff -rup binutils.orig/binutils/objdump.c.orig binutils-2.37/binutils/objdump.c.orig
+--- binutils.orig/binutils/objdump.c.orig	2022-03-10 10:52:01.065309492 +0000
++++ binutils-2.37/binutils/objdump.c.orig	2022-03-10 10:51:55.365346615 +0000
+@@ -204,6 +204,18 @@ static const struct objdump_private_desc
+ 
+ /* The list of detected jumps inside a function.  */
+ static struct jump_info *detected_jumps = NULL;
++
++typedef enum unicode_display_type
++{
++  unicode_default = 0,
++  unicode_locale,
++  unicode_escape,
++  unicode_hex,
++  unicode_highlight,
++  unicode_invalid
++} unicode_display_type;
++
++static unicode_display_type unicode_display = unicode_default;
+ 
+ static void usage (FILE *, int) ATTRIBUTE_NORETURN;
+ static void
+@@ -330,6 +342,9 @@ usage (FILE *stream, int status)
+       fprintf (stream, _("\
+   -w, --wide                     Format output for more than 80 columns\n"));
+       fprintf (stream, _("\
++  -U[d|l|i|x|e|h]                Controls the display of UTF-8 unicode characters\n\
++  --unicode=[default|locale|invalid|hex|escape|highlight]\n"));
++      fprintf (stream, _("\
+   -z, --disassemble-zeroes       Do not skip blocks of zeroes when disassembling\n"));
+       fprintf (stream, _("\
+       --start-address=ADDR       Only process data whose address is >= ADDR\n"));
+@@ -420,17 +435,23 @@ static struct option long_options[]=
+ {
+   {"adjust-vma", required_argument, NULL, OPTION_ADJUST_VMA},
+   {"all-headers", no_argument, NULL, 'x'},
+-  {"private-headers", no_argument, NULL, 'p'},
+-  {"private", required_argument, NULL, 'P'},
+   {"architecture", required_argument, NULL, 'm'},
+   {"archive-headers", no_argument, NULL, 'a'},
++#ifdef ENABLE_LIBCTF
++  {"ctf", required_argument, NULL, OPTION_CTF},
++  {"ctf-parent", required_argument, NULL, OPTION_CTF_PARENT},
++#endif
+   {"debugging", no_argument, NULL, 'g'},
+   {"debugging-tags", no_argument, NULL, 'e'},
+   {"demangle", optional_argument, NULL, 'C'},
+   {"disassemble", optional_argument, NULL, 'd'},
+   {"disassemble-all", no_argument, NULL, 'D'},
+-  {"disassembler-options", required_argument, NULL, 'M'},
+   {"disassemble-zeroes", no_argument, NULL, 'z'},
++  {"disassembler-options", required_argument, NULL, 'M'},
++  {"dwarf", optional_argument, NULL, OPTION_DWARF},
++  {"dwarf-check", no_argument, 0, OPTION_DWARF_CHECK},
++  {"dwarf-depth", required_argument, 0, OPTION_DWARF_DEPTH},
++  {"dwarf-start", required_argument, 0, OPTION_DWARF_START},
+   {"dynamic-reloc", no_argument, NULL, 'R'},
+   {"dynamic-syms", no_argument, NULL, 'T'},
+   {"endian", required_argument, NULL, OPTION_ENDIAN},
+@@ -440,16 +461,23 @@ static struct option long_options[]=
+   {"full-contents", no_argument, NULL, 's'},
+   {"headers", no_argument, NULL, 'h'},
+   {"help", no_argument, NULL, 'H'},
++  {"include", required_argument, NULL, 'I'},
+   {"info", no_argument, NULL, 'i'},
++  {"inlines", no_argument, 0, OPTION_INLINES},
++  {"insn-width", required_argument, NULL, OPTION_INSN_WIDTH},
+   {"line-numbers", no_argument, NULL, 'l'},
+-  {"no-show-raw-insn", no_argument, &show_raw_insn, -1},
+   {"no-addresses", no_argument, &no_addresses, 1},
+-  {"process-links", no_argument, &process_links, true},
++  {"no-recurse-limit", no_argument, NULL, OPTION_NO_RECURSE_LIMIT},
++  {"no-recursion-limit", no_argument, NULL, OPTION_NO_RECURSE_LIMIT},
++  {"no-show-raw-insn", no_argument, &show_raw_insn, -1},
++  {"prefix", required_argument, NULL, OPTION_PREFIX},
+   {"prefix-addresses", no_argument, &prefix_addresses, 1},
++  {"prefix-strip", required_argument, NULL, OPTION_PREFIX_STRIP},
++  {"private", required_argument, NULL, 'P'},
++  {"private-headers", no_argument, NULL, 'p'},
++  {"process-links", no_argument, &process_links, true},
+   {"recurse-limit", no_argument, NULL, OPTION_RECURSE_LIMIT},
+   {"recursion-limit", no_argument, NULL, OPTION_RECURSE_LIMIT},
+-  {"no-recurse-limit", no_argument, NULL, OPTION_NO_RECURSE_LIMIT},
+-  {"no-recursion-limit", no_argument, NULL, OPTION_NO_RECURSE_LIMIT},
+   {"reloc", no_argument, NULL, 'r'},
+   {"section", required_argument, NULL, 'j'},
+   {"section-headers", no_argument, NULL, 'h'},
+@@ -457,28 +485,16 @@ static struct option long_options[]=
+   {"source", no_argument, NULL, 'S'},
+   {"source-comment", optional_argument, NULL, OPTION_SOURCE_COMMENT},
+   {"special-syms", no_argument, &dump_special_syms, 1},
+-  {"include", required_argument, NULL, 'I'},
+-  {"dwarf", optional_argument, NULL, OPTION_DWARF},
+-#ifdef ENABLE_LIBCTF
+-  {"ctf", required_argument, NULL, OPTION_CTF},
+-  {"ctf-parent", required_argument, NULL, OPTION_CTF_PARENT},
+-#endif
+   {"stabs", no_argument, NULL, 'G'},
+   {"start-address", required_argument, NULL, OPTION_START_ADDRESS},
+   {"stop-address", required_argument, NULL, OPTION_STOP_ADDRESS},
+   {"syms", no_argument, NULL, 't'},
+   {"target", required_argument, NULL, 'b'},
++  {"unicode", required_argument, NULL, 'U'},
+   {"version", no_argument, NULL, 'V'},
+-  {"wide", no_argument, NULL, 'w'},
+-  {"prefix", required_argument, NULL, OPTION_PREFIX},
+-  {"prefix-strip", required_argument, NULL, OPTION_PREFIX_STRIP},
+-  {"insn-width", required_argument, NULL, OPTION_INSN_WIDTH},
+-  {"dwarf-depth", required_argument, 0, OPTION_DWARF_DEPTH},
+-  {"dwarf-start", required_argument, 0, OPTION_DWARF_START},
+-  {"dwarf-check", no_argument, 0, OPTION_DWARF_CHECK},
+-  {"inlines", no_argument, 0, OPTION_INLINES},
+   {"visualize-jumps", optional_argument, 0, OPTION_VISUALIZE_JUMPS},
+-  {0, no_argument, 0, 0}
++  {"wide", no_argument, NULL, 'w'},
++  {NULL, no_argument, NULL, 0}
+ };
+ 
+ static void
+@@ -488,9 +504,121 @@ nonfatal (const char *msg)
+   exit_status = 1;
+ }
+ 
++/* Convert a potential UTF-8 encoded sequence in IN into characters in OUT.
++   The conversion format is controlled by the unicode_display variable.
++   Returns the number of characters added to OUT.
++   Returns the number of bytes consumed from IN in CONSUMED.
++   Always consumes at least one byte and displays at least one character.  */
++   
++static unsigned int
++display_utf8 (const unsigned char * in, char * out, unsigned int * consumed)
++{
++  char *        orig_out = out;
++  unsigned int  nchars = 0;
++  unsigned int j;
++
++  if (unicode_display == unicode_default)
++    goto invalid;
++
++  if (in[0] < 0xc0)
++    goto invalid;
++
++  if ((in[1] & 0xc0) != 0x80)
++    goto invalid;
++
++  if ((in[0] & 0x20) == 0)
++    {
++      nchars = 2;
++      goto valid;
++    }
++
++  if ((in[2] & 0xc0) != 0x80)
++    goto invalid;
++
++  if ((in[0] & 0x10) == 0)
++    {
++      nchars = 3;
++      goto valid;
++    }
++
++  if ((in[3] & 0xc0) != 0x80)
++    goto invalid;
++
++  nchars = 4;
++
++ valid:
++  switch (unicode_display)
++    {
++    case unicode_locale:
++      /* Copy the bytes into the output buffer as is.  */
++      memcpy (out, in, nchars);
++      out += nchars;
++      break;
++
++    case unicode_invalid:
++    case unicode_hex:
++      out += sprintf (out, "%c", unicode_display == unicode_hex ? '<' : '{');
++      out += sprintf (out, "0x");
++      for (j = 0; j < nchars; j++)
++	out += sprintf (out, "%02x", in [j]);
++      out += sprintf (out, "%c", unicode_display == unicode_hex ? '>' : '}');
++      break;
++      
++    case unicode_highlight:
++      if (isatty (1))
++	out += sprintf (out, "\x1B[31;47m"); /* Red.  */
++      /* Fall through.  */
++    case unicode_escape:
++      switch (nchars)
++	{
++	case 2:
++	  out += sprintf (out, "\\u%02x%02x",
++		  ((in[0] & 0x1c) >> 2), 
++		  ((in[0] & 0x03) << 6) | (in[1] & 0x3f));
++	  break;
++
++	case 3:
++	  out += sprintf (out, "\\u%02x%02x",
++		  ((in[0] & 0x0f) << 4) | ((in[1] & 0x3c) >> 2),
++		  ((in[1] & 0x03) << 6) | ((in[2] & 0x3f)));
++	  break;
++
++	case 4:
++	  out += sprintf (out, "\\u%02x%02x%02x",
++		  ((in[0] & 0x07) << 6) | ((in[1] & 0x3c) >> 2),
++		  ((in[1] & 0x03) << 6) | ((in[2] & 0x3c) >> 2),
++		  ((in[2] & 0x03) << 6) | ((in[3] & 0x3f)));
++	  break;
++	default:
++	  /* URG.  */
++	  break;
++	}
++
++      if (unicode_display == unicode_highlight && isatty (1))
++	out += sprintf (out, "\033[0m"); /* Default colour.  */
++      break;
++
++    default:
++      /* URG */
++      break;
++    }
++
++  * consumed = nchars;
++  return out - orig_out;
++
++ invalid:
++  /* Not a valid UTF-8 sequence.  */
++  *out = *in;
++  * consumed = 1;
++  return 1;
++}
++
+ /* Returns a version of IN with any control characters
+    replaced by escape sequences.  Uses a static buffer
+-   if necessary.  */
++   if necessary.
++
++   If unicode display is enabled, then also handles the
++   conversion of unicode characters.  */
+ 
+ static const char *
+ sanitize_string (const char * in)
+@@ -508,40 +636,50 @@ sanitize_string (const char * in)
+      of cases it will not be needed.  */
+   do
+     {
+-      char c = *in++;
++      unsigned char c = *in++;
+ 
+       if (c == 0)
+ 	return original;
+ 
+       if (ISCNTRL (c))
+ 	break;
++
++      if (unicode_display != unicode_default && c >= 0xc0)
++	break;
+     }
+   while (1);
+ 
+   /* Copy the input, translating as needed.  */
+   in = original;
+-  if (buffer_len < (strlen (in) * 2))
++  if (buffer_len < (strlen (in) * 9))
+     {
+       free ((void *) buffer);
+-      buffer_len = strlen (in) * 2;
++      buffer_len = strlen (in) * 9;
+       buffer = xmalloc (buffer_len + 1);
+     }
+ 
+   out = buffer;
+   do
+     {
+-      char c = *in++;
++      unsigned char c = *in++;
+ 
+       if (c == 0)
+ 	break;
+ 
+-      if (!ISCNTRL (c))
+-	*out++ = c;
+-      else
++      if (ISCNTRL (c))
+ 	{
+ 	  *out++ = '^';
+ 	  *out++ = c + 0x40;
+ 	}
++      else if (unicode_display != unicode_default && c >= 0xc0)
++	{
++	  unsigned int num_consumed;
++
++	  out += display_utf8 ((const unsigned char *)(in - 1), out, & num_consumed);
++	  in += num_consumed - 1;
++	}
++      else
++	*out++ = c;
+     }
+   while (1);
+ 
+@@ -4529,6 +4667,24 @@ dump_symbols (bfd *abfd ATTRIBUTE_UNUSED
+ 		  free (alloc);
+ 		}
+ 	    }
++	  else if (unicode_display != unicode_default
++		   && name != NULL && *name != '\0')
++	    {
++	      const char * sanitized_name;
++
++	      /* If we want to sanitize the name, we do it here, and
++		 temporarily clobber it while calling bfd_print_symbol.
++		 FIXME: This is a gross hack.  */
++	      sanitized_name = sanitize_string (name);
++	      if (sanitized_name != name)
++		(*current)->name = sanitized_name;
++	      else
++		sanitized_name = NULL;
++	      bfd_print_symbol (cur_bfd, stdout, *current,
++				bfd_print_symbol_all);
++	      if (sanitized_name != NULL)
++		(*current)->name = name;
++	    }
+ 	  else
+ 	    bfd_print_symbol (cur_bfd, stdout, *current,
+ 			      bfd_print_symbol_all);
+@@ -5212,7 +5368,7 @@ main (int argc, char **argv)
+   set_default_bfd_target ();
+ 
+   while ((c = getopt_long (argc, argv,
+-			   "pP:ib:m:M:VvCdDlfFaHhrRtTxsSI:j:wE:zgeGW::",
++			   "pP:ib:m:M:VvCdDlfFaHhrRtTU:xsSI:j:wE:zgeGW::",
+ 			   long_options, (int *) 0))
+ 	 != EOF)
+     {
+@@ -5495,6 +5651,23 @@ main (int argc, char **argv)
+ 	  seenflag = true;
+ 	  break;
+ 
++	case 'U':
++	  if (streq (optarg, "default") || streq (optarg, "d"))
++	    unicode_display = unicode_default;
++	  else if (streq (optarg, "locale") || streq (optarg, "l"))
++	    unicode_display = unicode_locale;
++	  else if (streq (optarg, "escape") || streq (optarg, "e"))
++	    unicode_display = unicode_escape;
++	  else if (streq (optarg, "invalid") || streq (optarg, "i"))
++	    unicode_display = unicode_invalid;
++	  else if (streq (optarg, "hex") || streq (optarg, "x"))
++	    unicode_display = unicode_hex;
++	  else if (streq (optarg, "highlight") || streq (optarg, "h"))
++	    unicode_display = unicode_highlight;
++	  else
++	    fatal (_("invalid argument to -U/--unicode: %s"), optarg);
++	  break;
++
+ 	case 'H':
+ 	  usage (stdout, 0);
+ 	  /* No need to set seenflag or to break - usage() does not return.  */
+diff -rup binutils.orig/binutils/readelf.c binutils-2.37/binutils/readelf.c
+--- binutils.orig/binutils/readelf.c	2022-03-10 10:52:01.063309505 +0000
++++ binutils-2.37/binutils/readelf.c	2022-03-10 10:52:09.781252724 +0000
+@@ -4955,6 +4955,14 @@ usage (FILE * stream)
+                          Do not follow links to separate debug info files\n\
+                           (default)\n"));
+ #endif
++#if HAVE_LIBDEBUGINFOD
++  fprintf (stream, _("\
++  -wD --debug-dump=use-debuginfod\n\
++                         When following links, also query debuginfod servers (default)\n"));
++  fprintf (stream, _("\
++  -wE --debug-dump=do-not-use-debuginfod\n\
++                         When following links, do not query debuginfod servers\n"));
++#endif
+   fprintf (stream, _("\
+   --dwarf-depth=N        Do not display DIEs at depth N or greater\n"));
+   fprintf (stream, _("\
+diff -rup binutils.orig/binutils/readelf.c.orig binutils-2.37/binutils/readelf.c.orig
+--- binutils.orig/binutils/readelf.c.orig	2022-03-10 10:52:01.089309336 +0000
++++ binutils-2.37/binutils/readelf.c.orig	2022-03-10 10:51:55.396346413 +0000
+@@ -328,6 +328,19 @@ typedef enum print_mode
+ }
+ print_mode;
+ 
++typedef enum unicode_display_type
++{
++  unicode_default = 0,
++  unicode_locale,
++  unicode_escape,
++  unicode_hex,
++  unicode_highlight,
++  unicode_invalid
++} unicode_display_type;
++
++static unicode_display_type unicode_display = unicode_default;
++
++  
+ /* Versioned symbol info.  */
+ enum versioned_symbol_info
+ {
+@@ -632,11 +645,18 @@ print_symbol (signed int width, const ch
+       if (c == 0)
+ 	break;
+ 
+-      /* Do not print control characters directly as they can affect terminal
+-	 settings.  Such characters usually appear in the names generated
+-	 by the assembler for local labels.  */
+-      if (ISCNTRL (c))
++      if (ISPRINT (c))
+ 	{
++	  putchar (c);
++	  width_remaining --;
++	  num_printed ++;
++	}
++      else if (ISCNTRL (c))
++	{
++	  /* Do not print control characters directly as they can affect terminal
++	     settings.  Such characters usually appear in the names generated
++	     by the assembler for local labels.  */
++
+ 	  if (width_remaining < 2)
+ 	    break;
+ 
+@@ -644,11 +664,137 @@ print_symbol (signed int width, const ch
+ 	  width_remaining -= 2;
+ 	  num_printed += 2;
+ 	}
+-      else if (ISPRINT (c))
++      else if (c == 0x7f)
+ 	{
+-	  putchar (c);
+-	  width_remaining --;
+-	  num_printed ++;
++	  if (width_remaining < 5)
++	    break;
++	  printf ("<DEL>");
++	  width_remaining -= 5;
++	  num_printed += 5;
++	}
++      else if (unicode_display != unicode_locale
++	       && unicode_display != unicode_default)
++	{
++	  /* Display unicode characters as something else.  */
++	  unsigned char bytes[4];
++	  bool          is_utf8;
++	  uint          nbytes;
++
++	  bytes[0] = c;
++
++	  if (bytes[0] < 0xc0)
++	    {
++	      nbytes = 1;
++	      is_utf8 = false;
++	    }
++	  else
++	    {
++	      bytes[1] = *symbol++;
++
++	      if ((bytes[1] & 0xc0) != 0x80)
++		{
++		  is_utf8 = false;
++		  /* Do not consume this character.  It may only
++		     be the first byte in the sequence that was
++		     corrupt.  */
++		  --symbol;
++		  nbytes = 1;
++		}
++	      else if ((bytes[0] & 0x20) == 0)
++		{
++		  is_utf8 = true;
++		  nbytes = 2;
++		}
++	      else
++		{
++		  bytes[2] = *symbol++;
++
++		  if ((bytes[2] & 0xc0) != 0x80)
++		    {
++		      is_utf8 = false;
++		      symbol -= 2;
++		      nbytes = 1;
++		    }
++		  else if ((bytes[0] & 0x10) == 0)
++		    {
++		      is_utf8 = true;
++		      nbytes = 3;
++		    }
++		  else
++		    {
++		      bytes[3] = *symbol++;
++
++		      nbytes = 4;
++
++		      if ((bytes[3] & 0xc0) != 0x80)
++			{
++			  is_utf8 = false;
++			  symbol -= 3;
++			  nbytes = 1;
++			}
++		      else
++			is_utf8 = true;
++		    }
++		}
++	    }
++
++	  if (unicode_display == unicode_invalid)
++	    is_utf8 = false;
++
++	  if (unicode_display == unicode_hex || ! is_utf8)
++	    {
++	      uint i;
++
++	      if (width_remaining < (nbytes * 2) + 2)
++		break;
++	  
++	      putchar (is_utf8 ? '<' : '{');
++	      printf ("0x");
++	      for (i = 0; i < nbytes; i++)
++		printf ("%02x", bytes[i]);
++	      putchar (is_utf8 ? '>' : '}');
++	    }
++	  else
++	    {
++	      if (unicode_display == unicode_highlight && isatty (1))
++		printf ("\x1B[31;47m"); /* Red.  */
++	      
++	      switch (nbytes)
++		{
++		case 2:
++		  if (width_remaining < 6)
++		    break;
++		  printf ("\\u%02x%02x",
++			  (bytes[0] & 0x1c) >> 2, 
++			  ((bytes[0] & 0x03) << 6) | (bytes[1] & 0x3f));
++		  break;
++		case 3:
++		  if (width_remaining < 6)
++		    break;
++		  printf ("\\u%02x%02x",
++			  ((bytes[0] & 0x0f) << 4) | ((bytes[1] & 0x3c) >> 2),
++			  ((bytes[1] & 0x03) << 6) | (bytes[2] & 0x3f));
++		  break;
++		case 4:
++		  if (width_remaining < 8)
++		    break;
++		  printf ("\\u%02x%02x%02x",
++			  ((bytes[0] & 0x07) << 6) | ((bytes[1] & 0x3c) >> 2),
++			  ((bytes[1] & 0x03) << 6) | ((bytes[2] & 0x3c) >> 2),
++			  ((bytes[2] & 0x03) << 6) | (bytes[3] & 0x3f));
++		  
++		  break;
++		default:
++		  /* URG.  */
++		  break;
++		}
++
++	      if (unicode_display == unicode_highlight && isatty (1))
++		printf ("\033[0m"); /* Default colour.  */
++	    }
++	  
++	  if (bytes[nbytes - 1] == 0)
++	    break;
+ 	}
+       else
+ 	{
+@@ -4668,6 +4814,7 @@ static struct option options[] =
+   {"syms",	       no_argument, 0, 's'},
+   {"silent-truncation",no_argument, 0, 'T'},
+   {"section-details",  no_argument, 0, 't'},
++  {"unicode",          required_argument, NULL, 'U'},
+   {"unwind",	       no_argument, 0, 'u'},
+   {"version-info",     no_argument, 0, 'V'},
+   {"version",	       no_argument, 0, 'v'},
+@@ -4744,6 +4891,12 @@ usage (FILE * stream)
+   fprintf (stream, _("\
+      --no-recurse-limit  Disable a demangling recursion limit\n"));
+   fprintf (stream, _("\
++     -U[dlexhi] --unicode=[default|locale|escape|hex|highlight|invalid]\n\
++                         Display unicode characters as determined by the current locale\n\
++                          (default), escape sequences, \"<hex sequences>\", highlighted\n\
++                          escape sequences, or treat them as invalid and display as\n\
++                          \"{hex sequences}\"\n"));
++  fprintf (stream, _("\
+   -n --notes             Display the core notes (if present)\n"));
+   fprintf (stream, _("\
+   -r --relocs            Display the relocations (if present)\n"));
+@@ -4928,7 +5081,7 @@ parse_args (struct dump_data *dumpdata,
+     usage (stderr);
+ 
+   while ((c = getopt_long
+-	  (argc, argv, "ACDHILNPR:STVWacdeghi:lnp:rstuvw::x:z", options, NULL)) != EOF)
++	  (argc, argv, "ACDHILNPR:STU:VWacdeghi:lnp:rstuvw::x:z", options, NULL)) != EOF)
+     {
+       switch (c)
+ 	{
+@@ -5130,6 +5283,25 @@ parse_args (struct dump_data *dumpdata,
+ 	  /* Ignored for backward compatibility.  */
+ 	  break;
+ 
++	case 'U':
++	  if (optarg == NULL)
++	    error (_("Missing arg to -U/--unicode")); /* Can this happen ?  */
++	  else if (streq (optarg, "default") || streq (optarg, "d"))
++	    unicode_display = unicode_default;
++	  else if (streq (optarg, "locale") || streq (optarg, "l"))
++	    unicode_display = unicode_locale;
++	  else if (streq (optarg, "escape") || streq (optarg, "e"))
++	    unicode_display = unicode_escape;
++	  else if (streq (optarg, "invalid") || streq (optarg, "i"))
++	    unicode_display = unicode_invalid;
++	  else if (streq (optarg, "hex") || streq (optarg, "x"))
++	    unicode_display = unicode_hex;
++	  else if (streq (optarg, "highlight") || streq (optarg, "h"))
++	    unicode_display = unicode_highlight;
++	  else
++	    error (_("invalid argument to -U/--unicode: %s"), optarg);
++	  break;
++
+ 	case OPTION_SYM_BASE:
+ 	  sym_base = 0;
+ 	  if (optarg != NULL)
+@@ -5285,10 +5457,7 @@ process_file_header (Filedata * filedata
+       if (filedata->section_headers != NULL
+ 	  && header->e_phnum == PN_XNUM
+ 	  && filedata->section_headers[0].sh_info != 0)
+-	{
+-	  header->e_phnum = filedata->section_headers[0].sh_info;
+-	  printf (" (%u)", header->e_phnum);
+-	}
++	printf (" (%u)", filedata->section_headers[0].sh_info);
+       putc ('\n', stdout);
+       printf (_("  Size of section headers:           %u (bytes)\n"),
+ 	      header->e_shentsize);
+@@ -5321,7 +5490,12 @@ process_file_header (Filedata * filedata
+     {
+       if (header->e_phnum == PN_XNUM
+ 	  && filedata->section_headers[0].sh_info != 0)
+-	header->e_phnum = filedata->section_headers[0].sh_info;
++	{
++	  /* Throw away any cached read of PN_XNUM headers.  */
++	  free (filedata->program_headers);
++	  filedata->program_headers = NULL;
++	  header->e_phnum = filedata->section_headers[0].sh_info;
++       }
+       if (header->e_shnum == SHN_UNDEF)
+ 	header->e_shnum = filedata->section_headers[0].sh_size;
+       if (header->e_shstrndx == (SHN_XINDEX & 0xffff))
+@@ -18873,6 +19047,8 @@ get_note_type (Filedata * filedata, unsi
+ 	return _("func");
+       case NT_GO_BUILDID:
+ 	return _("GO BUILDID");
++      case FDO_PACKAGING_METADATA:
++	return _("FDO_PACKAGING_METADATA");
+       default:
+ 	break;
+       }
+@@ -20024,6 +20200,17 @@ print_stapsdt_note (Elf_Internal_Note *p
+   return false;
+ }
+ 
++static bool
++print_fdo_note (Elf_Internal_Note * pnote)
++{
++  if (pnote->descsz > 0 && pnote->type == FDO_PACKAGING_METADATA)
++    {
++      printf (_("    Packaging Metadata: %.*s\n"), (int) pnote->descsz, pnote->descdata);
++      return true;
++    }
++  return false;
++}
++
+ static const char *
+ get_ia64_vms_note_type (unsigned e_type)
+ {
+@@ -20753,6 +20940,8 @@ process_note (Elf_Internal_Note *  pnote
+     return print_stapsdt_note (pnote);
+   else if (startswith (pnote->namedata, "CORE"))
+     return print_core_note (pnote);
++  else if (startswith (pnote->namedata, "FDO"))
++    return print_fdo_note (pnote);
+   else if (((startswith (pnote->namedata, "GA")
+ 	     && strchr ("*$!+", pnote->namedata[2]) != NULL)
+ 	    || strchr ("*$!+", pnote->namedata[0]) != NULL)
+diff -rup binutils.orig/binutils/testsuite/binutils-all/debuginfod.exp binutils-2.37/binutils/testsuite/binutils-all/debuginfod.exp
+--- binutils.orig/binutils/testsuite/binutils-all/debuginfod.exp	2022-03-10 10:52:01.079309401 +0000
++++ binutils-2.37/binutils/testsuite/binutils-all/debuginfod.exp	2022-03-10 10:52:09.782252717 +0000
+@@ -184,8 +184,14 @@ proc test_fetch_debugaltlink { prog prog
+ }
+ 
+ if { [regexp ".*DEBUGINFOD.*" $conf_objdump] } {
+-    test_fetch_debuglink $OBJDUMP "-W"
++    test_fetch_debuglink $OBJDUMP "-W -WD"
+     test_fetch_debugaltlink $OBJDUMP "-Wk"
++
++    set test "disabling debuginfod access"
++    setup_xfail *-*-*
++    test_fetch_debuglink $OBJDUMP "-W -WE"
++    set test "debuginfod"
++
+ } else {
+     untested "$test (objdump not configured with debuginfod)"
+ }
+@@ -193,6 +199,12 @@ if { [regexp ".*DEBUGINFOD.*" $conf_objd
+ if { [regexp ".*DEBUGINFOD.*" $conf_readelf] } {
+     test_fetch_debuglink $READELF "-w"
+     test_fetch_debugaltlink $READELF "-wk"
++
++    set test "disabling debuginfod access"
++    setup_xfail *-*-*
++    test_fetch_debuglink $READELF "-w -wE"
++    set test "debuginfod"
++
+ } else {
+     untested "$test (readelf not configured with debuginfod)"
+ }
+Only in binutils-2.37/binutils/testsuite/binutils-all: debuginfod.exp.orig
