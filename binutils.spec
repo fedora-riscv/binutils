@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -910,6 +910,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-6
+- Simplify the assembler's evaluation of chained .loc view expressions.  [Second attempt]  (#2059646)
+
 * Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-5
 - Add an option to objdump/readelf to disable accessing debuginfod servers.  (#2051741)
 
