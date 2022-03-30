@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -296,6 +296,10 @@ Patch21: binutils-gas-loc-view.patch
 # Purpose:  Add an option to disable access to debuginfod servers.
 # Lifetime: Fixed in 2.39
 Patch22: binutils-do-not-use-debuginfod.patch
+
+# Purpose:  Keep indirect symbol from IR if referenced from shared object.
+# Lifetime: Fixed in 2.39
+Patch23: binutils-indirect-symbols.patch
 
 #----------------------------------------------------------------------------
 
@@ -910,6 +914,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Mar 30 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-7
+- Fix a bug handling indirect symbols.  (PR 28879) (#2068343)
+
 * Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-6
 - Simplify the assembler's evaluation of chained .loc view expressions.  [Second attempt]  (#2059646)
 
