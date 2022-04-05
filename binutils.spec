@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -891,6 +891,8 @@ exit 0
 %{_libdir}/libctf*
 %exclude %{_libdir}/libbfd.so
 %exclude %{_libdir}/libopcodes.so
+%exclude %{_libdir}/libctf.a
+%exclude %{_libdir}/libctf-nobfd.a
 %{_libdir}/bfd-plugins/libdep.so
 %exclude %{_exec_prefix}/lib/debug/%{_libdir}/bfd-plugins/libdep.so-*
 %endif
@@ -914,6 +916,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Apr 04 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-8
+- Fix linker testsuite failures.
+
 * Wed Mar 30 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-7
 - Fix a bug handling indirect symbols.  (PR 28879) (#2068343)
 

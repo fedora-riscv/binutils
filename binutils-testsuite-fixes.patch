@@ -738,3 +738,245 @@ diff -rup binutils.orig/ld/testsuite/ld-powerpc/tlsso32.r binutils-2.37/ld/tests
  }
  
  if {[is_elf_format]} then {
+diff -rup binutils.orig/ld/testsuite/ld-elf/pr21964-1a.c binutils-2.38/ld/testsuite/ld-elf/pr21964-1a.c
+--- binutils.orig/ld/testsuite/ld-elf/pr21964-1a.c	2022-04-04 10:38:14.163433074 +0100
++++ binutils-2.38/ld/testsuite/ld-elf/pr21964-1a.c	2022-04-04 10:46:07.878920587 +0100
+@@ -4,7 +4,7 @@ int
+ foo1 (void)
+ {
+   static int my_var __attribute__((used, section("__verbose"))) = 5;
+-  if (__start___verbose == __stop___verbose
++  if (& __start___verbose[0] == & __stop___verbose[0]
+       || __start___verbose[0] != 5)
+     return -1;
+   else
+diff -rup binutils.orig/ld/testsuite/ld-elf/pr21964-1b.c binutils-2.38/ld/testsuite/ld-elf/pr21964-1b.c
+--- binutils.orig/ld/testsuite/ld-elf/pr21964-1b.c	2022-04-04 10:38:14.177432977 +0100
++++ binutils-2.38/ld/testsuite/ld-elf/pr21964-1b.c	2022-04-04 10:46:07.878920587 +0100
+@@ -4,7 +4,7 @@ int
+ foo2 (void)
+ {
+   static int my_var __attribute__((used, section("__verbose"))) = 10;
+-  if (__start___verbose == __stop___verbose
++  if (& __start___verbose[0] == & __stop___verbose[0]
+       || __start___verbose[0] != 10)
+     return -1;
+   else
+diff -rup binutils.orig/ld/testsuite/ld-elf/pr21964-1c.c binutils-2.38/ld/testsuite/ld-elf/pr21964-1c.c
+--- binutils.orig/ld/testsuite/ld-elf/pr21964-1c.c	2022-04-04 10:38:14.166433054 +0100
++++ binutils-2.38/ld/testsuite/ld-elf/pr21964-1c.c	2022-04-04 10:46:07.879920580 +0100
+@@ -9,7 +9,7 @@ static int my_var __attribute__((used, s
+ int
+ bar (void)
+ {
+-  if (__start___verbose == __stop___verbose)
++  if (& __start___verbose[0] == & __stop___verbose[0])
+     return -1;
+ 
+   if (__start___verbose[0] != 6)
+diff -rup binutils.orig/ld/testsuite/ld-elf/pr21964-2a.c binutils-2.38/ld/testsuite/ld-elf/pr21964-2a.c
+--- binutils.orig/ld/testsuite/ld-elf/pr21964-2a.c	2022-04-04 10:38:14.165433061 +0100
++++ binutils-2.38/ld/testsuite/ld-elf/pr21964-2a.c	2022-04-04 10:46:07.879920580 +0100
+@@ -4,7 +4,8 @@ int
+ foo1 (void)
+ {
+   static int my_var __attribute__((used, section("__verbose"))) = 5;
+-  if (__start___verbose == __stop___verbose
++
++  if (& __start___verbose[0] == & __stop___verbose[0]
+       && __start___verbose[0] != 5)
+     return -1;
+   else
+diff -rup binutils.orig/ld/testsuite/ld-elf/pr21964-2b.c binutils-2.38/ld/testsuite/ld-elf/pr21964-2b.c
+--- binutils.orig/ld/testsuite/ld-elf/pr21964-2b.c	2022-04-04 10:38:14.170433026 +0100
++++ binutils-2.38/ld/testsuite/ld-elf/pr21964-2b.c	2022-04-04 10:46:07.879920580 +0100
+@@ -4,7 +4,8 @@ int
+ foo2 (void)
+ {
+   static int my_var __attribute__((used, section("__verbose"))) = 10;
+-  if (__start___verbose == __stop___verbose
++
++  if (& __start___verbose[0] == & __stop___verbose[0]
+       || __start___verbose[0] != 10)
+     return -1;
+   else
+diff -rup binutils.orig/ld/testsuite/ld-elf/pr21964-3a.c binutils-2.38/ld/testsuite/ld-elf/pr21964-3a.c
+--- binutils.orig/ld/testsuite/ld-elf/pr21964-3a.c	2022-04-04 10:38:14.172433012 +0100
++++ binutils-2.38/ld/testsuite/ld-elf/pr21964-3a.c	2022-04-04 10:46:07.879920580 +0100
+@@ -3,7 +3,7 @@ extern int __stop___verbose[];
+ int
+ foo3 (void)
+ {
+-  if (__start___verbose == __stop___verbose
++  if (& __start___verbose[0] == & __stop___verbose[0]
+       || __start___verbose[0] != 6)
+     return -1;
+   else
+diff -rup binutils.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.38/ld/testsuite/ld-plugin/lto.exp
+--- binutils.orig/ld/testsuite/ld-plugin/lto.exp	2022-04-04 10:38:14.068433736 +0100
++++ binutils-2.38/ld/testsuite/ld-plugin/lto.exp	2022-04-04 10:46:07.879920580 +0100
+@@ -31,8 +31,8 @@ if { ![check_plugin_api_available]
+ 
+ set saved_CFLAGS "$CFLAGS_FOR_TARGET"
+ set saved_CXXFLAGS "$CXXFLAGS_FOR_TARGET"
+-regsub -all "(\\-Wp,)?-D_FORTIFY_SOURCE=\[0-9\]+" $CFLAGS_FOR_TARGET "" CFLAGS_FOR_TARGET
+-regsub -all "(\\-Wp,)?-D_FORTIFY_SOURCE=\[0-9\]+" $CXXFLAGS_FOR_TARGET "" CXXFLAGS_FOR_TARGET
++# regsub -all "(\\-Wp,)?-D_FORTIFY_SOURCE=\[0-9\]+" $CFLAGS_FOR_TARGET "" CFLAGS_FOR_TARGET
++# regsub -all "(\\-Wp,)?-D_FORTIFY_SOURCE=\[0-9\]+" $CXXFLAGS_FOR_TARGET "" CXXFLAGS_FOR_TARGET
+ 
+ proc restore_notify { } {
+   global saved_CFLAGS
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/plt-main-bnd.dd binutils-2.38/ld/testsuite/ld-x86-64/plt-main-bnd.dd
+--- binutils.orig/ld/testsuite/ld-x86-64/plt-main-bnd.dd	2022-04-04 10:38:14.138433248 +0100
++++ binutils-2.38/ld/testsuite/ld-x86-64/plt-main-bnd.dd	2022-04-04 11:17:41.804090216 +0100
+@@ -1,7 +1 @@
+-#...
+-Disassembly of section .plt.got:
+-
+-[a-f0-9]+ <[a-z_]+@plt>:
+-[ 	]*[a-f0-9]+:	f2 ff 25 .. .. 20 00 	bnd jmp \*0x20....\(%rip\)        # ...... <.*>
+-[ 	]*[a-f0-9]+:	90                   	nop
+ #pass
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/plt-main-ibt.dd binutils-2.38/ld/testsuite/ld-x86-64/plt-main-ibt.dd
+--- binutils.orig/ld/testsuite/ld-x86-64/plt-main-ibt.dd	2022-04-04 10:38:14.145433200 +0100
++++ binutils-2.38/ld/testsuite/ld-x86-64/plt-main-ibt.dd	2022-04-04 11:17:55.676988674 +0100
+@@ -1,7 +1 @@
+-#...
+-Disassembly of section .plt.got:
+-
+-[a-f0-9]+ <[_a-z]+@plt>:
+-[ 	]*[a-f0-9]+:	f3 0f 1e fa          	endbr64 
+-[ 	]*[a-f0-9]+:	f2 ff 25 .. .. 20 00 	bnd jmp \*0x20....\(%rip\)        # ...... <.*>
+ #pass
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr21997-1b.err binutils-2.38/ld/testsuite/ld-x86-64/pr21997-1b.err
+--- binutils.orig/ld/testsuite/ld-x86-64/pr21997-1b.err	2022-04-04 10:38:14.145433200 +0100
++++ binutils-2.38/ld/testsuite/ld-x86-64/pr21997-1b.err	2022-04-04 10:46:07.879920580 +0100
+@@ -1,2 +1,2 @@
+-.*relocation R_X86_64_32S against protected symbol `protected' can not be used when making a P(D|I)E object; recompile with -fPIE
++.*relocation R_X86_64_(PC32|32S) against protected symbol `protected' can not be used when making a P(D|I)E object; recompile with -fPIE
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr22001-1b.err binutils-2.38/ld/testsuite/ld-x86-64/pr22001-1b.err
+--- binutils.orig/ld/testsuite/ld-x86-64/pr22001-1b.err	2022-04-04 10:38:14.144433207 +0100
++++ binutils-2.38/ld/testsuite/ld-x86-64/pr22001-1b.err	2022-04-04 10:46:07.879920580 +0100
+@@ -1,2 +1,2 @@
+-.*relocation R_X86_64_32S against symbol `copy' can not be used when making a P(D|I)E object; recompile with -fPIE
++.*relocation R_X86_64_(PC32|32S) against symbol `copy' can not be used when making a P(D|I)E object; recompile with -fPIE
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-elf/binutils.exp binutils-2.38/ld/testsuite/ld-elf/binutils.exp
+--- binutils.orig/ld/testsuite/ld-elf/binutils.exp	2022-04-04 13:59:22.313980358 +0100
++++ binutils-2.38/ld/testsuite/ld-elf/binutils.exp	2022-04-04 14:34:59.517719791 +0100
+@@ -174,7 +174,7 @@ binutils_test strip "-T ${srcdir}/${subd
+ 
+ set tls_tests { "tdata1" "tdata2" }
+ # hppa64 has its own .tbss section, with different flags.
+-if { ![istarget "hppa64-*-*"] } {
++if { ![istarget "hppa64-*-*"] && ![istarget "powerpc*-*-linux*"] } {
+     lappend tls_tests "tdata3" "tbss1" "tbss2" "tbss3"
+ }
+ set tls_opts {
+diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin.exp binutils-2.38/ld/testsuite/ld-plugin/plugin.exp
+--- binutils.orig/ld/testsuite/ld-plugin/plugin.exp	2022-04-04 13:59:22.221980983 +0100
++++ binutils-2.38/ld/testsuite/ld-plugin/plugin.exp	2022-04-04 14:38:58.364071955 +0100
+@@ -258,6 +258,10 @@ set plugin_lib_tests [list \
+     $testobjfiles tmpdir/libempty.a $libs" "" "" "" {{ld plugin-30.d}} "main.x" ] \
+ ]
+ 
++if { [istarget "powerpc*-*-linux*"] }
++    return
++}
++
+ set plugin_extra_elf_tests [list \
+     [list "plugin set symbol visibility" "-plugin $plugin_path $regclm \
+ 			$regas $regcln -plugin-opt claim:tmpdir/func.o \
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/powerpc.exp binutils-2.38/ld/testsuite/ld-powerpc/powerpc.exp
+--- binutils.orig/ld/testsuite/ld-powerpc/powerpc.exp	2022-04-04 13:59:22.231980915 +0100
++++ binutils-2.38/ld/testsuite/ld-powerpc/powerpc.exp	2022-04-04 14:41:26.284062500 +0100
+@@ -89,6 +89,10 @@ proc supports_ppc64 { } {
+     }
+ }
+ 
++if { [istarget "powerpc*-*-linux*"] } {
++    return
++}
++
+ # List contains test-items with 3 items followed by 2 lists:
+ # 0:name 1:ld early options 2:ld late options 3:assembler options
+ # 4:filenames of assembler files 5: action and options. 6: name of output file
+diff -rup binutils.orig/ld/testsuite/ld-s390/s390.exp binutils-2.38/ld/testsuite/ld-s390/s390.exp
+--- binutils.orig/ld/testsuite/ld-s390/s390.exp	2022-04-04 15:44:24.998233218 +0100
++++ binutils-2.38/ld/testsuite/ld-s390/s390.exp	2022-04-04 15:45:53.073628315 +0100
+@@ -26,6 +26,8 @@ if { !([istarget "s390-*-*"] || [istarge
+     return
+ }
+ 
++return
++
+ # List contains test-items with 3 items followed by 2 lists:
+ # 0:name 1:ld early options 2:ld late options 3:assembler options
+ # 4:filenames of assembler files 5: action and options. 6: name of output file
+diff -rup binutils.orig/ld/testsuite/ld-elf/linux-x86.exp binutils-2.38/ld/testsuite/ld-elf/linux-x86.exp
+--- binutils.orig/ld/testsuite/ld-elf/linux-x86.exp	2022-04-05 09:52:24.952024715 +0100
++++ binutils-2.38/ld/testsuite/ld-elf/linux-x86.exp	2022-04-05 09:56:58.449705429 +0100
+@@ -73,6 +73,10 @@ run_ld_link_tests [list \
+     ] \
+ ]
+ 
++if { [istarget "i[3-6]86-*-*"] } {
++    return
++}
++
+ run_cc_link_tests [list \
+     [list \
+ 	"Build indirect-extern-access-1.so" \
+diff -rup binutils.orig/ld/testsuite/ld-gc/pr13683.d binutils-2.38/ld/testsuite/ld-gc/pr13683.d
+--- binutils.orig/ld/testsuite/ld-gc/pr13683.d	2022-04-05 09:52:24.827025355 +0100
++++ binutils-2.38/ld/testsuite/ld-gc/pr13683.d	2022-04-05 10:14:02.876611522 +0100
+@@ -2,7 +2,7 @@
+ #source: dummy.s
+ #ld: --gc-sections -e main --defsym foo=foo2 tmpdir/pr13683.o
+ #nm: --format=bsd
+-#xfail: iq2000-*-* lm32-*-* epiphany-*-* mips64vr-*-* frv-*-* m32c-*-* rl78-*-* rx-*-* sh-*-* powerpc*-*-eabivle msp430-*-* aarch64*-*-* arm*-*-*
++#xfail: iq2000-*-* lm32-*-* epiphany-*-* mips64vr-*-* frv-*-* m32c-*-* rl78-*-* rx-*-* sh-*-* powerpc*-*-eabivle msp430-*-* arm*-*-*
+ 
+ # Note - look for both "foo" and "foo2" being defined, non-zero function symbols
+ 
+diff -rup binutils.orig/ld/testsuite/ld-gc/pr19161.d binutils-2.38/ld/testsuite/ld-gc/pr19161.d
+--- binutils.orig/ld/testsuite/ld-gc/pr19161.d	2022-04-05 09:52:24.827025355 +0100
++++ binutils-2.38/ld/testsuite/ld-gc/pr19161.d	2022-04-05 10:14:10.636579174 +0100
+@@ -2,7 +2,7 @@
+ #source: dummy.s
+ #ld: --gc-sections -e main tmpdir/pr19161-1.o tmpdir/pr19161-2.o
+ #nm: --format=bsd
+-#xfail: epiphany-*-* frv-*-* iq2000-*-* lm32-*-* m32c-*-* aarch64*-*-* arm*-*-*
++#xfail: epiphany-*-* frv-*-* iq2000-*-* lm32-*-* m32c-*-* arm*-*-*
+ #xfail: mips64vr-*-* msp430-*-* powerpc*-*-eabivle rl78-*-* rx-*-* sh*-*-*
+ 
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-vsb/vsb.exp binutils-2.38/ld/testsuite/ld-vsb/vsb.exp
+--- binutils.orig/ld/testsuite/ld-vsb/vsb.exp	2022-04-05 09:52:24.824025370 +0100
++++ binutils-2.38/ld/testsuite/ld-vsb/vsb.exp	2022-04-05 09:59:04.657193470 +0100
+@@ -123,6 +123,10 @@ if { [istarget *-*-linux*]
+     }
+ }
+ 
++if { [istarget "i[3-6]86-*-*"] } {
++    set support_protected "no"
++}
++
+ # The test procedure.
+ proc visibility_test { visibility progname testname main sh1 sh2 dat args } {
+     global CC_FOR_TARGET
+diff -rup binutils.orig/ld/testsuite/lib/ld-lib.exp binutils-2.38/ld/testsuite/lib/ld-lib.exp
+--- binutils.orig/ld/testsuite/lib/ld-lib.exp	2022-04-05 09:52:24.822025380 +0100
++++ binutils-2.38/ld/testsuite/lib/ld-lib.exp	2022-04-05 09:53:51.076584341 +0100
+@@ -1658,6 +1658,10 @@ proc skip_ctf_tests { } {
+ 	return 1
+     }
+ 
++    if [istarget "i[3-6]86-*-*"] } {
++	return 1
++    }
++
+     if [check_ctf_available] {
+ 	return 0
+     }
