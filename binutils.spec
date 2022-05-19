@@ -374,6 +374,9 @@ Requires(post): coreutils
 BuildRequires: elfutils-debuginfod-client-devel
 %endif
 
+# The priority of the linker.  Important oif the gold linker is also being built.
+%{!?ld_bfd_priority: %global ld_bfd_priority    50}
+
 #----------------------------------------------------------------------------
 
 %description
@@ -388,8 +391,6 @@ information about binary files), size (for listing the section sizes
 of an object or archive file), strings (for listing printable strings
 from files), strip (for discarding symbols), and addr2line (for
 converting addresses to file and line).
-
-%{!?ld_bfd_priority: %global ld_bfd_priority    50}
 
 #----------------------------------------------------------------------------
 
