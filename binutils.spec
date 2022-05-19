@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -300,6 +300,10 @@ Patch22: binutils-do-not-use-debuginfod.patch
 # Purpose:  Keep indirect symbol from IR if referenced from shared object.
 # Lifetime: Fixed in 2.39
 Patch23: binutils-indirect-symbols.patch
+
+# Purpose:  Support generating static PIE binaries for the s390x.
+# Lifetime: Fixed in 2.39
+Patch24: binutils-s390x-static-PIE.patch
 
 #----------------------------------------------------------------------------
 
@@ -916,6 +920,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu May 19 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-10
+- Add support for generating static PIE binaries for s390x.  (#2088331)
+
 * Thu May 12 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-9
 - Fix description of gold subpackage so that it does not include the Requires fields.  (#2082919)
 
