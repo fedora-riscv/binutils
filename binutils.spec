@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -315,6 +315,10 @@ Patch26: binutils-readelf-corrupt-program-headers.patch
 # Lifetime: Fixed in 2.39
 Patch27: binutils-do-not-use-debuginfod.patch
 
+# Purpose:  Support generating static PIE binaries for the s390x.
+# Lifetime: Fixed in 2.39
+Patch28: binutils-s390x-static-PIE.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -381,6 +385,9 @@ Requires(post): coreutils
 BuildRequires: elfutils-debuginfod-client-devel
 %endif
 
+# The priority of the linker.  Important oif the gold linker is also being built.
+%{!?ld_bfd_priority: %global ld_bfd_priority    50}
+
 #----------------------------------------------------------------------------
 
 %description
@@ -406,6 +413,14 @@ Requires: binutils = %{version}-%{release}
 # BZ 1215242: We need touch...
 Requires: coreutils
 
+# BZ 1924068.  Since applications that use the BFD library are
+# required to link against the static version, ensure that it retains
+# its debug informnation.
+# FIXME: Yes - this is being done twice.  I have no idea why this
+# second invocation is necessary but if both are not present the
+# static archives will be stripped.
+%undefine __brp_strip_static_archive
+
 %description devel
 This package contains BFD and opcodes static and dynamic libraries.
 
@@ -420,14 +435,6 @@ dynamic libraries.
 Developers starting new projects are strongly encouraged to consider
 using libelf instead of BFD.
 
-# BZ 1924068.  Since applications that use the BFD library are
-# required to link against the static version, ensure that it retains
-# its debug informnation.
-# FIXME: Yes - this is being done twice.  I have no idea why this
-# second invocation is necessary but if both are not present the
-# static archives will be stripped.
-%undefine __brp_strip_static_archive
-
 #----------------------------------------------------------------------------
 
 %if %{with gold}
@@ -436,13 +443,6 @@ using libelf instead of BFD.
 Summary: The GOLD linker, a faster alternative to the BFD linker
 Provides: gold = %{version}-%{release}
 Requires: binutils >= %{version}
-
-%description gold
-This package provides the GOLD linker, which can be used as an alternative to
-the default binutils linker (ld.bfd).  The GOLD is generally faster than the
-BFD linker, and it supports features such as Identical Code Folding and
-Incremental linking.  Unfortunately it is not as well maintained as the BFD
-linker, and it may become deprecated in the future.
 
 # Gold needs bison in order to build gold/yyscript.c.
 BuildRequires: bison, m4, gcc-c++
@@ -454,12 +454,17 @@ BuildRequires: gcc-c++
 Conflicts: gcc-c++ < 4.0.0
 %endif
 
-# The higher of these two numbers determines the default ld.
+# If ld_gold_priority is higher than ld_bfd_priority then it will be the default linker.
 %{!?ld_gold_priority:%global ld_gold_priority   30}
 
-%endif
+%description gold
+This package provides the GOLD linker, which can be used as an alternative to
+the default binutils linker (ld.bfd).  The GOLD is generally faster than the
+BFD linker, and it supports features such as Identical Code Folding and
+Incremental linking.  Unfortunately it is not as well maintained as the BFD
+linker, and it may become deprecated in the future.
 
-%{!?ld_bfd_priority: %global ld_bfd_priority    50}
+%endif
 
 #----------------------------------------------------------------------------
 
@@ -932,6 +937,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu May 19 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-18
+- Add support for generating static PIE binaries for s390x.  (#2088331)
+
 * Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-17
 - Add an option to objdump/readelf to disable accessing debuginfod servers.  (#2051741)
 
