@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 28%{?dist}
+Release: 29%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -345,6 +345,10 @@ Patch32: binutils-readelf-corrupt-program-headers.patch
 # Lifetime: Fixed in 2.39
 Patch33: binutils-do-not-use-debuginfod.patch
 
+# Purpose:  Support generating static PIE binaries for the s390x.
+# Lifetime: Fixed in 2.39
+Patch34: binutils-s390x-static-PIE.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -414,6 +418,7 @@ Requires(post): coreutils
 BuildRequires: elfutils-debuginfod-client-devel
 %endif
 
+# The priority of the linker.  Important oif the gold linker is also being built.
 %{!?ld_bfd_priority: %global ld_bfd_priority    50}
 
 #----------------------------------------------------------------------------
@@ -914,6 +919,9 @@ exit 0
 # %%verify(symlink) does not work for some reason, so using "owner" instead.
 %verify(owner) %{_bindir}/%{?cross}ld
 %{_bindir}/%{?cross}ld.bfd
+# Do not export any Windows tools (if they were built)
+%exclude %{_bindir}/%{?cross}dll*
+%exclude %{_bindir}/%{?cross}wind*
 
 %if %{with docs}
 %{_mandir}/man1/
@@ -954,7 +962,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Thu May 19 2022 Yara Ahmad  <yahmad@redhat.com> - 2.38-8
+* Thu May 19 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-29
+- Add support for generating static PIE binaries for s390x.  (#2088331)
+
+* Thu May 19 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-28
 - Fix description of gold subpackage so that it does not include the Requires fields.  (#2082919)
 
 * Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-27
