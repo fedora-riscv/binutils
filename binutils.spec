@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -304,6 +304,10 @@ Patch23: binutils-indirect-symbols.patch
 # Purpose:  Support generating static PIE binaries for the s390x.
 # Lifetime: Fixed in 2.39
 Patch24: binutils-s390x-static-PIE.patch
+
+# Purpose:  Stop readelf and objdump from unnecessarily following links.
+# Lifetime: Fixed in 2.39
+Patch25: binutils-link-following.patch
 
 #----------------------------------------------------------------------------
 
@@ -921,6 +925,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri May 20 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-11
+- Stop readelf and objdump from unnecessarily following links.  (#2086863)
+
 * Thu May 19 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-10
 - Add support for generating static PIE binaries for s390x.  (#2088331)
 
