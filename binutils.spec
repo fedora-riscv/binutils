@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -308,6 +308,10 @@ Patch24: binutils-s390x-static-PIE.patch
 # Purpose:  Stop readelf and objdump from unnecessarily following links.
 # Lifetime: Fixed in 2.39
 Patch25: binutils-link-following.patch
+
+# Purpose:  x86 linker: Disallow invalid relocations against protected symbols.
+# Lifetime: Fixed in 2.39
+Patch26: binutils-x86-non-canonical-references.patch
 
 #----------------------------------------------------------------------------
 
@@ -925,6 +929,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 24 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-12
+- x86 linker: Disallow invalid relocations against protected symbols.  (#2089358)
+
 * Fri May 20 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-11
 - Stop readelf and objdump from unnecessarily following links.  (#2086863)
 
