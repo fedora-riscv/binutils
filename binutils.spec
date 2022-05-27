@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -312,6 +312,12 @@ Patch25: binutils-link-following.patch
 # Purpose:  x86 linker: Disallow invalid relocations against protected symbols.
 # Lifetime: Fixed in 2.39
 Patch26: binutils-x86-non-canonical-references.patch
+
+%if %{enable_new_dtags}
+# Purpose:  Change ld man page so that it says that --enable-new-dtags is the default.
+# Lifetime: Permanent
+Patch27: binutils-update-linker-manual.patch
+%endif
 
 #----------------------------------------------------------------------------
 
@@ -929,6 +935,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri May 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-13
+- Change the ld man page so that it says that --enable-new-dtags is the default.  (#2090818)
+
 * Tue May 24 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-12
 - x86 linker: Disallow invalid relocations against protected symbols.  (#2089358)
 
