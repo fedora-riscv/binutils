@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -545,14 +545,12 @@ export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
 %define enable_shared 0
 %endif
 
-%if %{with clang}
-%define _with_cc_clang 1
+%if %{enable_new_dtags}
+export LDFLAGS="$LDFLAGS -Wl,--enable-new-dtags"
 %endif
 
-# BZ 1541027 - include the linker flags from redhat-rpm-config as well.
-export LDFLAGS=$RPM_LD_FLAGS
-%if %{enable_new_dtags}
-export LDFLAGS="$LD_FLAGS -Wl,--enable-new-dtags"
+%if %{with clang}
+%define _with_cc_clang 1
 %endif
 
 CARGS=
@@ -722,7 +720,7 @@ make prefix=%{buildroot}%{_prefix} infodir=%{buildroot}%{_infodir} install-info
 %make_build CFLAGS="-g -fPIC $CFLAGS" -C libiberty
 
 %if %{enable_new_dtags}
-export LDFLAGS="$RPM_LD_FLAGS -Wl,--enable-new-dtags"
+export LDFLAGS="$LDFLAGS -Wl,--enable-new-dtags"
 %endif
 
 # Rebuild libbfd.a with -fPIC.
@@ -935,6 +933,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri May 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-14
+- Fix bug in binutils.spec file that was causing the wrong linker flags to be used.
+
 * Fri May 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-13
 - Change the ld man page so that it says that --enable-new-dtags is the default.  (#2090818)
 
