@@ -1,0 +1,29 @@
+Only in binutils-2.37: binutils-update-linker-manual.patch
+Only in binutils-2.37/ld: ld.1.orig
+Only in binutils-2.37/ld: ld.1.rej
+diff -rup binutils.orig/ld/ld.info binutils-2.37/ld/ld.info
+--- binutils.orig/ld/ld.info	2022-06-08 17:11:56.281578073 +0200
++++ binutils-2.37/ld/ld.info	2022-06-08 17:13:14.784873487 +0200
+@@ -2211,7 +2211,7 @@ GNU linker:
+      '--enable-new-dtags', the new dynamic tags will be created as
+      needed and older dynamic tags will be omitted.  If you specify
+      '--disable-new-dtags', no new dynamic tags will be created.  By
+-     default, the new dynamic tags are not created.  Note that those
++     default, the new dynamic tags are created.  Note that those
+      options are only available for ELF systems.
+ 
+ '--hash-size=NUMBER'
+Only in binutils-2.37/ld: ld.info.orig
+diff -rup binutils.orig/ld/ld.texi binutils-2.37/ld/ld.texi
+--- binutils.orig/ld/ld.texi	2022-06-08 17:11:56.281578073 +0200
++++ binutils-2.37/ld/ld.texi	2022-06-08 17:13:14.788873503 +0200
+@@ -2773,7 +2773,7 @@ systems may not understand them. If you
+ @option{--enable-new-dtags}, the new dynamic tags will be created as needed
+ and older dynamic tags will be omitted.
+ If you specify @option{--disable-new-dtags}, no new dynamic tags will be
+-created. By default, the new dynamic tags are not created. Note that
++created. By default, the new dynamic tags are created. Note that
+ those options are only available for ELF systems.
+ 
+ @kindex --hash-size=@var{number}
+Only in binutils-2.37/ld: ld.texi.orig

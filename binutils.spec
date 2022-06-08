@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -324,6 +324,11 @@ Patch28: binutils-s390x-static-PIE.patch
 # Lifetime: Fixed in 2.39
 Patch29: binutils-link-following.patch
 
+%if %{enable_new_dtags}
+# Purpose:  Change ld man page so that it says that --enable-new-dtags is the default.
+# Lifetime: Permanent
+Patch30: binutils-update-linker-manual.patch
+%endif
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -942,7 +947,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-%changelog
+* Wed Jun 8 2022 Yara Ahmad <yahmad@redhat.com> - 2.37-31
+- Fix bug in binutils.spec file that was causing the wrong linker flags to be used.
+- Change the ld man page so that it says that --enable-new-dtags is the default.  (#2090818)
+
 * Sat May 21 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-19
 - Stop readelf and objdump from unnecessarily following links.  (#2086863)
 
