@@ -881,7 +881,7 @@ diff -rup binutils.orig/ld/testsuite/ld-plugin/plugin.exp binutils-2.38/ld/tests
      $testobjfiles tmpdir/libempty.a $libs" "" "" "" {{ld plugin-30.d}} "main.x" ] \
  ]
  
-+if { [istarget "powerpc*-*-linux*"] }
++if { [istarget "powerpc*-*-linux*"] } {
 +    return
 +}
 +
@@ -921,7 +921,7 @@ diff -rup binutils.orig/ld/testsuite/ld-elf/linux-x86.exp binutils-2.38/ld/tests
      ] \
  ]
  
-+if { [istarget "i[3-6]86-*-*"] } {
++if { [istarget "i?86-*-*"] } {
 +    return
 +}
 +
@@ -959,7 +959,7 @@ diff -rup binutils.orig/ld/testsuite/ld-vsb/vsb.exp binutils-2.38/ld/testsuite/l
      }
  }
  
-+if { [istarget "i[3-6]86-*-*"] } {
++if { [istarget "i?86-*-*"] } {
 +    set support_protected "no"
 +}
 +
@@ -973,7 +973,7 @@ diff -rup binutils.orig/ld/testsuite/lib/ld-lib.exp binutils-2.38/ld/testsuite/l
  	return 1
      }
  
-+    if [istarget "i[3-6]86-*-*"] {
++    if { [istarget "i?86-*-*"] } {
 +	return 1
 +    }
 +
