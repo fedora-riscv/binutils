@@ -947,7 +947,7 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Wed Jun 8 2022 Yara Ahmad <yahmad@redhat.com> - 2.37-31
+* Wed Jun 8 2022 Yara Ahmad <yahmad@redhat.com> - 2.37-20
 - Fix bug in binutils.spec file that was causing the wrong linker flags to be used.
 - Change the ld man page so that it says that --enable-new-dtags is the default.  (#2090818)
 
