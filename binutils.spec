@@ -159,6 +159,8 @@ URL: https://sourceware.org/binutils
 # its debug informnation.
 %undefine __brp_strip_static_archive
 
+%define _find_debuginfo_opts --remove-section .gnu.build.attributes
+
 #----------------------------------------------------------------------------
 
 # Note - the Linux Kernel binutils releases are too unstable and contain
@@ -318,6 +320,10 @@ Patch26: binutils-x86-non-canonical-references.patch
 # Lifetime: Permanent
 Patch27: binutils-update-linker-manual.patch
 %endif
+
+# Purpose:  Power64 linker: Fix bug handling DT_RELR relocs.
+# Lifetime: Fixed in 2.39
+Patch28: binutils-ppc64-DT_RELR-relocs.patch
 
 #----------------------------------------------------------------------------
 
@@ -933,58 +939,62 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Wed Jun 08 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-14
+* Mon Jun 13 2022 Nick Clifton  <nickc@redhat.com> - 2.38-15
+- Fix a problem with PowerPC's handling of DT_RELR relocs.  (#2095622)
+- Move annobin data into a separate debuginfo file.
+
+* Wed Jun 08 2022 Nick Clifton  <nickc@redhat.com> - 2.38-14
 - Fix bugs preventing the linker tests from running.
 
-* Fri May 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-14
+* Fri May 27 2022 Nick Clifton  <nickc@redhat.com> - 2.38-14
 - Fix bug in binutils.spec file that was causing the wrong linker flags to be used.
 
-* Fri May 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-13
+* Fri May 27 2022 Nick Clifton  <nickc@redhat.com> - 2.38-13
 - Change the ld man page so that it says that --enable-new-dtags is the default.  (#2090818)
 
-* Tue May 24 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-12
+* Tue May 24 2022 Nick Clifton  <nickc@redhat.com> - 2.38-12
 - x86 linker: Disallow invalid relocations against protected symbols.  (#2089358)
 
-* Fri May 20 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-11
+* Fri May 20 2022 Nick Clifton  <nickc@redhat.com> - 2.38-11
 - Stop readelf and objdump from unnecessarily following links.  (#2086863)
 
-* Thu May 19 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-10
+* Thu May 19 2022 Nick Clifton  <nickc@redhat.com> - 2.38-10
 - Add support for generating static PIE binaries for s390x.  (#2088331)
 
-* Thu May 12 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-9
+* Thu May 12 2022 Nick Clifton  <nickc@redhat.com> - 2.38-9
 - Fix description of gold subpackage so that it does not include the Requires fields.  (#2082919)
 
-* Mon Apr 04 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-8
+* Mon Apr 04 2022 Nick Clifton  <nickc@redhat.com> - 2.38-8
 - Fix linker testsuite failures.
 
-* Wed Mar 30 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-7
+* Wed Mar 30 2022 Nick Clifton  <nickc@redhat.com> - 2.38-7
 - Fix a bug handling indirect symbols.  (PR 28879) (#2068343)
 
-* Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-6
+* Thu Mar 10 2022 Nick Clifton  <nickc@redhat.com> - 2.38-6
 - Simplify the assembler's evaluation of chained .loc view expressions.  [Second attempt]  (#2059646)
 
-* Thu Mar 10 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-5
+* Thu Mar 10 2022 Nick Clifton  <nickc@redhat.com> - 2.38-5
 - Add an option to objdump/readelf to disable accessing debuginfod servers.  (#2051741)
 
-* Wed Mar 09 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-4
+* Wed Mar 09 2022 Nick Clifton  <nickc@redhat.com> - 2.38-4
 - Simplify the assembler's evaluation of chained .loc view expressions.  (#2059646)
 
-* Mon Feb 28 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-3
+* Mon Feb 28 2022 Nick Clifton  <nickc@redhat.com> - 2.38-3
 - Do not export any windows tools (if they were built).  (#2057636)
 
-* Wed Feb 16 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-2
+* Wed Feb 16 2022 Nick Clifton  <nickc@redhat.com> - 2.38-2
 - Add support for specifying a section type in linker scripts.  (#2052801)
 
-* Wed Feb 09 2022 Nick Clifton  <nickc@redhat.comn> - 2.38-1
+* Wed Feb 09 2022 Nick Clifton  <nickc@redhat.com> - 2.38-1
 - Rebase on GNU Binutils 2.38.
 
-* Thu Jan 27 2022 Nick Clifton  <nickc@redhat.comn> - 2.37-25
+* Thu Jan 27 2022 Nick Clifton  <nickc@redhat.com> - 2.37-25
 - Borrow a patch from the GCC package to stop libtool from inserting needless runpaths into binaries.  (#2030667)
 
 * Wed Jan 19 2022 Fedora Release Engineering <releng@fedoraproject.org> - 2.37-24
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_36_Mass_Rebuild
 
-* Mon Dec 20 2021 Nick Clifton  <nickc@redhat.comn> - 2.37-23
+* Mon Dec 20 2021 Nick Clifton  <nickc@redhat.com> - 2.37-23
 - Fix a potential illegal memory access parsing a COFF format file.  (#2033716)
 
 * Thu Dec 02 2021 Luca Boccassi  <luca.boccassi@microsoft.com> - 2.37-22
