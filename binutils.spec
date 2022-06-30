@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 15%{?dist}
+Release: 17%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -159,7 +159,8 @@ URL: https://sourceware.org/binutils
 # its debug informnation.
 %undefine __brp_strip_static_archive
 
-%define _find_debuginfo_opts --remove-section .gnu.build.attributes
+# Define this to move the annobin profiling data into the separate debuginfo file.
+# %%define _find_debuginfo_opts --remove-section .gnu.build.attributes
 
 #----------------------------------------------------------------------------
 
@@ -939,6 +940,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jun 30 2022 Nick Clifton  <nickc@redhat.com> - 2.38-16
+- Fix a problem honouring readelf's -wE and -wN command line options.
+
 * Mon Jun 13 2022 Nick Clifton  <nickc@redhat.com> - 2.38-15
 - Fix a problem with PowerPC's handling of DT_RELR relocs.  (#2095622)
 - Move annobin data into a separate debuginfo file.
