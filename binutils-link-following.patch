@@ -342,3 +342,17 @@ diff -rup binutils.orig/binutils/testsuite/binutils-all/readelf.k binutils-2.38/
    Separate debug info file: linkdebug\.debug
    Build-ID \(0x18 bytes\):
   00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff 01 23 45 67 89 ab cd ef
+--- binutils.ori/binutils/dwarf.c	2022-06-30 14:55:24.390992919 +0100
++++ binutils-2.38/binutils/dwarf.c	2022-06-30 14:58:06.540908399 +0100
+@@ -11849,7 +11852,10 @@ dwarf_select_sections_by_letters (const
+ 	{
+ 	  if (entry->letter == * letters)
+ 	    {
+-	      * entry->variable |= entry->val;
++	      if (entry->val == 0)
++		* entry->variable = 0;
++	      else
++		* entry->variable |= entry->val;
+ 	      result |= entry->val;
+ 
+ 	      if (! entry->cont)
