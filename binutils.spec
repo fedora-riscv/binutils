@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -947,6 +947,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jun 30 2022 Nick Clifton  <nickc@redhat.com> - 2.37-21
+- Fix a problem honouring readelf's -wE and -wN command line options.
+
 * Wed Jun 8 2022 Yara Ahmad <yahmad@redhat.com> - 2.37-20
 - Fix bug in binutils.spec file that was causing the wrong linker flags to be used.
 - Change the ld man page so that it says that --enable-new-dtags is the default.  (#2090818)
