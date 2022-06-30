@@ -969,18 +969,3 @@ diff -rup binutils.orig/binutils/testsuite/binutils-all/debuginfod.exp binutils-
  } else {
      untested "$test (readelf not configured with debuginfod)"
  }
-Only in binutils-2.37/binutils/testsuite/binutils-all: debuginfod.exp.orig
---- binutils.orig/binutils/dwarf.c	2022-06-30 15:28:53.484593360 +0100
-+++ binutils-2.37/binutils/dwarf.c	2022-06-30 15:32:22.112213811 +0100
-@@ -11689,7 +11689,10 @@ dwarf_select_sections_by_letters (const
- 	{
- 	  if (entry->letter == * letters)
- 	    {
--	      * entry->variable |= entry->val;
-+	      if (entry->val == 0)
-+		* entry->variable = 0;
-+	      else
-+		* entry->variable |= entry->val;
- 	      result |= entry->val;
- 
- 	      if (! entry->cont)
