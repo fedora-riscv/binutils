@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -940,6 +940,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jul 20 2022 Fedora Release Engineering <releng@fedoraproject.org> - 2.38-18
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
+
 * Thu Jun 30 2022 Nick Clifton  <nickc@redhat.com> - 2.38-16
 - Fix a problem honouring readelf's -wE and -wN command line options.
 
