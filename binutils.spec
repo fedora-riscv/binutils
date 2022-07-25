@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -566,7 +566,7 @@ CARGS=
 CARGS="$CARGS --with-debuginfod"
 %endif
 
-%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
+%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm aarch64 riscv
 CARGS="$CARGS --enable-64-bit-bfd"
 %endif
 
@@ -940,6 +940,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jul 25 2022 Nick Clifton  <nickc@redhat.com> - 2.38-19
+- Restore the use of --enable-64-bit-bfd for the AArch64 and Riscv targets.
+
 * Wed Jul 20 2022 Fedora Release Engineering <releng@fedoraproject.org> - 2.38-18
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
 
