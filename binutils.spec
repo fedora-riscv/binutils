@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -566,7 +566,7 @@ CARGS=
 CARGS="$CARGS --with-debuginfod"
 %endif
 
-%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm aarch64 riscv
+%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm aarch64 riscv64
 CARGS="$CARGS --enable-64-bit-bfd"
 %endif
 
@@ -765,7 +765,7 @@ rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.so
 rm -f %{buildroot}%{_libdir}/*.la
 
 # Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
-%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
+%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm aarch64 riscv64
 # Sanity check --enable-64-bit-bfd really works.
 grep '^#define BFD_ARCH_SIZE 64$' %{buildroot}%{_prefix}/include/bfd.h
 sed -i -e '/^#include "ansidecl.h"/{p;s~^.*$~#include <bits/wordsize.h>~;}' \
@@ -940,8 +940,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jul 26 2022 Amit Shah  <amitshah@fedoraproject.org> - 2.38-20
+- Check and enable 64-bit bfd on aarch64 and riscv64.
+
 * Mon Jul 25 2022 Nick Clifton  <nickc@redhat.com> - 2.38-19
-- Restore the use of --enable-64-bit-bfd for the AArch64 and Riscv targets.
+- Restore the use of --enable-64-bit-bfd for the AArch64 and riscv64 targets.
 
 * Wed Jul 20 2022 Fedora Release Engineering <releng@fedoraproject.org> - 2.38-18
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_37_Mass_Rebuild
