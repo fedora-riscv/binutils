@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -325,6 +325,10 @@ Patch27: binutils-update-linker-manual.patch
 # Purpose:  Power64 linker: Fix bug handling DT_RELR relocs.
 # Lifetime: Fixed in 2.39
 Patch28: binutils-ppc64-DT_RELR-relocs.patch
+
+# Purpose:  Tweak the PowerPC assembler's handling of the .machine directive
+# Lifetime: Fixed in 2.39
+Patch29: binutils-ppc-gas-machine-directive.patch
 
 #----------------------------------------------------------------------------
 
@@ -940,6 +944,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jul 26 2022 Nick Clifton  <nickc@redhat.com> - 2.38-21
+- Tweak the PowerPC assembler's handling of the .machine directive.  (#2111082)
+
 * Tue Jul 26 2022 Amit Shah  <amitshah@fedoraproject.org> - 2.38-20
 - Check and enable 64-bit bfd on aarch64 and riscv64.
 
