@@ -681,7 +681,7 @@ esac
 %if %{without testsuite}
 echo ====================TESTSUITE DISABLED=========================
 %else
-make -k check < /dev/null
+make -k check < /dev/null || :
 echo ====================TESTING=========================
 cat {gas/testsuite/gas,ld/ld,binutils/binutils}.sum
 %if %{with gold}
