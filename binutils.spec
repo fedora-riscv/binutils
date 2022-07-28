@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -681,7 +681,7 @@ esac
 %if %{without testsuite}
 echo ====================TESTSUITE DISABLED=========================
 %else
-make -k check < /dev/null || :
+make -k check < /dev/null
 echo ====================TESTING=========================
 cat {gas/testsuite/gas,ld/ld,binutils/binutils}.sum
 %if %{with gold}
@@ -944,6 +944,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jul 28 2022 Nick Clifton  <nickc@redhat.com> - 2.38-22
+- Fix a couple of x86_64 linker testsuite failures.
+
 * Tue Jul 26 2022 Nick Clifton  <nickc@redhat.com> - 2.38-21
 - Tweak the PowerPC assembler's handling of the .machine directive.  (#2111082)
 

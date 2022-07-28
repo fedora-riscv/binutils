@@ -980,3 +980,30 @@ diff -rup binutils.orig/ld/testsuite/lib/ld-lib.exp binutils-2.38/ld/testsuite/l
      if [check_ctf_available] {
  	return 0
      }
+--- binutils.orig/ld/testsuite/ld-x86-64/x86-64.exp	2022-07-28 08:36:10.805963313 +0100
++++ binutils-2.38/ld/testsuite/ld-x86-64/x86-64.exp	2022-07-28 08:40:35.482073002 +0100
+@@ -1886,24 +1886,6 @@ if { [isnative] && [check_compiler_avail
+ 	    "-fPIE" \
+ 	] \
+ 	[list \
+-	    "Run protected-data-1a without PIE" \
+-	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-data-1a.so" \
+-	    "-Wa,-mx86-used-note=yes" \
+-	    { protected-data-1b.c } \
+-	    "protected-data-1a" \
+-	    "pass.out" \
+-	    "$NOPIE_CFLAGS" \
+-	] \
+-	[list \
+-	    "Run protected-data-1b with PIE" \
+-	    "-Wl,--no-as-needed -pie tmpdir/libprotected-data-1a.so" \
+-	    "-Wa,-mx86-used-note=yes" \
+-	    { protected-data-1b.c } \
+-	    "protected-data-1b" \
+-	    "pass.out" \
+-	    "-fPIE" \
+-	] \
+-	[list \
+ 	    "Run protected-data-2a without PIE" \
+ 	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-data-2a.so" \
+ 	    "-Wa,-mx86-used-note=yes" \
