@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 32%{?dist}
+Release: 33%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -601,7 +601,7 @@ CARGS=
 CARGS="$CARGS --with-debuginfod"
 %endif
 
-%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
+%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm aarch64 riscv64
 CARGS="$CARGS --enable-64-bit-bfd"
 %endif
 
@@ -800,7 +800,7 @@ rm -f %{buildroot}%{_libdir}/lib{bfd,opcodes}.so
 rm -f %{buildroot}%{_libdir}/*.la
 
 # Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
-%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
+%ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm aarch64 riscv64
 # Sanity check --enable-64-bit-bfd really works.
 grep '^#define BFD_ARCH_SIZE 64$' %{buildroot}%{_prefix}/include/bfd.h
 sed -i -e '/^#include "ansidecl.h"/{p;s~^.*$~#include <bits/wordsize.h>~;}' \
@@ -972,6 +972,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Aug 03 2022 Yara Ahmad <yahmad@redhat.com> - 2.37-33
+- Restore the use of --enable-64-bit-bfd for the AArch64 and riscv64 targets.
+- Check and enable 64-bit bfd on aarch64 and riscv64.
+
 * Thu Jun 30 2022 Nick Clifton  <nickc@redhat.com> - 2.37-32
 - Fix a problem honouring readelf's -wE and -wN command line options.
 
