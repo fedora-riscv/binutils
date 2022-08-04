@@ -370,7 +370,7 @@ BuildRequires: gcc
 %endif
 
 %if %{without bootstrap}
-BuildRequires: gettext, flex, zlib-devel
+BuildRequires: gettext, flex, zlib-devel, jansson-devel
 %endif
 
 %if %{with docs}
@@ -667,6 +667,9 @@ esac
 %endif
 %if %{enable_separate_code}
   --enable-separate-code=yes \
+%endif
+%if %{without bootstrap}
+  --enable-jansson=yes \
 %endif
   $CARGS \
   --enable-plugins \
