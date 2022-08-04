@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -329,6 +329,10 @@ Patch28: binutils-ppc64-DT_RELR-relocs.patch
 # Purpose:  Tweak the PowerPC assembler's handling of the .machine directive
 # Lifetime: Fixed in 2.39
 Patch29: binutils-ppc-gas-machine-directive.patch
+
+# Purpose:  Add a --package-metadata option to the linkers.
+# Lifetime: Fixed in 2.39 (for ld.bfd)
+Patch30: binutils-package-metadata.patch
 
 #----------------------------------------------------------------------------
 
@@ -944,6 +948,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Aug 04 2022 Nick Clifton  <nickc@redhat.com> - 2.38-23
+- Add the --package-metadata option to the linkers.  (#2099999)
+
 * Thu Jul 28 2022 Nick Clifton  <nickc@redhat.com> - 2.38-22
 - Fix a couple of x86_64 linker testsuite failures.
 
