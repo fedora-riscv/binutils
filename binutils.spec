@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 22%{?dist}
+Release: 23%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -329,6 +329,10 @@ Patch29: binutils-link-following.patch
 # Lifetime: Permanent
 Patch30: binutils-update-linker-manual.patch
 %endif
+
+# Purpose:  Add a --package-metadata option to the linkers.
+# Lifetime: Fixed in 2.39 (for ld.bfd)
+Patch31: binutils-package-metadata.patch
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -947,6 +951,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Aug 05 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-23
+- Add the --package-metadata option to the linkers.  (#2099999)
+
 * Wed Aug 03 2022 Yara Ahmad <yahmad@redhat.com> - 2.37-22
 - Restore the use of --enable-64-bit-bfd for the AArch64 and riscv64 targets.
 - Check and enable 64-bit bfd on aarch64 and riscv64.
