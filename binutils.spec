@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -951,6 +951,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Aug 10 2022 Luca Boccassi  <bluca@debian.org>  - 2.38-24
+- Build with jansson when not bootstrapping.
+
 * Thu Aug 04 2022 Nick Clifton  <nickc@redhat.com> - 2.38-23
 - Add the --package-metadata option to the linkers.  (#2099999)
 
