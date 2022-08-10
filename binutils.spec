@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -333,6 +333,10 @@ Patch30: binutils-update-linker-manual.patch
 # Purpose:  Add a --package-metadata option to the linkers.
 # Lifetime: Fixed in 2.39 (for ld.bfd)
 Patch31: binutils-package-metadata.patch
+
+# Purpose: Fixes warning when running strip on an object file 
+# Lifetime: Fixed in 2.38 
+Patch32: binutils-strip-objcopy-preserve-dates.patch
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -951,6 +955,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Aug 10 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-24
+- Fixes warning when running strip on an object file  (#2114597)
+
 * Fri Aug 05 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-23
 - Add the --package-metadata option to the linkers.  (#2099999)
 
