@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 24%{?dist}
+Release: 25%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -955,6 +955,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Aug 11 2022 Nick Clifton  <nickc@redhat.com> - 2.37-25
+- Fix problems running the linkers LTO testsuite.  (#2117284)
+
 * Wed Aug 10 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-24
 - Fixes warning when running strip on an object file  (#2114597)
 
