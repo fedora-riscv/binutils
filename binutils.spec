@@ -38,8 +38,8 @@
 
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
-Version: 2.38
-Release: 24%{?dist}
+Version: 2.39
+Release: 1%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -59,6 +59,8 @@ URL: https://sourceware.org/binutils
 # --without gold         Disable building of the GOLD linker.
 # --with clang           To force building with the CLANG.
 # --without debuginfod   Disable support for debuginfod.
+# --without gprofng      Disable the gprofng sub-package.
+# --without systemzlib   Use the binutils version of zlib.
 
 #---Start of Configure Options-----------------------------------------------
 
@@ -120,6 +122,8 @@ URL: https://sourceware.org/binutils
 %bcond_without testsuite
 # Default: support debuginfod.
 %bcond_without debuginfod
+# Default: build binutils-gprofng package.
+%bcond_without gprofng
 
 # Use the system supplied version of the zlib compress library.
 # Change this to use the binutils builtin version instead.
@@ -142,10 +146,16 @@ URL: https://sourceware.org/binutils
 %if %{with bootstrap}
 %undefine with_docs
 %undefine with_testsuite
+%undefine with_gprofng
 %endif
 
 %if %{with debug}
 %undefine with_testsuite
+%endif
+
+# GprofNG currenly onlly supports the x86 and AArch64 architectures.
+%ifnarch %{ix86} x86_64 aarch64
+%undefine with_gprofng
 %endif
 
 # The opcodes library needs a few functions defined in the bfd
@@ -251,88 +261,43 @@ Patch11: binutils-fix-testsuite-failures.patch
 # Lifetime: Fixed in 2.39 (maybe)
 Patch12: binutils-gold-mismatched-section-flags.patch
 
-# Purpose:  Add a check to the GOLD linker for a corrupt input file
-#            with a fuzzed section offset.
-# Lifetime: Fixed in 2.39 (maybe)
-Patch13: binutils-CVE-2019-1010204.patch
-
 # Purpose:  Change the gold configuration script to only warn about
 #            unsupported targets.  This allows the binutils to be built with
 #            BPF support enabled.
 # Lifetime: Permanent.
-Patch14: binutils-gold-warn-unsupported.patch
-
-# Purpose:  Use the "unsigned long long" type for pointers on hosts where
-#           long is a 32-bit type but pointers are a 64-bit type.  Necessary
-#           because users expect to be able to install both the i686- and
-#           x86_64 versions of binutils-devel on the same machine, so they
-#           need to identical versions of the bfd.h header file.
-# Lifetime: Permanent.
-Patch15: binutils-use-long-long.patch
+Patch13: binutils-gold-warn-unsupported.patch
 
 # Purpose:  Fix testsuite failures due to the patches applied here.
 # Lifetime: Permanent, but varying with each new rebase.
-Patch16: binutils-testsuite-fixes.patch
+Patch14: binutils-testsuite-fixes.patch
 
 # Purpose:  Enable the creation of .note.gnu.property sections by the GOLD
 #            linker for x86 binaries.
 # Lifetime: Fixed in 2.38 maybe
-Patch17: binutils-gold-i386-gnu-property-notes.patch
+Patch15: binutils-gold-i386-gnu-property-notes.patch
 
 # Purpose:  Allow the binutils to be configured with any (recent) version of
 #            autoconf.
 # Lifetime: Fixed in 2.39 (maybe ?)
-Patch18: binutils-autoconf-version.patch
+Patch16: binutils-autoconf-version.patch
 
 # Purpose:  Stop libtool from inserting useless runpaths into binaries.
 # Lifetime: Who knows.
-Patch19: binutils-libtool-no-rpath.patch
-
-# Purpose:  Add support for specifying section types in linker scripts.
-# Lifetime: Fixed in 2.39
-Patch20: binutils-section-type.patch
-
-# Purpose:  Simplify the evaluation of assembler loc view expression chains.
-# Lifetime: Fixed in 2.39
-Patch21: binutils-gas-loc-view.patch
-
-# Purpose:  Add an option to disable access to debuginfod servers.
-# Lifetime: Fixed in 2.39
-Patch22: binutils-do-not-use-debuginfod.patch
-
-# Purpose:  Keep indirect symbol from IR if referenced from shared object.
-# Lifetime: Fixed in 2.39
-Patch23: binutils-indirect-symbols.patch
-
-# Purpose:  Support generating static PIE binaries for the s390x.
-# Lifetime: Fixed in 2.39
-Patch24: binutils-s390x-static-PIE.patch
-
-# Purpose:  Stop readelf and objdump from unnecessarily following links.
-# Lifetime: Fixed in 2.39
-Patch25: binutils-link-following.patch
-
-# Purpose:  x86 linker: Disallow invalid relocations against protected symbols.
-# Lifetime: Fixed in 2.39
-Patch26: binutils-x86-non-canonical-references.patch
+Patch17: binutils-libtool-no-rpath.patch
 
 %if %{enable_new_dtags}
 # Purpose:  Change ld man page so that it says that --enable-new-dtags is the default.
 # Lifetime: Permanent
-Patch27: binutils-update-linker-manual.patch
+Patch18: binutils-update-linker-manual.patch
 %endif
 
-# Purpose:  Power64 linker: Fix bug handling DT_RELR relocs.
-# Lifetime: Fixed in 2.39
-Patch28: binutils-ppc64-DT_RELR-relocs.patch
-
-# Purpose:  Tweak the PowerPC assembler's handling of the .machine directive
-# Lifetime: Fixed in 2.39
-Patch29: binutils-ppc-gas-machine-directive.patch
-
 # Purpose:  Add a --package-metadata option to the linkers.
-# Lifetime: Fixed in 2.39 (for ld.bfd)
-Patch30: binutils-package-metadata.patch
+# Lifetime: Fixed in 2.40
+Patch19: binutils-package-metadata.patch
+
+# Purpose:  Stop the assembler from generating DIE information for zero-sized functions.
+# Lifetime: Fixed in 2.40
+Patch20: binutils-gas-dwarf-skip-empty-functions.patch
 
 #----------------------------------------------------------------------------
 
@@ -486,6 +451,20 @@ linker, and it may become deprecated in the future.
 
 #----------------------------------------------------------------------------
 
+%if %{with gprofng}
+
+%package gprofng
+Summary: Next Generating code profiling tool
+Provides: gprofng = %{version}-%{release}
+Requires: binutils >= %{version}
+
+%description gprofng
+Gprofng is the GNU Next Generation profiler for analyzing the performance 
+of Linux applications.  Gprofng allows you to:
+%endif
+
+#----------------------------------------------------------------------------
+
 %prep
 %autosetup -p1 -n binutils-%{version}
 
@@ -633,6 +612,11 @@ esac
 %if %{with systemzlib}
   --with-system-zlib \
 %endif
+%if %{with gprofng}
+  --enable-gprofng=yes \
+%else
+  --enable-gprofng=no \
+%endif
 %if %{enable_shared}
   --enable-shared \
 %else
@@ -688,6 +672,7 @@ esac
 %if %{without testsuite}
 echo ====================TESTSUITE DISABLED=========================
 %else
+# The GOLD testsuite has lots of problems...
 make -k check < /dev/null || :
 echo ====================TESTING=========================
 cat {gas/testsuite/gas,ld/ld,binutils/binutils}.sum
@@ -905,9 +890,10 @@ exit 0
 # %%verify(symlink) does not work for some reason, so using "owner" instead.
 %verify(owner) %{_bindir}/%{?cross}ld
 %{_bindir}/%{?cross}ld.bfd
-# Do not export any Windows tools (if they were built)
-%exclude %{_bindir}/%{?cross}dll*
-%exclude %{_bindir}/%{?cross}wind*
+
+# # Do not export any Windows tools (if they were built)
+# %%exclude %%{_bindir}/%%{?cross}dll*
+# %%exclude %%{_bindir}/%%{?cross}wind*
 
 %if %{with docs}
 %{_mandir}/man1/
@@ -947,10 +933,34 @@ exit 0
 %{_bindir}/%{?cross}ld.gold
 %endif
 
+%if %{with gprofng}
+%files gprofng
+%{_infodir}/gprofng.info.*
+%dir %{_libdir}/gprofng
+%{_libdir}/gprofng/*
+%dir %{_exec_prefix}/lib/debug/%{_libdir}/gprofng
+%{_exec_prefix}/lib/debug/%{_libdir}/gprofng/libgp*
+%{_sysconfdir}/gprofng.rc
+%endif
+
 # %%ghost %%{_bindir}/%%{?cross}ld
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Aug 11 2022 Nick Clifton  <nickc@redhat.com> - 2.39-1
+- Rebase to GNU Binutils 2.39.
+- Retire: binutils-CVE-2019-1010204.patch
+- Retire: binutils-use-long-long.patch
+- Retire: binutils-section-type.patch
+- Retire: binutils-gas-loc-view.patch
+- Retire: binutils-do-not-use-debuginfod.patch
+- Retire: binutils-indirect-symbols.patch
+- Retire: binutils-s390x-static-PIE.patch
+- Retire: binutils-link-following.patch
+- Retire: binutils-x86-non-canonical-references.patch
+- Retire: binutils-ppc64-DT_RELR-relocs.patch
+- Retire: binutils-ppc-gas-machine-directive.patch
+
 * Wed Aug 10 2022 Luca Boccassi  <bluca@debian.org>  - 2.38-24
 - Build with jansson when not bootstrapping.
 
