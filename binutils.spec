@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.39
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -887,6 +887,8 @@ exit 0
 %license COPYING COPYING3 COPYING3.LIB COPYING.LIB
 %doc README
 %{_bindir}/%{?cross}[!l]*
+%exclude %{_bindir}/gp-*
+%exclude %{_bindir}/gprofng
 # %%verify(symlink) does not work for some reason, so using "owner" instead.
 %verify(owner) %{_bindir}/%{?cross}ld
 %{_bindir}/%{?cross}ld.bfd
@@ -897,6 +899,8 @@ exit 0
 
 %if %{with docs}
 %{_mandir}/man1/
+%exclude %{_mandir}/man1/gp-*
+%exclude %{_mandir}/man1/gprofng*
 %if %{isnative}
 %{_infodir}/as.info.*
 %{_infodir}/binutils.info.*
@@ -935,6 +939,10 @@ exit 0
 
 %if %{with gprofng}
 %files gprofng
+%{_bindir}/gp-*
+%{_bindir}/gprofng
+%{_mandir}/man1/gp-*
+%{_mandir}/man1/gprofng*
 %{_infodir}/gprofng.info.*
 %dir %{_libdir}/gprofng
 %{_libdir}/gprofng/*
@@ -947,6 +955,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Aug 16 2022 Nick Clifton  <nickc@redhat.com> - 2.39-2
+- Move gprofng related files into the gprofng sub-package.
+
 * Thu Aug 11 2022 Nick Clifton  <nickc@redhat.com> - 2.39-1
 - Rebase to GNU Binutils 2.39.
 - Retire: binutils-CVE-2019-1010204.patch
