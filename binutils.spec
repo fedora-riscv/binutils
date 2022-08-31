@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.39
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -298,6 +298,10 @@ Patch19: binutils-package-metadata.patch
 # Purpose:  Stop the assembler from generating DIE information for zero-sized functions.
 # Lifetime: Fixed in 2.40
 Patch20: binutils-gas-dwarf-skip-empty-functions.patch
+
+# Purpose:  Stop an infinite loop in the binutils DWARF decoder.  (CVE 2022-38128)
+# Lifetime: Fixed in 2.40
+Patch21: binutils-CVE-38128-dwarf-abbrev-parsing.patch
 
 #----------------------------------------------------------------------------
 
@@ -955,6 +959,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Aug 31 2022 Nick Clifton  <nickc@redhat.com> - 2.39-3
+- Stop a potential infinite loop in the binutils DWARF parser.  (#2122675)
+
 * Tue Aug 16 2022 Nick Clifton  <nickc@redhat.com> - 2.39-2
 - Move gprofng related files into the gprofng sub-package.
 
