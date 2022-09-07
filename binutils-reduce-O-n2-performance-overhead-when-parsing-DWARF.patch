@@ -1,0 +1,184 @@
+From 30cbd32aec30b4bc13427bbd87c4c63c739d4578 Mon Sep 17 00:00:00 2001
+From: Steiner H Gunderson <steinar+sourceware@gunderson.no>
+Date: Mon, 21 Mar 2022 14:29:12 +0000
+Subject: [PATCH] Reduce O(n2) performance overhead when parsing DWARF unit
+ information.
+
+	PR 28978
+	* dwarf2.c (scan_unit_for_symbols): When performing second pass,
+	check to see if the function or variable being processed is the
+	same as the previous one.
+---
+ bfd/ChangeLog |  7 ++++
+ bfd/dwarf2.c  | 93 +++++++++++++++++++++++++++++++++------------------
+ 2 files changed, 67 insertions(+), 33 deletions(-)
+
+//diff --git a/bfd/ChangeLog b/bfd/ChangeLog
+//index 6ac8b96c57a..fcf5abad5a1 100644
+//--- a/bfd/ChangeLog
+//+++ b/bfd/ChangeLog
+//@@ -1,3 +1,10 @@
+//+2022-03-21  Steiner H Gunderson  <steinar+sourceware@gunderson.no>
+//+
+//+	PR 28978
+//+	* dwarf2.c (scan_unit_for_symbols): When performing second pass,
+//+	check to see if the function or variable being processed is the
+//+	same as the previous one.
+//+
+ 2022-03-18  Viorel Preoteasa  <viorel.preoteasa@gmail.com>
+ 
+ 	PR 28924
+diff --git a/bfd/dwarf2.c b/bfd/dwarf2.c
+index fdf071c36e9..bb176798f9a 100644
+--- a/bfd/dwarf2.c
++++ b/bfd/dwarf2.c
+@@ -3293,6 +3293,36 @@ lookup_var_by_offset (bfd_uint64_t offset, struct varinfo * table)
+ 
+ /* DWARF2 Compilation unit functions.  */
+ 
++static struct funcinfo *
++reverse_funcinfo_list (struct funcinfo *head)
++{
++  struct funcinfo *rhead;
++  struct funcinfo *temp;
++
++  for (rhead = NULL; head; head = temp)
++    {
++      temp = head->prev_func;
++      head->prev_func = rhead;
++      rhead = head;
++    }
++  return rhead;
++}
++
++static struct varinfo *
++reverse_varinfo_list (struct varinfo *head)
++{
++  struct varinfo *rhead;
++  struct varinfo *temp;
++
++  for (rhead = NULL; head; head = temp)
++    {
++      temp = head->prev_var;
++      head->prev_var = rhead;
++      rhead = head;
++    }
++  return rhead;
++}
++
+ /* Scan over each die in a comp. unit looking for functions to add
+    to the function table and variables to the variable table.  */
+ 
+@@ -3308,7 +3338,9 @@ scan_unit_for_symbols (struct comp_unit *unit)
+     struct funcinfo *func;
+   } *nested_funcs;
+   int nested_funcs_size;
+-
++  struct funcinfo *last_func;
++  struct varinfo *last_var;
++  
+   /* Maintain a stack of in-scope functions and inlined functions, which we
+      can use to set the caller_func field.  */
+   nested_funcs_size = 32;
+@@ -3442,10 +3474,16 @@ scan_unit_for_symbols (struct comp_unit *unit)
+ 	}
+     }
+ 
++  unit->function_table = reverse_funcinfo_list (unit->function_table);
++  unit->variable_table = reverse_varinfo_list (unit->variable_table);
++
+   /* This is the second pass over the abbrevs.  */      
+   info_ptr = unit->first_child_die_ptr;
+   nesting_level = 0;
+   
++  last_func = NULL;
++  last_var = NULL;
++
+   while (nesting_level >= 0)
+     {
+       unsigned int abbrev_number, i;
+@@ -3481,16 +3519,32 @@ scan_unit_for_symbols (struct comp_unit *unit)
+ 	  || abbrev->tag == DW_TAG_entry_point
+ 	  || abbrev->tag == DW_TAG_inlined_subroutine)
+ 	{
+-	  func = lookup_func_by_offset (current_offset, unit->function_table);
++	  if (last_func
++	      && last_func->prev_func
++	      && last_func->prev_func->unit_offset == current_offset)
++	    func = last_func->prev_func;
++	  else
++	    func = lookup_func_by_offset (current_offset, unit->function_table);
++
+ 	  if (func == NULL)
+ 	    goto fail;
++
++	  last_func = func;
+ 	}
+       else if (abbrev->tag == DW_TAG_variable
+ 	       || abbrev->tag == DW_TAG_member)
+ 	{
+-	  var = lookup_var_by_offset (current_offset, unit->variable_table);
++	  if (last_var
++	      && last_var->prev_var
++	      && last_var->prev_var->unit_offset == current_offset)
++	    var = last_var->prev_var;
++	  else
++	    var = lookup_var_by_offset (current_offset, unit->variable_table);
++
+ 	  if (var == NULL)
+ 	    goto fail;
++
++	  last_var = var;
+ 	}
+ 
+       for (i = 0; i < abbrev->num_attrs; ++i)
+@@ -3684,6 +3738,9 @@ scan_unit_for_symbols (struct comp_unit *unit)
+ 	}
+     }
+ 
++  unit->function_table = reverse_funcinfo_list (unit->function_table);
++  unit->variable_table = reverse_varinfo_list (unit->variable_table);
++
+   free (nested_funcs);
+   return true;
+ 
+@@ -4047,36 +4104,6 @@ comp_unit_find_line (struct comp_unit *unit,
+ 					  linenumber_ptr);
+ }
+ 
+-static struct funcinfo *
+-reverse_funcinfo_list (struct funcinfo *head)
+-{
+-  struct funcinfo *rhead;
+-  struct funcinfo *temp;
+-
+-  for (rhead = NULL; head; head = temp)
+-    {
+-      temp = head->prev_func;
+-      head->prev_func = rhead;
+-      rhead = head;
+-    }
+-  return rhead;
+-}
+-
+-static struct varinfo *
+-reverse_varinfo_list (struct varinfo *head)
+-{
+-  struct varinfo *rhead;
+-  struct varinfo *temp;
+-
+-  for (rhead = NULL; head; head = temp)
+-    {
+-      temp = head->prev_var;
+-      head->prev_var = rhead;
+-      rhead = head;
+-    }
+-  return rhead;
+-}
+-
+ /* Extract all interesting funcinfos and varinfos of a compilation
+    unit into hash tables for faster lookup.  Returns TRUE if no
+    errors were enountered; FALSE otherwise.  */
+-- 
+2.37.2
+

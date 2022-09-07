@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 35%{?dist}
+Release: 36%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -366,6 +366,14 @@ Patch37: binutils-package-metadata.patch
 # Purpose: Fixes warning when running strip on an object file 
 # Lifetime: Fixed in 2.38 
 Patch38: binutils-strip-objcopy-preserve-dates.patch
+
+# Purpose: Fixing bug 2120752
+# Lifetime: Fixed in 2.39 
+Patch39: binutils-add-splay-tree-for-info_ptr.patch
+
+# Purpose: Fixing bug 2120752
+# Lifetime: Fixed in 2.39 
+Patch40: binutils-reduce-O-n2-performance-overhead-when-parsing-DWARF.patch
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -979,6 +987,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Sep 05 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-36
+- Improving the performance of bfd function lookup_func_by_offset
+
 * Wed Aug 10 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-35
 - Fixes warning when running strip on an object file  (#2114597)
 
