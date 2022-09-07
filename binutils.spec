@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -334,6 +334,13 @@ Patch29: binutils-ppc-gas-machine-directive.patch
 # Lifetime: Fixed in 2.39 (for ld.bfd)
 Patch30: binutils-package-metadata.patch
 
+# Purpose: Fixing bug 2120752
+# Lifetime: Fixed in 2.39 
+Patch31: binutils-add-splay-tree-for-info_ptr.patch
+
+# Purpose: Fixing bug 2120752
+# Lifetime: Fixed in 2.39 
+Patch32: binutils-reduce-O-n2-performance-overhead-when-parsing-DWARF.patch
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -948,6 +955,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Aug 31 2022 Yara Ahmad  <yahmad@redhat.com> - 2.38-24
+- Improving the performance of bfd function lookup_func_by_offset
+
 * Thu Aug 04 2022 Nick Clifton  <nickc@redhat.com> - 2.38-23
 - Add the --package-metadata option to the linkers.  (#2099999)
 
