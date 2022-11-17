@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 36%{?dist}
+Release: 37%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -374,6 +374,14 @@ Patch39: binutils-add-splay-tree-for-info_ptr.patch
 # Purpose: Fixing bug 2120752
 # Lifetime: Fixed in 2.39 
 Patch40: binutils-reduce-O-n2-performance-overhead-when-parsing-DWARF.patch
+
+# Purpose:  Stop an infinite loop in the binutils DWARF decoder.  (CVE 2022-38128)
+# Lifetime: Fixed in 2.40
+Patch41: binutils-CVE-38128-dwarf-abbrev-parsing.patch
+
+# Purpose:  Stop readelf from incorrectly decoding ELF files with no sections.
+# Lifetime: Fixed in 2.40
+Patch42: binutils-readelf-no-sections.patch
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -629,11 +637,11 @@ CARGS="$CARGS --enable-64-bit-bfd"
 # Also enable the BPF target so that strip will work on BPF files.
 case %{binutils_target} in
     s390*)
-        # FIXME: For some unknown reason settting --enable-targets=x86_64-pep
-        # here breaks the building of GOLD.  I have no idea why, and not enough
-        # knowledge of how gold is configured to fix quickly.  So instead I have
-        # found that supporting "all" targets works.
-	CARGS="$CARGS --enable-targets=all"
+	# Note - The s390-linux target is there so that the GOLD linker will
+	# build.  By default, if configured for just s390x-linux, the GOLD
+	# configure system will only include support for 64-bit targets, but
+	# the s390x gold backend uses both 32-bit and 64-bit templates.
+	CARGS="$CARGS --enable-targets=s390-linux,s390x-linux,x86_64-pep,bpf-unknown-none"
 	;;
     ia64*)
 	CARGS="$CARGS --enable-targets=ia64-linux,x86_64-pep,bpf-unknown-none"
@@ -987,8 +995,16 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Mon Sep 05 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-36
-- Improving the performance of bfd function lookup_func_by_offset
+* Wed Nov 16 2022 Yara Ahmad <yahmad@redhat.com> - 2.37-37
+- Fic configuration of s390x binutils so that it does not include support for extraneous targets. (#2139143)
+- Fix readelf's decoding of files with no sections.  (#2131609) 
+- Stop potential infinite loop in the binutils DWARF parser.  (#2122675)
+
+NOTE: Getting back in sync. Previous commit was done by mistake. 
+(commit f3e2e5419db81abb950d61ee197d1afcc910a0cc) 
+
+* Wed Sep 07 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-36
+- Improving the performance of bfd function lookup_func_by_offset 
 
 * Wed Aug 10 2022 Yara Ahmad  <yahmad@redhat.com> - 2.37-35
 - Fixes warning when running strip on an object file  (#2114597)
