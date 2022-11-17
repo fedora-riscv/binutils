@@ -1,0 +1,29 @@
+--- binutils.orig/binutils/readelf.c	2022-10-03 13:20:42.707527855 +0100
++++ binutils-2.39/binutils/readelf.c	2022-10-03 13:21:25.785436781 +0100
+@@ -6357,6 +6357,13 @@ get_32bit_section_headers (Filedata * fi
+   /* PR binutils/17531: Cope with unexpected section header sizes.  */
+   if (size == 0 || num == 0)
+     return false;
++
++  /* The section header cannot be at the start of the file - that is
++     where the ELF file header is located.  A file with absolutely no
++     sections in it will use a shoff of 0.  */
++  if (filedata->file_header.e_shoff == 0)
++    return false;
++
+   if (size < sizeof * shdrs)
+     {
+       if (! probe)
+@@ -6421,6 +6428,12 @@ get_64bit_section_headers (Filedata * fi
+   if (size == 0 || num == 0)
+     return false;
+ 
++  /* The section header cannot be at the start of the file - that is
++     where the ELF file header is located.  A file with absolutely no
++     sections in it will use a shoff of 0.  */
++  if (filedata->file_header.e_shoff == 0)
++    return false;
++
+   if (size < sizeof * shdrs)
+     {
+       if (! probe)
