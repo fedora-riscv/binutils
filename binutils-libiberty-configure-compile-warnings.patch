@@ -1,0 +1,283 @@
+diff -rup binutils.orig/libiberty/acinclude.m4 binutils-2.39/libiberty/acinclude.m4
+--- binutils.orig/libiberty/acinclude.m4	2022-11-23 14:41:57.639262100 +0000
++++ binutils-2.39/libiberty/acinclude.m4	2022-11-23 14:43:07.139042148 +0000
+@@ -24,6 +24,8 @@ AC_CACHE_CHECK([for working strncmp], ac
+ [AC_TRY_RUN([
+ /* Test by Jim Wilson and Kaveh Ghazi.
+    Check whether strncmp reads past the end of its string parameters. */
++#include <stdlib.h>
++#include <string.h>
+ #include <sys/types.h>
+ 
+ #ifdef HAVE_FCNTL_H
+@@ -51,7 +53,8 @@ AC_CACHE_CHECK([for working strncmp], ac
+ 
+ #define MAP_LEN 0x10000
+ 
+-main ()
++int
++main (void)
+ {
+ #if defined(HAVE_MMAP) || defined(HAVE_MMAP_ANYWHERE)
+   char *p;
+@@ -157,7 +160,10 @@ if test $ac_cv_os_cray = yes; then
+ fi
+ 
+ AC_CACHE_CHECK(stack direction for C alloca, ac_cv_c_stack_direction,
+-[AC_TRY_RUN([find_stack_direction ()
++[AC_TRY_RUN([#include <stdlib.h>
++
++int
++find_stack_direction (void)
+ {
+   static char *addr = 0;
+   auto char dummy;
+@@ -169,7 +175,9 @@ AC_CACHE_CHECK(stack direction for C all
+   else
+     return (&dummy > addr) ? 1 : -1;
+ }
+-main ()
++
++int
++main (void)
+ {
+   exit (find_stack_direction() < 0);
+ }],
+diff -rup binutils.orig/libiberty/configure binutils-2.39/libiberty/configure
+--- binutils.orig/libiberty/configure	2022-11-23 14:41:57.652262059 +0000
++++ binutils-2.39/libiberty/configure	2022-11-23 14:46:31.556395168 +0000
+@@ -1766,7 +1766,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_
+ /* end confdefs.h.  */
+ $4
+ int
+-main ()
++main (void)
+ {
+ static int test_array [1 - 2 * !(($2) >= 0)];
+ test_array [0] = 0;
+@@ -1783,7 +1783,7 @@ if ac_fn_c_try_compile "$LINENO"; then :
+ /* end confdefs.h.  */
+ $4
+ int
+-main ()
++main (void)
+ {
+ static int test_array [1 - 2 * !(($2) <= $ac_mid)];
+ test_array [0] = 0;
+@@ -1810,7 +1810,7 @@ else
+ /* end confdefs.h.  */
+ $4
+ int
+-main ()
++main (void)
+ {
+ static int test_array [1 - 2 * !(($2) < 0)];
+ test_array [0] = 0;
+@@ -1827,7 +1827,7 @@ if ac_fn_c_try_compile "$LINENO"; then :
+ /* end confdefs.h.  */
+ $4
+ int
+-main ()
++main (void)
+ {
+ static int test_array [1 - 2 * !(($2) >= $ac_mid)];
+ test_array [0] = 0;
+@@ -1862,7 +1862,7 @@ while test "x$ac_lo" != "x$ac_hi"; do
+ /* end confdefs.h.  */
+ $4
+ int
+-main ()
++main (void)
+ {
+ static int test_array [1 - 2 * !(($2) <= $ac_mid)];
+ test_array [0] = 0;
+@@ -1892,7 +1892,7 @@ static unsigned long int ulongval () { r
+ #include <stdio.h>
+ #include <stdlib.h>
+ int
+-main ()
++main (void)
+ {
+ 
+   FILE *f = fopen ("conftest.val", "w");
+@@ -1952,7 +1952,7 @@ else
+ /* end confdefs.h.  */
+ $4
+ int
+-main ()
++main (void)
+ {
+ if (sizeof ($2))
+ 	 return 0;
+@@ -1965,7 +1965,7 @@ if ac_fn_c_try_compile "$LINENO"; then :
+ /* end confdefs.h.  */
+ $4
+ int
+-main ()
++main (void)
+ {
+ if (sizeof (($2)))
+ 	    return 0;
+@@ -2037,7 +2037,7 @@ choke me
+ #endif
+ 
+ int
+-main ()
++main (void)
+ {
+ return $2 ();
+   ;
+@@ -2077,7 +2077,7 @@ else
+ /* end confdefs.h.  */
+ $4
+ int
+-main ()
++main (void)
+ {
+ #ifndef $as_decl_name
+ #ifdef __cplusplus
+@@ -3459,7 +3459,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_
+ /* end confdefs.h.  */
+ #include <stdio.h>
+ int
+-main ()
++main (void)
+ {
+ printf ("hello world\n");
+   ;
+@@ -3487,7 +3487,7 @@ else
+ /* end confdefs.h.  */
+ 
+ int
+-main ()
++main (void)
+ {
+ 
+   ;
+@@ -3627,7 +3627,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_
+ /* end confdefs.h.  */
+ #include <stdio.h>
+ int
+-main ()
++main (void)
+ {
+ FILE *f = fopen ("conftest.out", "w");
+  return ferror (f) || fclose (f) != 0;
+@@ -3692,7 +3692,7 @@ else
+ /* end confdefs.h.  */
+ 
+ int
+-main ()
++main (void)
+ {
+ 
+   ;
+@@ -3743,7 +3743,7 @@ else
+ /* end confdefs.h.  */
+ 
+ int
+-main ()
++main (void)
+ {
+ #ifndef __GNUC__
+        choke me
+@@ -3784,7 +3784,7 @@ else
+ /* end confdefs.h.  */
+ 
+ int
+-main ()
++main (void)
+ {
+ 
+   ;
+@@ -3799,7 +3799,7 @@ else
+ /* end confdefs.h.  */
+ 
+ int
+-main ()
++main (void)
+ {
+ 
+   ;
+@@ -3815,7 +3815,7 @@ else
+ /* end confdefs.h.  */
+ 
+ int
+-main ()
++main (void)
+ {
+ 
+   ;
+@@ -3901,7 +3901,7 @@ int pairnames (int, char **, FILE *(*)(s
+ int argc;
+ char **argv;
+ int
+-main ()
++main (void)
+ {
+ return f (e, argv, 0) != argv[0]  ||  f (e, argv, 1) != argv[1];
+   ;
+@@ -6919,7 +6919,10 @@ else
+ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+-find_stack_direction ()
++#include <stdlib.h>
++
++int
++find_stack_direction (void)
+ {
+   static char *addr = 0;
+   auto char dummy;
+@@ -6931,7 +6934,9 @@ find_stack_direction ()
+   else
+     return (&dummy > addr) ? 1 : -1;
+ }
+-main ()
++
++int
++main (int)
+ {
+   exit (find_stack_direction() < 0);
+ }
+@@ -7756,6 +7761,8 @@ else
+ 
+ /* Test by Jim Wilson and Kaveh Ghazi.
+    Check whether strncmp reads past the end of its string parameters. */
++#include <stdlib.h>
++#include <string.h>
+ #include <sys/types.h>
+ 
+ #ifdef HAVE_FCNTL_H
+@@ -7783,7 +7790,8 @@ else
+ 
+ #define MAP_LEN 0x10000
+ 
+-main ()
++int
++main (void)
+ {
+ #if defined(HAVE_MMAP) || defined(HAVE_MMAP_ANYWHERE)
+   char *p;
+diff -rup binutils.orig/gas/acinclude.m4 binutils-2.39/gas/acinclude.m4
+--- binutils.orig/gas/acinclude.m4	2022-11-23 14:56:11.793442492 +0000
++++ binutils-2.39/gas/acinclude.m4	2022-11-23 14:59:17.778057190 +0000
+@@ -23,6 +23,7 @@ AC_DEFUN([GAS_WORKING_ASSERT],
+ [AC_MSG_CHECKING([for working assert macro])
+ AC_CACHE_VAL(gas_cv_assert_ok,
+ AC_TRY_LINK([#include <assert.h>
++#include <string.h>
+ #include <stdio.h>], [
+ /* check for requoting problems */
+ static int a, b, c, d;
+diff -rup binutils.orig/gas/configure binutils-2.39/gas/configure
+--- binutils.orig/gas/configure	2022-11-23 14:56:12.402441231 +0000
++++ binutils-2.39/gas/configure	2022-11-23 14:59:37.266016817 +0000
+@@ -13758,6 +13758,7 @@ else
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ #include <assert.h>
++#include <string.h>
+ #include <stdio.h>
+ int
+ main ()
