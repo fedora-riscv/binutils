@@ -1,7 +1,7 @@
-diff -rup binutils.orig/configure binutils-2.30/configure
---- binutils.orig/configure	2018-09-24 17:50:06.967172922 +0100
-+++ binutils-2.30/configure	2018-09-24 17:51:16.648624865 +0100
-@@ -4996,49 +4996,6 @@ if test -z "$LD"; then
+diff -rup binutils.orig/configure binutils-2.40/configure
+--- binutils.orig/configure	2023-02-13 14:43:00.728877170 +0000
++++ binutils-2.40/configure	2023-02-13 14:43:13.671864892 +0000
+@@ -5442,49 +5442,6 @@ if test -z "$LD"; then
    fi
  fi
  
@@ -51,10 +51,10 @@ diff -rup binutils.orig/configure binutils-2.30/configure
  
  
  if test -n "$ac_tool_prefix"; then
-diff -rup binutils.orig/configure.ac binutils-2.30/configure.ac
---- binutils.orig/configure.ac	2018-09-24 17:50:07.241170767 +0100
-+++ binutils-2.30/configure.ac	2018-09-24 17:50:29.908992486 +0100
-@@ -1288,26 +1288,6 @@ if test -z "$LD"; then
+diff -rup binutils.orig/configure.ac binutils-2.40/configure.ac
+--- binutils.orig/configure.ac	2023-02-13 14:43:00.728877170 +0000
++++ binutils-2.40/configure.ac	2023-02-13 14:43:13.671864892 +0000
+@@ -1435,26 +1435,6 @@ if test -z "$LD"; then
    fi
  fi
  
@@ -79,5 +79,7 @@ diff -rup binutils.orig/configure.ac binutils-2.30/configure.ac
 -fi
 -
  ACX_PROG_GNAT
+ ACX_PROG_GDC
  ACX_PROG_CMP_IGNORE_INITIAL
- 
+Only in binutils-2.40: configure.ac.orig
+Only in binutils-2.40: configure.orig
