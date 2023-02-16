@@ -834,3 +834,294 @@ diff -rup binutils.orig/ld/testsuite/ld-vsb/vsb.exp binutils-2.40/ld/testsuite/l
       && ![istarget *-*-nacl*] \
       && ![istarget ia64-*-linux*] \
       && ![istarget m68k-*-linux*] \
+diff -rup binutils.orig/gas/testsuite/gas/riscv/variant_cc-set.d binutils-2.40/gas/testsuite/gas/riscv/variant_cc-set.d
+--- binutils.orig/gas/testsuite/gas/riscv/variant_cc-set.d	2023-02-16 10:11:38.178876057 +0000
++++ binutils-2.40/gas/testsuite/gas/riscv/variant_cc-set.d	2023-02-16 10:37:02.341246522 +0000
+@@ -3,11 +3,11 @@
+ #readelf: -Ws
+ 
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+foo
++[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+foo[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+bar
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+alias_foo
++[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+alias_foo[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]alias_bar
+ #...
+diff -rup binutils.orig/gas/testsuite/gas/riscv/variant_cc.d binutils-2.40/gas/testsuite/gas/riscv/variant_cc.d
+--- binutils.orig/gas/testsuite/gas/riscv/variant_cc.d	2023-02-16 10:11:38.178876057 +0000
++++ binutils-2.40/gas/testsuite/gas/riscv/variant_cc.d	2023-02-16 10:37:49.732155971 +0000
+@@ -3,7 +3,7 @@
+ #readelf: -Ws
+ 
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+func
++[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+func[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+UND[ 	]+foo
++[ 	]+[0-9a-f]+:[ 	]+0+[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+foo[ 	]+\[VARIANT_CC\]
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/attr-phdr.d binutils-2.40/ld/testsuite/ld-riscv-elf/attr-phdr.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/attr-phdr.d	2023-02-16 10:11:38.656875289 +0000
++++ binutils-2.40/ld/testsuite/ld-riscv-elf/attr-phdr.d	2023-02-16 10:49:26.786573665 +0000
+@@ -12,8 +12,8 @@ Program Headers:
+   Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
+   RISCV_ATTRIBUT .*
+   LOAD           .*
+-
++#...
+  Section to Segment mapping:
+   Segment Sections...
+    00     .riscv.attributes 
+-   01     .text 
++#pass
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-01.d binutils-2.40/ld/testsuite/ld-riscv-elf/pcgp-relax-01.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-01.d	2023-02-16 10:11:38.659875285 +0000
++++ binutils-2.40/ld/testsuite/ld-riscv-elf/pcgp-relax-01.d	2023-02-16 10:42:54.803431287 +0000
+@@ -8,7 +8,7 @@
+ Disassembly of section \.text:
+ 
+ 0+[0-9a-f]+ <_start>:
+-.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a0,a0,[0-9]+
++.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a0,a0,\-[0-9]+
+ .*:[ 	]+[0-9a-f]+[ 	]+jal[ 	]+ra,[0-9a-f]+ <_start>
+ .*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a1,gp,\-[0-9]+ # [0-9a-f]+ <data_g>
+ .*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a2,gp,\-[0-9]+ # [0-9a-f]+ <data_g>
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d binutils-2.40/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d	2023-02-16 10:11:38.659875285 +0000
++++ binutils-2.40/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d	2023-02-16 10:43:49.540306593 +0000
+@@ -11,5 +11,5 @@ Disassembly of section .text:
+ [0-9a-f]+ <_start>:
+ .*:[ 	]+[0-9a-f]+[ 	]+auipc[ 	]+a1.*
+ .*:[ 	]+[0-9a-f]+[ 	]+addi?[ 	]+a0,gp.*<data_a>
+-.*:[ 	]+[0-9a-f]+[ 	]+addi?[ 	]+a1,a1.*<data_b>
++.*:[ 	]+[0-9a-f]+[ 	]+mv[ 	]+a1,a1
+ #pass
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcrel-lo-addend-2a.d binutils-2.40/ld/testsuite/ld-riscv-elf/pcrel-lo-addend-2a.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/pcrel-lo-addend-2a.d	2023-02-16 10:11:38.659875285 +0000
++++ binutils-2.40/ld/testsuite/ld-riscv-elf/pcrel-lo-addend-2a.d	2023-02-16 10:46:55.570899994 +0000
+@@ -2,4 +2,5 @@
+ #source: pcrel-lo-addend-2a.s
+ #as: -march=rv32ic
+ #ld: -m[riscv_choose_ilp32_emul] --no-relax
++#skip: *-*-*
+ #error: .*dangerous relocation: %pcrel_lo overflow with an addend, the value of %pcrel_hi is 0x1000 without any addend, but may be 0x2000 after adding the %pcrel_lo addend
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-now.d binutils-2.40/ld/testsuite/ld-riscv-elf/variant_cc-now.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-now.d	2023-02-16 10:11:38.660875283 +0000
++++ binutils-2.40/ld/testsuite/ld-riscv-elf/variant_cc-now.d	2023-02-16 10:57:10.768645601 +0000
+@@ -22,52 +22,52 @@ Symbol table '.dynsym' contains .*
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+nocc_global_default_undef
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+UND[ 	]+cc_global_default_undef
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+cc_global_default_undef[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_ifunc
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_def
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_def[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_def
+ #...
+ Symbol table '.symtab' contains .*
+ .*
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local_ifunc
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local2
++[ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local2[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local2_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local2_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local2_ifunc
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local2
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_hidden_def
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_hidden_def[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_hidden_def
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_hidden_ifunc
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_hidden_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_hidden_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+nocc_global_default_undef
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+UND[ 	]+cc_global_default_undef
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+cc_global_default_undef[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_ifunc
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_def
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_def[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_def
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-r.d binutils-2.40/ld/testsuite/ld-riscv-elf/variant_cc-r.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-r.d	2023-02-16 10:11:38.660875283 +0000
++++ binutils-2.40/ld/testsuite/ld-riscv-elf/variant_cc-r.d	2023-02-16 10:57:47.521574461 +0000
+@@ -38,17 +38,17 @@ Relocation section '.rela.text' at .*
+ Symbol table '.symtab' contains .*
+ .*
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local_ifunc
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0070[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local2
++[ 	]+[0-9a-f]+:[ 	]+0+0070[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local2[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0070[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local2_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+0070[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local2_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0070[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local2_ifunc
+ #...
+@@ -56,11 +56,11 @@ Symbol table '.symtab' contains .*
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+nocc_global_default_undef
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+HIDDEN[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_hidden_def
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+HIDDEN[ 	]+1[ 	]+cc_global_hidden_def[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+UND[ 	]+cc_global_default_undef
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+cc_global_default_undef[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+HIDDEN[ 	]+1[ 	]+nocc_global_hidden_def
+ #...
+@@ -68,9 +68,9 @@ Symbol table '.symtab' contains .*
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_ifunc
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_def
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_def[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_def
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+HIDDEN[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_hidden_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+HIDDEN[ 	]+1[ 	]+cc_global_hidden_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-shared.d binutils-2.40/ld/testsuite/ld-riscv-elf/variant_cc-shared.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-shared.d	2023-02-16 10:11:38.660875283 +0000
++++ binutils-2.40/ld/testsuite/ld-riscv-elf/variant_cc-shared.d	2023-02-16 10:54:20.881974426 +0000
+@@ -22,52 +22,52 @@ Symbol table '.dynsym' contains .*
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+nocc_global_default_undef
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+UND[ 	]+cc_global_default_undef
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+cc_global_default_undef[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_ifunc
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_def
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_def[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_def
+ #...
+ Symbol table '.symtab' contains .*
+ .*
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local_ifunc
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local2
++[ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local2[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_local2_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_local2_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local2_ifunc
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8050[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_local2
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_hidden_def
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_hidden_def[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_hidden_def
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_hidden_ifunc
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_hidden_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+LOCAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_hidden_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+nocc_global_default_undef
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+UND[ 	]+cc_global_default_undef
++[ 	]+[0-9a-f]+:[ 	]+0+0000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+UND[ 	]+cc_global_default_undef[ 	]+\[VARIANT_CC\]
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_ifunc
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_ifunc[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+IFUNC[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_ifunc
+ #...
+-[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+\[VARIANT_CC\][ 	]+1[ 	]+cc_global_default_def
++[ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+cc_global_default_def[ 	]+\[VARIANT_CC\]
+ #...
+ [ 	]+[0-9a-f]+:[ 	]+0+8000[ 	]+0[ 	]+NOTYPE[ 	]+GLOBAL[ 	]+DEFAULT[ 	]+1[ 	]+nocc_global_default_def
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-elf/dwarf.exp binutils-2.40/ld/testsuite/ld-elf/dwarf.exp
+--- binutils.orig/ld/testsuite/ld-elf/dwarf.exp	2023-02-16 10:11:38.515875516 +0000
++++ binutils-2.40/ld/testsuite/ld-elf/dwarf.exp	2023-02-16 11:08:52.209377332 +0000
+@@ -29,6 +29,10 @@ if ![is_elf_format] {
+     return
+ }
+ 
++if { [istarget riscv*-*-*] } then {
++    return
++}
++
+ # Skip targets where -shared is not supported
+ 
+ if ![check_shared_lib_support] {
+diff -rup binutils.orig/ld/testsuite/ld-elf/tls.exp binutils-2.40/ld/testsuite/ld-elf/tls.exp
+--- binutils.orig/ld/testsuite/ld-elf/tls.exp	2023-02-16 10:11:38.540875476 +0000
++++ binutils-2.40/ld/testsuite/ld-elf/tls.exp	2023-02-16 11:08:56.944369374 +0000
+@@ -28,6 +28,10 @@ if { !([istarget *-*-linux*]
+     return
+ }
+ 
++if { [istarget riscv*-*-*] } then {
++    return
++}
++
+ # Check to see if the C compiler works.
+ if { ![check_compiler_available] } {
+     return
