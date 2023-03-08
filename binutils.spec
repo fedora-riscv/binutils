@@ -416,7 +416,7 @@ linker, and it may become deprecated in the future.
 %package gprofng
 Summary: Next Generating code profiling tool
 Provides: gprofng = %{version}-%{release}
-Requires: binutils >= %{version}
+Requires: binutils = %{version}-%{release}
 
 %description gprofng
 GprofNG is the GNU Next Generation Profiler for analyzing the performance 
