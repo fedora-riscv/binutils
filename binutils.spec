@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.40
-Release: 4%{?dist}
+Release: 5%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -1205,6 +1205,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Mar 08 2023 Nick Clifton  <nickc@redhat.com> - 2.40-5
+- Spec file: Rebuild libsframe.a with -fPIC enabled.  (#2174841)
+
 * Mon Mar 06 2023 Nick Clifton  <nickc@redhat.com> - 2.40-4
 - Spec file: Add libsframe.a to the (fake) libbfd.so.  (#2174841)
 
