@@ -925,10 +925,16 @@ install_binutils()
 	%set_build_flags
 	%make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
 
+	# Rebuild libsframe.a with -fPIC.
+	%make_build -s -C libsframe clean
+	%set_build_flags
+	%make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libsframe
+
 	install -m 644 bfd/libbfd.a            $local_libdir
 	install -m 644 libiberty/libiberty.a   $local_libdir
 	install -m 644 ../include/libiberty.h  $local_incdir
 	install -m 644 opcodes/libopcodes.a    $local_libdir
+	install -m 644 libsframe/.libs/libsframe.a   $local_libdir
 
 	# Remove Windows/Novell only man pages
 	rm -f $local_mandir/{dlltool,nlmconv,windres,windmc}*
@@ -980,7 +986,7 @@ $(gcc $CFLAGS $LDFLAGS -shared -x c /dev/null -o /dev/null -Wl,--verbose -v 2>&1
 
 $OUTPUT_FORMAT
 
-/* The libz dependency is unexpected by legacy build scripts.  */
+/* The libz & libsframe dependencies are unexpected by legacy build scripts.  */
 /* The libdl dependency is for plugin support.  (BZ 889134)  */
 INPUT ( %{_libdir}/libbfd.a %{_libdir}/libsframe.a -liberty -lz -ldl )
 EOH
@@ -994,7 +1000,7 @@ INPUT ( %{_libdir}/libopcodes.a -lbfd )
 EOH
 
 	rm -fr $local_root/$target
-	
+
     else # CROSS BUILDS
 
 	local target_root=$local_root/$target
