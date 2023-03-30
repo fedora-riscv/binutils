@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.39
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -286,6 +286,11 @@ Patch24: binutils-CVE-2022-4285.patch
 # Purpose:  Speed up objcopy's note merging algorithm.
 # Lifetime: Fixed in 2.41
 Patch25: binutils-objcopy-note-merge-speedup.patch
+
+# Purpose:  Stop the linker from associating allocated reloc sections with
+#            the .symtab section , which prevents it from being stripped.
+# Lifetime: Fixed in 2.41
+Patch26: binutils-reloc-symtab.patch
 
 #----------------------------------------------------------------------------
 
@@ -1217,6 +1222,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 30 2023 Nick Clifton  <nickc@redhat.com> - 2.39-11
+- Linker: Do not associate allocated reloc sections with the .symtab section.  (#2166419)
+
 * Tue Jan 31 2023 Nick Clifton  <nickc@redhat.com> - 2.39-10
 - Spec File: Add (disabled by default) support for cross-builds of the binutils.
 
