@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.37
-Release: 37%{?dist}
+Release: 38%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -382,6 +382,12 @@ Patch41: binutils-CVE-38128-dwarf-abbrev-parsing.patch
 # Purpose:  Stop readelf from incorrectly decoding ELF files with no sections.
 # Lifetime: Fixed in 2.40
 Patch42: binutils-readelf-no-sections.patch
+
+# Purpose:  Stop the linker from associating allocated reloc sections with
+#            the .symtab section , which prevents it from being stripped.
+# Lifetime: Fixed in 2.41
+Patch43: binutils-reloc-symtab.patch
+
 #----------------------------------------------------------------------------
 
 Provides: bundled(libiberty)
@@ -995,6 +1001,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Mar 30 2023 Nick Clifton  <nickc@redhat.com> - 2.37-38
+- Linker: Do not associate allocated reloc sections with the .symtab section.  (#2166419)
+
 * Wed Nov 16 2022 Yara Ahmad <yahmad@redhat.com> - 2.37-37
 - Fic configuration of s390x binutils so that it does not include support for extraneous targets. (#2139143)
 - Fix readelf's decoding of files with no sections.  (#2131609) 

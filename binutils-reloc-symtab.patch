@@ -1,0 +1,48 @@
+diff -rup binutils.orig/bfd/elf.c binutils-2.37/bfd/elf.c
+--- binutils.orig/bfd/elf.c	2023-03-30 15:32:51.853932063 +0100
++++ binutils-2.37/bfd/elf.c	2023-03-30 15:34:02.346807048 +0100
+@@ -3928,15 +3928,23 @@ assign_section_numbers (bfd *abfd, struc
+ 	{
+ 	case SHT_REL:
+ 	case SHT_RELA:
+-	  /* A reloc section which we are treating as a normal BFD
+-	     section.  sh_link is the section index of the symbol
+-	     table.  sh_info is the section index of the section to
+-	     which the relocation entries apply.  We assume that an
+-	     allocated reloc section uses the dynamic symbol table.
+-	     FIXME: How can we be sure?  */
+-	  s = bfd_get_section_by_name (abfd, ".dynsym");
+-	  if (s != NULL)
+-	    d->this_hdr.sh_link = elf_section_data (s)->this_idx;
++	  /* sh_link is the section index of the symbol table.
++	     sh_info is the section index of the section to which the
++	     relocation entries apply.  */
++	  if (d->this_hdr.sh_link == 0)
++	    {
++	      /* FIXME maybe: If this is a reloc section which we are
++		 treating as a normal section then we likely should
++		 not be assuming its sh_link is .dynsym or .symtab.  */
++	      if ((sec->flags & SEC_ALLOC) != 0)
++		{
++		  s = bfd_get_section_by_name (abfd, ".dynsym");
++		  if (s != NULL)
++		    d->this_hdr.sh_link = elf_section_data (s)->this_idx;
++		}
++	      else
++		d->this_hdr.sh_link = elf_onesymtab (abfd);
++ 	    }
+ 
+ 	  s = elf_get_reloc_section (sec);
+ 	  if (s != NULL)
+diff -rup binutils.orig/binutils/objcopy.c binutils-2.37/binutils/objcopy.c
+--- binutils.orig/binutils/objcopy.c	2023-03-30 15:32:50.801933929 +0100
++++ binutils-2.37/binutils/objcopy.c	2023-03-30 15:34:26.746764718 +0100
+@@ -2219,7 +2219,7 @@ merge_gnu_build_notes (bfd *          ab
+ 	{
+ 	  if (pnote->note.namedata[4] == '2')
+ 	    ++ version_2_seen;
+-	  else if (pnote->note.namedata[4] == '3')
++	  else if (pnote->note.namedata[4] == '3' || pnote->note.namedata[4] == '4')
+ 	    ++ version_3_seen;
+ 	  else
+ 	    {
