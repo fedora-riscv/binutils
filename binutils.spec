@@ -39,7 +39,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?name_cross}%{?_with_debug:-debug}
 Version: 2.38
-Release: 26%{?dist}
+Release: 27%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -354,6 +354,10 @@ Patch34: binutils-readelf-no-sections.patch
 #            the .symtab section , which prevents it from being stripped.
 # Lifetime: Fixed in 2.41
 Patch35: binutils-reloc-symtab.patch
+
+# Purpose:  Stop an abort when using dwp to process a file with no dwo links.
+# Lifetime: Fixed in 2.41 (maybe)
+Patch36: binutils-gold-empty-dwp.patch
 
 #----------------------------------------------------------------------------
 
@@ -969,6 +973,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 02 2023 Nick Clifton  <nickc@redhat.com> - 2.38-27
+- GOLD: Stop an abort triggered by running dwp on a file with no dwo links.  (#2192226)
+
 * Thu Mar 30 2023 Nick Clifton  <nickc@redhat.com> - 2.38-26
 - Linker: Do not associate allocated reloc sections with the .symtab section.  (#2166419)
 
