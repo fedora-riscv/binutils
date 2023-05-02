@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.39
-Release: 11%{?dist}
+Release: 12%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -291,6 +291,10 @@ Patch25: binutils-objcopy-note-merge-speedup.patch
 #            the .symtab section , which prevents it from being stripped.
 # Lifetime: Fixed in 2.41
 Patch26: binutils-reloc-symtab.patch
+
+# Purpose:  Stop an abort when using dwp to process a file with no dwo links.
+# Lifetime: Fixed in 2.41 (maybe)
+Patch27: binutils-gold-empty-dwp.patch
 
 #----------------------------------------------------------------------------
 
@@ -903,7 +907,7 @@ install_binutils()
     local native="$2"
     local shared="$3"
 
-    local local_root=%{buildroot}/usr
+    local local_root=%{buildroot}/%{_prefix}
     local local_bindir=$local_root/bin
     local local_libdir=%{buildroot}%{_libdir}
     local local_mandir=$local_root/share/man/man1
@@ -1222,6 +1226,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 02 2023 Nick Clifton  <nickc@redhat.com> - 2.39-12
+- GOLD: Stop an abort triggered by running dwp on a file with no dwo links.  (#2192226)
+- Spec File: Use _prefix.  (#2192118)
+
 * Thu Mar 30 2023 Nick Clifton  <nickc@redhat.com> - 2.39-11
 - Linker: Do not associate allocated reloc sections with the .symtab section.  (#2166419)
 
