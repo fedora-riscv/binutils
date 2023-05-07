@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.39
-Release: 12%{?dist}
+Release: 12.rv64%{?dist}
 License: GPLv3+
 URL: https://sourceware.org/binutils
 
@@ -295,6 +295,10 @@ Patch26: binutils-reloc-symtab.patch
 # Purpose:  Stop an abort when using dwp to process a file with no dwo links.
 # Lifetime: Fixed in 2.41 (maybe)
 Patch27: binutils-gold-empty-dwp.patch
+
+# Purpose: Fix TEXTRELs on riscv64
+# Lifetime: Should be fixed in 2.41
+Patch30: textrel_fix.patch
 
 #----------------------------------------------------------------------------
 
@@ -1226,6 +1230,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Sun May 07 2023 David Abdurachmanov  <davidlt@rivosinc.com> - 2.39-12.rv64
+- Import (not yet merged) fix for PR ld/22263, PR ld/25694. TEXTRELs on riscv64.
+
 * Tue May 02 2023 Nick Clifton  <nickc@redhat.com> - 2.39-12
 - GOLD: Stop an abort triggered by running dwp on a file with no dwo links.  (#2192226)
 - Spec File: Use _prefix.  (#2192118)
