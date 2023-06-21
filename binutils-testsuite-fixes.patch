@@ -1125,3 +1125,39 @@ diff -rup binutils.orig/ld/testsuite/ld-elf/tls.exp binutils-2.40/ld/testsuite/l
  # Check to see if the C compiler works.
  if { ![check_compiler_available] } {
      return
+--- binutils.orig/binutils/testsuite/lib/binutils-common.exp	2023-06-21 09:46:50.861865196 +0100
++++ binutils-2.40/binutils/testsuite/lib/binutils-common.exp	2023-06-21 09:47:24.240856913 +0100
+@@ -641,6 +641,8 @@ proc prune_warnings_extra { text } {
+     regsub -all "(^|\n)(\[^\n\]*: NOTE: This behaviour is deprecated\[^\n\]*\n?)+" $text "\\1" text
+     regsub -all "(^|\n)(\[^\n\]*: warning:\[^\n\]*has a LOAD segment with RWX permissions\[^\n\]*\n?)+" $text "\\1" text
+     regsub -all "(^|\n)(\[^\n\]*: warning:\[^\n\]*has a TLS segment with execute permission\[^\n\]*\n?)+" $text "\\1" text
++     # Configuring with --enable-warn-execstack=yes will generate warnings if -z execstack is used.
++     regsub -all "(^|\n)(\[^\n\]*: warning: enabling an executable stack because of -z execstack command line option\[^\n\]*\n?)+" $text "\\1" text
+     return $text
+ }
+ 
+diff -rup binutils-2.40/ld/testsuite/ld-elf/elf.exp binutils.new/ld/testsuite/ld-elf/elf.exp
+--- binutils-2.40/ld/testsuite/ld-elf/elf.exp	2023-01-14 00:00:00.000000000 +0000
++++ binutils.new/ld/testsuite/ld-elf/elf.exp	2023-06-21 09:31:08.856233444 +0100
+@@ -180,6 +180,21 @@ if { [check_gc_sections_available] && ![
+ }
+ 
+ proc target_defaults_to_execstack {} {
++    global base_dir
++
++    # If the linker has been configured with --enable-default-execstack=no then
++    # this proc should always return 0.
++    if { [file exists $base_dir/config.status] } {
++	set status [remote_exec host grep "enable-default-execstack=no" $base_dir/config.status]
++	if { [lindex $status 0] == 0 } {
++	    return 0
++	} else {
++	    verbose -log "$base_dir/config.status does not contain enable-default-execstack=no"
++	}
++    } else {
++	verbose -log "there is no file $base_dir/config.status"
++    }
++    
+     if {   [istarget "aarch64*-*-*"]
+ 	|| [istarget "arc*-*-*"]
+ 	|| [istarget "cris*-*-*"]
