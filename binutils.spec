@@ -570,7 +570,7 @@ compute_global_configuration()
 	--enable-ld \
 	--enable-plugins \
 	--enable-64-bit-bfd \
-	--with-bugurl=http://bugzilla.redhat.com/bugzilla/"
+	--with-bugurl=%{dist_bug_report_url}"
 
 %if %{without bootstrap}
     CARGS="$CARGS --enable-jansson=yes"
