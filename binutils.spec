@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.40
-Release: 12%{?dist}
+Release: 13%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -1283,6 +1283,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jul 19 2023 Fedora Release Engineering <releng@fedoraproject.org> - 2.40-13
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_39_Mass_Rebuild
+
 * Tue Jul 18 2023 Nick Clifton  <nickc@redhat.com> - 2.40-12
 - Spec File: migrated to SPDX license.  (#2222113)
 
