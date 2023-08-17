@@ -35,7 +35,7 @@ REQUIRES="${REQUIRES:-kernel-debuginfo}"
 __have_kernel_debuginfo () {
     local RELEASE ARCH TEMPDIR
     rlRun "RELEASE=$(uname -r)"
-    rlRun "ARCH=$(uname -i)"
+    rlRun "ARCH=$(uname -m)"
     if ! rpm -q kernel-debuginfo-$RELEASE &>/dev/null; then
         rlLogInfo 'kernel-debuginfo not present, trying to install it'
         rlRun "TEMPDIR=$(mktemp -d -p $HOME)" # $HOME to avoid "small" tmpfs

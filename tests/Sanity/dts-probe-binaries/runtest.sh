@@ -111,7 +111,7 @@ rlJournalStart
     ./popcnt > a
     rlRun "$ADDR2LINE -e popcnt $(cat a) > r"
     # We know that main is at line 4.  But on PPC we get ??:0...
-if test ! $(uname -i) = "ppc64"; then
+if test ! $(uname -m) = "ppc64"; then
     rlAssertGrep "popcnt.c:4" r
 fi
     rm -vf [ra]
@@ -182,7 +182,7 @@ fi
     rlAssertGrep "__libc_start_main@GLIBC" u
     # Try -P --size-sort.
     rlRun "$NM -P --size-sort localplt > p"
-if test $(uname -i) = "ppc64" -a $(rlGetDistroRelease) -gt 5; then
+if test $(uname -m) = "ppc64" -a $(rlGetDistroRelease) -gt 5; then
     rlAssertGrep "main D" p
 else
     rlAssertGrep "main T" p
