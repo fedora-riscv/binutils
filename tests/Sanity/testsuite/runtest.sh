@@ -89,13 +89,14 @@ rlJournalStart
         export BUILDDIR=`rpm --eval=%_builddir`
         export CURRENT_BUILD=${BUILDDIR}/binutils-`rpmquery $PACKAGE --queryformat=%{VERSION}`
         rlRun "rpmbuild -bc $SPECDIR/binutils.spec"
+        rlRun "ARCH=$(arch)"
 
-        rlRun "cp $CURRENT_BUILD/binutils/binutils.log $CURRENT_BUILD/binutils/binutils.sum $LOGDIR/"
-        rlRun "cp $CURRENT_BUILD/ld/ld.log $CURRENT_BUILD/ld/ld.sum $LOGDIR/"
-        rlRun "cp $CURRENT_BUILD/gas/testsuite/gas.log $CURRENT_BUILD/gas/testsuite/gas.sum $LOGDIR/"
+        rlRun "cp $CURRENT_BUILD/build-$ARCH-redhat-linux/binutils/binutils.log $CURRENT_BUILD/build-$ARCH-redhat-linux/binutils/binutils.sum $LOGDIR/"
+        rlRun "cp $CURRENT_BUILD/build-$ARCH-redhat-linux/ld/ld.log $CURRENT_BUILD/build-$ARCH-redhat-linux/ld/ld.sum $LOGDIR/"
+        rlRun "cp $CURRENT_BUILD/build-$ARCH-redhat-linux/gas/testsuite/gas.log $CURRENT_BUILD/build-$ARCH-redhat-linux/gas/testsuite/gas.sum $LOGDIR/"
     rlPhaseEnd
 
-    if [ "$(arch)" = "x86_64" ]; then
+    if [ "$ARCH" = "x86_64" ]; then
         rlPhaseStartTest Regression-bz1614908
             rlLogInfo "Checking if bz#1614908 is reproducible"
             rlRun "gold_test_binary=$(find $CURRENT_BUILD -iname gnu_property_test -type f -executable)" 0 "Looking for binary from gold testsuite"
@@ -120,7 +121,7 @@ rlJournalStart
             if [ "$?" = "0" ]; then
                 expected_fails_file="" # here we define expected failures if needed
                 if [ "$expected_fails_file" = "" ]; then
-                    rlFail "No list of expected failures exists for this environment: release=$(cat /etc/redhat-release), arch=$(arch), tool=$TOOL"
+                    rlFail "No list of expected failures exists for this environment: release=$(cat /etc/redhat-release), arch=$ARCH, tool=$TOOL"
                     rlFail "Unexpected failures found"
                 else
                     rlRun "diff $expected_fails_file $LOGDIR/$TOOL.failed" 0,1
