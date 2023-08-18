@@ -38,11 +38,11 @@ rlJournalStart
 	rlPhaseEnd
 
 	rlPhaseStartTest "#3: strings -n 0"
-		rlRun "strings -n 0 2>&1 | grep 'invalid minimum string length 0'" 0 "Produced expected error msg: 'strings: invalid minimum string length 0'"
+		rlRun "strings -n 0 2>&1 | grep 'minimum string length is too small: 0'" 0 "Produced expected error msg: 'minimum string length is too small: 0'"
 	rlPhaseEnd
 
 	rlPhaseStartTest "#4: strings --bytes 0"
-		rlRun "strings --bytes 0 2>&1 | grep 'invalid minimum string length 0'" 0 "Produced expected error msg: 'strings: invalid minimum string length 0'"
+		rlRun "strings --bytes 0 2>&1 | grep 'minimum string length is too small: 0'" 0 "Produced expected error msg: 'minimum string length is too small: 0'"
 	rlPhaseEnd
 
 	rlJournalPrintText
