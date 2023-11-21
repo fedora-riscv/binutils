@@ -1479,3 +1479,35 @@ diff -rupN binutils.orig/ld/testsuite/ld-x86-64/pr23189.d binutils-2.41/ld/tests
  #readelf: -r --wide
  
  There are no relocations in this file.
+--- binutils.orig/bfd/elflink.c	2023-11-14 13:16:18.706749224 +0000
++++ binutils-2.41/bfd/elflink.c	2023-11-14 13:17:27.584837271 +0000
+@@ -7150,14 +7150,6 @@ bfd_elf_size_dynamic_sections (bfd *outp
+ 	 though the choice is the result of another command line option.  */
+       if (info->warn_execstack == 1)
+ 	{
+-	  if (info->error_execstack)
+-	    {
+-	      _bfd_error_handler
+-		(_("\
+-error: creating an executable stack because of -z execstack command line option"));
+-	      return false;
+-	    }
+-
+ 	  _bfd_error_handler
+ 	    (_("\
+ warning: enabling an executable stack because of -z execstack command line option"));
+@@ -7219,14 +7211,6 @@ warning: enabling an executable stack be
+ 		     on the command line.  */
+ 		  if (noteobj)
+ 		    {
+-		      if (info->error_execstack)
+-			{
+-			  _bfd_error_handler (_("\
+-error: %s: is triggering the generation of an executable stack (because it has an executable .note.GNU-stack section)"),
+-					      bfd_get_filename (noteobj));
+-			  return false;
+-			}
+-
+ 		      _bfd_error_handler (_("\
+ warning: %s: requires executable stack (because the .note.GNU-stack section is executable)"),
+ 		       bfd_get_filename (noteobj));
