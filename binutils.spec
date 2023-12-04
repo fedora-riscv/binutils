@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.41
-Release: 20%{?dist}
+Release: 21%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -769,7 +769,8 @@ run_target_configuration()
 	# Set up the sysroot and paths.
 	SARGS="--with-sysroot=/ \
                --prefix=%{_prefix} \
-               --libdir=%{_libdir}"
+               --libdir=%{_libdir} \
+               --sysconfdir=%{_sysconfdir}"
 %if %{with gold}
         SARGS="$SARGS --enable-gold=default"
 %else
@@ -789,6 +790,7 @@ run_target_configuration()
                --prefix=%{_prefix}/$target \
                --libdir=%{_libdir} \
                --exec-prefix=%{_usr} \
+               --sysconfdir=%{_sysconfdir} \
 	       --disable-gold"
     fi
 
@@ -1298,7 +1300,7 @@ exit 0
 %{_infodir}/gprofng.info.*
 %dir %{_libdir}/gprofng
 %{_libdir}/gprofng/*
-%{_prefix}%{_sysconfdir}/gprofng.rc
+%{_sysconfdir}/gprofng.rc
 %endif
 
 %if %{with crossbuilds}
@@ -1331,6 +1333,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 04 2024 Yaakov Selkowitz <yselkowi@redhat.com> - 2.41-21
+- Fix location of gprofng.rc
+
 * Thu Jan 04 2024 Nick Clifton  <nickc@redhat.com> - 2.41-20
 - Fix SPDX annotation.
 
