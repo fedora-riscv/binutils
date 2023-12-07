@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.41
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -289,6 +289,15 @@ Patch24: binutils-aarch64-big-bti-programs.patch
 # Purpose:  Make the GOLD linker ignore the "-z pack-relative-relocs" command line option.
 # Lifetime: Fixed in 2.42 (maybe)
 Patch25: binutils-gold-pack-relative-relocs.patch
+
+# Purpose:  Add support for Intel's AVX10.1 architecture extension to gas.
+# Lifetime: Fixed in 2.42
+Patch26: i686-AVX10.1-part-1.patch
+Patch27: i686-AVX10.1-part-2.patch
+Patch28: i686-AVX10.1-part-3.patch
+Patch29: i686-AVX10.1-part-4.patch
+Patch30: i686-AVX10.1-part-5.patch
+Patch31: i686-AVX10.1-part-6.patch
 
 #----------------------------------------------------------------------------
 
@@ -1315,6 +1324,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Dec 07 2023 Nick Clifton  <nickc@redhat.com> - 2.41-16
+- Add support for Intel's AVX10.1 ISA.
+
 * Tue Nov 28 2023 Nick Clifton  <nickc@redhat.com> - 2.41-15
 - Disable errors for executable stacks (enabled too early by previous delta).
 
