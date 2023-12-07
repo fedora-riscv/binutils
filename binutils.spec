@@ -321,7 +321,10 @@ Conflicts: gcc-c++ < 4.0.0
 %endif
 
 %if %{without bootstrap}
-BuildRequires: gettext, flex, zlib-devel, jansson-devel
+BuildRequires: gettext, flex, jansson-devel
+%if %{with systemzlib}
+BuildRequires: zlib-devel
+%endif
 %endif
 
 %if %{with docs}
@@ -337,7 +340,10 @@ BuildRequires: findutils
 %if %{with testsuite}
 # relro_test.sh uses dc which is part of the bc rpm, hence its inclusion here.
 # sharutils is needed so that we can uuencode the testsuite results.
-BuildRequires: dejagnu, zlib-static, glibc-static, sharutils, bc, libstdc++
+BuildRequires: dejagnu, glibc-static, sharutils, bc, libstdc++
+%if %{with systemzlib}
+BuildRequires: zlib-static
+%endif
 %endif
 
 %if %{with debuginfod}
@@ -384,7 +390,9 @@ converting addresses to file and line).
 %package devel
 Summary: BFD and opcodes static and dynamic libraries and header files
 Provides: binutils-static = %{version}-%{release}
+%if %{with systemzlib}
 Requires: zlib-devel
+%endif
 Requires: binutils = %{version}-%{release}
 # BZ 1215242: We need touch...
 Requires: coreutils
@@ -464,7 +472,10 @@ of Linux applications.
 %package -n cross-binutils-aarch64
 Summary: Cross targeted AArch64 binutils for developer use.  Not intended for production.
 Provides: cross-binutils-aarch64 = %{version}-%{release}
-Requires: zlib-devel coreutils
+Requires: coreutils
+%if %{with systemzlib}
+Requires: zlib-devel
+%endif
 BuildRequires: autoconf automake perl sed coreutils make gcc findutils gcc-c++
 ExcludeArch: aarch64-linux-gnu aarch64-redhat-linux
 
@@ -476,7 +487,10 @@ use by developers.  It is NOT INTENDED FOR PRODUCTION use.
 %package -n cross-binutils-ppc64le
 Summary: Cross targeted PPC64LE binutils for developer use.  Not intended for production.
 Provides: cross-binutils-ppc64le = %{version}-%{release}
-Requires: zlib-devel coreutils
+Requires: coreutils
+%if %{with systemzlib}
+Requires: zlib-devel
+%endif
 BuildRequires: autoconf automake perl sed coreutils make gcc findutils gcc-c++
 ExcludeArch: ppc64le-linux-gnu ppc64le-redhat-linux
 
@@ -488,7 +502,10 @@ use by developers.  It is NOT INTENDED FOR PRODUCTION use.
 %package -n cross-binutils-s390x
 Summary: Cross targeted S390X binutils for developer use.  Not intended for production.
 Provides: cross-binutils-s390x = %{version}-%{release}
-Requires: zlib-devel coreutils
+Requires: coreutils
+%if %{with systemzlib}
+Requires: zlib-devel
+%endif
 BuildRequires: autoconf automake perl sed coreutils make gcc findutils gcc-c++
 ExcludeArch: s390x-linux-gnu s390x-redhat-linux
 
@@ -500,7 +517,10 @@ use by developers.  It is NOT INTENDED FOR PRODUCTION use.
 %package -n cross-binutils-x86_64
 Summary: Cross targeted X86_64 binutils for developer use.  Not intended for production.
 Provides: cross-binutils-x86_64 = %{version}-%{release}
-Requires: zlib-devel coreutils
+Requires: coreutils
+%if %{with systemzlib}
+Requires: zlib-devel
+%endif
 BuildRequires: autoconf automake perl sed coreutils make gcc findutils gcc-c++
 ExcludeArch: x86_64-linux-gnu x86_64-redhat-linux i686-linux-gnu i686-redhat-linux
 
