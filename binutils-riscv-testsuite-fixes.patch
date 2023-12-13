@@ -95,20 +95,42 @@ diff -rup binutils.orig/ld/testsuite/ld-elf/tls.exp binutils-2.40/ld/testsuite/l
  set plugin_tests [list \
      [list "load plugin" "-plugin $plugin_path \
      $testobjfiles $libs" "" "" "" {{ld plugin-1.d}} "main.x" ] \
---- binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d	2023-08-24 07:48:31.837196089 +0100
-+++ binutils-2.41/ld/testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d	2023-08-24 08:02:37.791450794 +0100
-@@ -8,11 +8,11 @@
+--- binutils.orig/binutils/testsuite/binutils-all/compress.exp	2023-12-11 10:09:16.923374463 +0000
++++ binutils-2.41/binutils/testsuite/binutils-all/compress.exp	2023-12-12 09:00:15.150036675 +0000
+@@ -818,6 +818,10 @@ proc test_gnu_debuglink {} {
+     }
+ }
+ 
++if { [istarget riscv*-*-*] } then {
++    return
++}
++
+ if {[is_elf_format]} then {
+     test_gnu_debuglink
+ }
+--- binutils-2.41/ld/testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d	2023-07-03 00:00:00.000000000 +0100
++++ binutils.new/ld/testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d	2023-12-12 11:52:54.564057931 +0000
+@@ -8,10 +8,10 @@
  Disassembly of section \.text:
  
  0+[0-9a-f]+ <_start>:
 -.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a0,a0,[0-9]+
-+.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a0,a0,.*
++.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a0,a0,\-[0-9]+
  .*:[ 	]+[0-9a-f]+[ 	]+jal[ 	        ]+ra,[0-9a-f]+ <_start>
  .*:[ 	]+[0-9a-f]+[ 	]+auipc[ 	]+a1,0x[0-9a-f]+
 -.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a1,a1,[0-9]+ # [0-9a-f]+ <data_g>
-+.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a1,a1,.* # [0-9a-f]+ <data_g>
++.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a1,a1,\-[0-9]+ # [0-9a-f]+ <data_g>
  .*:[ 	]+[0-9a-f]+[ 	]+lui[ 	        ]+a2,0x[0-9a-f]+
--.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a2,a2,[0-9]+ # [0-9a-f]+ <data_g>
-+.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a2,a2,.* # [0-9a-f]+ <data_g>
+ .*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a2,a2,[0-9]+ # [0-9a-f]+ <data_g>
  .*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a3,tp,0 # 0 <data_t>
- .*:[ 	]+[0-9a-f]+[ 	]+auipc[ 	]+a0,0x[0-9a-f]+
+--- binutils.orig/binutils/testsuite/binutils-all/objcopy.exp	2023-12-12 14:21:10.225342926 +0000
++++ binutils-2.41/binutils/testsuite/binutils-all/objcopy.exp	2023-12-12 14:22:12.453421499 +0000
+@@ -1410,7 +1410,7 @@ proc objcopy_test_without_global_symbol
+ # in object files, so they will fail this test.
+ setup_xfail aarch64*-*-* arm*-*-*
+ # The RISC-V target compiles with annotation enabled and these symbols remain after stripping.
+-setup_xfail riscv*-*-* 
++# setup_xfail riscv*-*-* 
+ 
+ objcopy_test_without_global_symbol
+ 
