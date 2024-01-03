@@ -102,9 +102,8 @@ URL: https://sourceware.org/binutils
 %bcond_without debuginfod
 # Default: build binutils-gprofng package.
 %bcond_without gprofng
-# Use the system supplied version of the zlib compress library.
-# Change this to use the binutils builtin version instead.
-%bcond_without systemzlib
+# Default: Do not use the system supplied version of the zlib compress library.
+%bcond_with systemzlib
 
 # Allow the user to override the compiler used to build the binutils.
 # The default build compiler is gcc if %%toolchain is not clang.
