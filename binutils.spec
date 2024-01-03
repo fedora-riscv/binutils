@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.41
-Release: 17%{?dist}
+Release: 18%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -298,6 +298,10 @@ Patch28: i686-AVX10.1-part-3.patch
 Patch29: i686-AVX10.1-part-4.patch
 Patch30: i686-AVX10.1-part-5.patch
 Patch31: i686-AVX10.1-part-6.patch
+
+# Purpose: Fix: PR31179, The SET/ADD/SUB fix breaks ABI compatibility with 2.41 objects
+# Lifetime: Fixed in 2.42
+Patch32: binutils-riscv-SUB_ULEB128.patch
 
 #----------------------------------------------------------------------------
 
@@ -1324,6 +1328,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jan 02 2024 Nick Clifton  <nickc@redhat.com> - 2.41-18
+- Fix handling of Risc-V SUB_LEB128 relocation.  (PR31179)
+
 * Mon Dec 11 2023 Nick Clifton  <nickc@redhat.com> - 2.41-17
 - Fix failure in binutils testsuite for RiscV architecture.
 
