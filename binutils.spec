@@ -2,8 +2,8 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.41
-Release: 19%{?dist}
-License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later LGPL-2.1-or-later AND LGPL-2.0-or-later
+Release: 20%{?dist}
+License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
 #---Start of Configure Options-----------------------------------------------
@@ -1331,6 +1331,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 04 2024 Nick Clifton  <nickc@redhat.com> - 2.41-20
+- Fix SPDX annotation.
+
 * Thu Jan 04 2024 Nick Clifton  <nickc@redhat.com> - 2.41-19
 - Have the gold linker ignore the --error-execstack and --error-rwx-segments options.
 
