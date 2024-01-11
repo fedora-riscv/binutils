@@ -102,7 +102,7 @@ URL: https://sourceware.org/binutils
 %bcond_without debuginfod
 # Default: build binutils-gprofng package.
 %bcond_without gprofng
-# Default: Do not use the system supplied version of the zlib compress library.
+# Default: Use the system supplied version of the zlib compression library.
 %bcond_without systemzlib
 
 # Allow the user to override the compiler used to build the binutils.
@@ -466,6 +466,7 @@ linker, and it may become deprecated in the future.
 Summary: Next Generating code profiling tool
 Provides: gprofng = %{version}-%{release}
 Requires: binutils = %{version}-%{release}
+BuildRequires: bison
 
 %description gprofng
 GprofNG is the GNU Next Generation Profiler for analyzing the performance 
@@ -1333,6 +1334,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 11 2024 Amit Shah <amitshah@fedoraproject.org>- 2.41-23
+- Spec File: gprofng requires bison at build time
+
 * Thu Jan 11 2024 Tulio Machado  <tuliom@redhat.com> - 2.41-22
 - Remove dependency upon zlib-static.
 
