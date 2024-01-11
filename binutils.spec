@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.41
-Release: 23%{?dist}
+Release: 24%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -131,6 +131,7 @@ URL: https://sourceware.org/binutils
 
 %if %{with debug}
 %undefine with_testsuite
+%define enable_shared 0
 %endif
 
 # GprofNG currenly onlly supports the x86 and AArch64 architectures.
@@ -723,8 +724,8 @@ run_target_configuration()
 %endif
 
 %if %{with debug}
-    export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error -D_FORTIFY_SOURCE=0"
-    shared=0
+    %undefine _fortify_level
+    export CFLAGS="$CFLAGS -O0 -ggdb2 -Wno-error"
 %endif
 
     export CXXFLAGS="$CXXFLAGS $CFLAGS"
@@ -1280,12 +1281,19 @@ exit 0
 %{_libdir}/bfd-plugins/libdep.so
 %endif
 
+%if %{with debug}
+%dir %{_libdir}/bfd-plugins
+%{_libdir}/bfd-plugins/libdep.a
+%endif
+
 %files devel
 %{_prefix}/include/*
 %{_libdir}/lib*.a
 %{_libdir}/libbfd.so
 %{_libdir}/libopcodes.so
+%if %{enable_shared}
 %exclude %{_libdir}/lib*.la
+%endif
 
 %if %{with gold}
 %files gold
@@ -1334,7 +1342,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Thu Jan 11 2024 Amit Shah <amitshah@fedoraproject.org>- 2.41-23
+* Thu Jan 11 2024 Siddhesh Poyarekar  <siddhesh@redhat.com> - 2.40-24
+- Use _fortify_level macro to control _FORTIFY_SOURCE.
+
+* Thu Jan 11 2024 Amit Shah  <amitshah@fedoraproject.org>- 2.41-23
 - Spec File: gprofng requires bison at build time
 
 * Thu Jan 11 2024 Tulio Machado  <tuliom@redhat.com> - 2.41-22
