@@ -18,7 +18,7 @@ recommend:
 - libstdc++-static
 - rpm-build
 - gcc-c++
-- annobin
+- annobin-plugin-gcc
 - koji
 duration: 3h
 extra-summary: /tools/binutils/Sanity/testsuite

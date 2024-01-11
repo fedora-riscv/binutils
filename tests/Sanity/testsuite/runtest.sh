@@ -35,15 +35,13 @@
 
 LD="${LD:-$(which ld)}"
 GCC="${GCC:-$(which gcc)}"
-BUILT_BY="${BUILT_BY:-$(which built-by)}"
 
 PACKAGE="${PACKAGE:-$(rpm --qf '%{name}\n' -qf $(which $LD) | head -1)}"
-NVR="$(rpm -q --qf='%{NAME}-%{VERSION}-%{RELEASE}' $PACKAGE)"
+NVR="$(rpm -q --qf='%{NAME}-%{VERSION}-%{RELEASE}\n' $PACKAGE | head -1)"
 GCC_PACKAGE="${GCC_PACKAGE:-$(rpm --qf '%{name}\n' -qf $(which $GCC) | head -1)}"
-ANNOBIN_PACKAGE="${ANNOBIN_PACKAGE:-$(rpm --qf '%{name}\n' -qf $(which $BUILT_BY) | head -1)}"
 
 PACKAGES="${PACKAGES:-$PACKAGE}"
-REQUIRES="${REQUIRES:-$GCC_PACKAGE $ANNOBIN_PACKAGE}"
+REQUIRES="${REQUIRES:-$GCC_PACKAGE}"
 
 rlJournalStart
     rlPhaseStartSetup
@@ -87,13 +85,13 @@ rlJournalStart
         rlRun "rpm -i $NVR.src.rpm"
         export SPECDIR=`rpm --eval=%_specdir`
         export BUILDDIR=`rpm --eval=%_builddir`
-        export CURRENT_BUILD=${BUILDDIR}/binutils-`rpmquery $PACKAGE --queryformat=%{VERSION}`
+        export CURRENT_BUILD=${BUILDDIR}/binutils-$(rpmquery $PACKAGE --queryformat='%{VERSION}\n' | head -n 1)
         rlRun "rpmbuild -bc $SPECDIR/binutils.spec"
         rlRun "ARCH=$(arch)"
 
-        rlRun "cp $CURRENT_BUILD/build-$ARCH-redhat-linux/binutils/binutils.log $CURRENT_BUILD/build-$ARCH-redhat-linux/binutils/binutils.sum $LOGDIR/"
-        rlRun "cp $CURRENT_BUILD/build-$ARCH-redhat-linux/ld/ld.log $CURRENT_BUILD/build-$ARCH-redhat-linux/ld/ld.sum $LOGDIR/"
-        rlRun "cp $CURRENT_BUILD/build-$ARCH-redhat-linux/gas/testsuite/gas.log $CURRENT_BUILD/build-$ARCH-redhat-linux/gas/testsuite/gas.sum $LOGDIR/"
+        rlRun "cp $CURRENT_BUILD/*/binutils/binutils.log $CURRENT_BUILD/*/binutils/binutils.sum $LOGDIR/"
+        rlRun "cp $CURRENT_BUILD/*/ld/ld.log $CURRENT_BUILD/*/ld/ld.sum $LOGDIR/"
+        rlRun "cp $CURRENT_BUILD/*/gas/testsuite/gas.log $CURRENT_BUILD/*/gas/testsuite/gas.sum $LOGDIR/"
     rlPhaseEnd
 
     if [ "$ARCH" = "x86_64" ]; then
@@ -113,7 +111,7 @@ rlJournalStart
             rlLogInfo "$(grep -A 50 '=== .* Summary ===' $LOGDIR/$TOOL.sum)"
 
             # Store list of failed test cases
-            rlRun "egrep '^FAIL: ' $LOGDIR/$TOOL.sum |& sort | tee $LOGDIR/$TOOL.failed" 0,1
+            rlRun "grep '^FAIL: ' $LOGDIR/$TOOL.sum |& sort | tee $LOGDIR/$TOOL.failed" 0,1
 
             rlRun "grep '# of unexpected failures' $LOGDIR/$TOOL.sum" 0,1 "Checking number of unexpected failures"
 
