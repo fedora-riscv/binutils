@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.41
-Release: 21%{?dist}
+Release: 22%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -103,7 +103,7 @@ URL: https://sourceware.org/binutils
 # Default: build binutils-gprofng package.
 %bcond_without gprofng
 # Default: Do not use the system supplied version of the zlib compress library.
-%bcond_with systemzlib
+%bcond_without systemzlib
 
 # Allow the user to override the compiler used to build the binutils.
 # The default build compiler is gcc if %%toolchain is not clang.
@@ -358,7 +358,7 @@ BuildRequires: findutils
 # sharutils is needed so that we can uuencode the testsuite results.
 BuildRequires: dejagnu, glibc-static, sharutils, bc, libstdc++
 %if %{with systemzlib}
-BuildRequires: zlib-static
+BuildRequires: zlib-devel
 %endif
 %endif
 
@@ -1333,6 +1333,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Jan 11 2024 Tulio Machado  <tuliom@redhat.com> - 2.41-22
+- Remove dependency upon zlib-static.
+
 * Thu Jan 04 2024 Yaakov Selkowitz <yselkowi@redhat.com> - 2.41-21
 - Fix location of gprofng.rc
 
