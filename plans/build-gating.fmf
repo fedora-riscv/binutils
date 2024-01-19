@@ -1,0 +1,25 @@
+#
+# Build/PR gating tests for binutils
+#
+
+/common:
+  plan:
+    import:
+      url: https://src.fedoraproject.org/tests/binutils.git
+      ref: main
+      name: /plans/build-gating/common
+
+/kernel-rebuild:
+  plan:
+    import:
+      url: https://src.fedoraproject.org/tests/binutils.git
+      ref: main
+      name: /plans/build-gating/kernel-rebuild
+
+adjust+:
+  - because: "Plan to be ran when executed locally, or executed by CI system to gate a build or PR."
+    when: >-
+      trigger is defined
+      and trigger != commit
+      and trigger != build
+    enabled: false
