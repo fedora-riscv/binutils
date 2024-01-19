@@ -116040,3 +116040,1025 @@ diff -rupN binutils.orig/opcodes/i386-tbl.h binutils-2.41/opcodes/i386-tbl.h
  .*[ 	]+R_X86_64_TLSLD[ 	]+xtrn
  .*[ 	]+R_X86_64_TLSLD[ 	]+xtrn
  .*[ 	]+R_X86_64_TLSLD[ 	]+xtrn
+--- binutils.orig/gas/testsuite/gas/i386/reloc64.d	2024-01-19 11:05:54.163131810 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/reloc64.d	2024-01-19 11:06:11.511179089 +0000
+@@ -72,7 +72,7 @@ Disassembly of section \.data:
+ .*[ 	]+R_X86_64_GOTPC32[ 	]+_GLOBAL_OFFSET_TABLE_
+ .*[ 	]+R_X86_64_PLT32[ 	]+xtrn
+ .*[ 	]+R_X86_64_TLSGD[ 	]+xtrn
+-.*[ 	]+R_X86_64_GOTTPOFF[ 	]+xtrn
++#...
+ .*[ 	]+R_X86_64_TLSLD[ 	]+xtrn
+ .*[ 	]+R_X86_64_DTPOFF32[ 	]+xtrn
+ .*[ 	]+R_X86_64_TPOFF32[ 	]+xtrn
+@@ -84,7 +84,7 @@ Disassembly of section \.data:
+ .*[ 	]+R_X86_64_GOTPC32[ 	]+_GLOBAL_OFFSET_TABLE_
+ .*[ 	]+R_X86_64_PLT32[ 	]+xtrn
+ .*[ 	]+R_X86_64_TLSGD[ 	]+xtrn
+-.*[ 	]+R_X86_64_GOTTPOFF[ 	]+xtrn
++#...
+ .*[ 	]+R_X86_64_TLSLD[ 	]+xtrn
+ .*[ 	]+R_X86_64_DTPOFF32[ 	]+xtrn
+ .*[ 	]+R_X86_64_TPOFF32[ 	]+xtrn
+--- binutils.orig/gas/testsuite/gas/i386/ilp32/reloc64.d	2024-01-19 11:05:54.139131740 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/ilp32/reloc64.d	2024-01-19 11:06:28.731224850 +0000
+@@ -69,7 +69,7 @@ Disassembly of section \.data:
+ .*[ 	]+R_X86_64_GOTPC32[ 	]+_GLOBAL_OFFSET_TABLE_
+ .*[ 	]+R_X86_64_PLT32[ 	]+xtrn
+ .*[ 	]+R_X86_64_TLSGD[ 	]+xtrn
+-.*[ 	]+R_X86_64_GOTTPOFF[ 	]+xtrn
++#...
+ .*[ 	]+R_X86_64_TLSLD[ 	]+xtrn
+ .*[ 	]+R_X86_64_DTPOFF32[ 	]+xtrn
+ .*[ 	]+R_X86_64_TPOFF32[ 	]+xtrn
+@@ -81,7 +81,7 @@ Disassembly of section \.data:
+ .*[ 	]+R_X86_64_GOTPC32[ 	]+_GLOBAL_OFFSET_TABLE_
+ .*[ 	]+R_X86_64_PLT32[ 	]+xtrn
+ .*[ 	]+R_X86_64_TLSGD[ 	]+xtrn
+-.*[ 	]+R_X86_64_GOTTPOFF[ 	]+xtrn
++#...
+ .*[ 	]+R_X86_64_TLSLD[ 	]+xtrn
+ .*[ 	]+R_X86_64_DTPOFF32[ 	]+xtrn
+ .*[ 	]+R_X86_64_TPOFF32[ 	]+xtrn
+diff -rupN binutils.orig/gas/config/tc-i386.c binutils-2.41/gas/config/tc-i386.c
+--- binutils.orig/gas/config/tc-i386.c	2024-01-19 11:05:54.063131519 +0000
++++ binutils-2.41/gas/config/tc-i386.c	2024-01-19 11:21:33.383632700 +0000
+@@ -1949,7 +1949,7 @@ cpu_flags_match (const insn_template *t)
+ 	  && (any.bitfield.cpubmi || any.bitfield.cpubmi2
+ 	      || any.bitfield.cpuavx512f || any.bitfield.cpuavx512bw
+ 	      || any.bitfield.cpuavx512dq || any.bitfield.cpuamx_tile
+-	      || any.bitfield.cpucmpccxadd))
++	      || any.bitfield.cpucmpccxadd || any.bitfield.cpuuser_msr))
+ 	{
+ 	  /* These checks (verifying that APX_F() was properly used in the
+ 	     opcode table entry) make sure there's no need for an "else" to
+@@ -3751,7 +3751,7 @@ install_template (const insn_template *t
+       if ((maybe_cpu (t, CpuCMPCCXADD) || maybe_cpu (t, CpuAMX_TILE)
+ 	   || maybe_cpu (t, CpuAVX512F) || maybe_cpu (t, CpuAVX512DQ)
+ 	   || maybe_cpu (t, CpuAVX512BW) || maybe_cpu (t, CpuBMI)
+-	   || maybe_cpu (t, CpuBMI2))
++	   || maybe_cpu (t, CpuBMI2) || maybe_cpu (t, CpuUSER_MSR))
+ 	  && maybe_cpu (t, CpuAPX_F))
+ 	{
+ 	  if (need_evex_encoding (t))
+@@ -4069,7 +4069,7 @@ build_evex_prefix (void)
+   /* The high 3 bits of the second EVEX byte are 1's compliment of RXB
+      bits from REX.  */
+   gas_assert (i.tm.opcode_space >= SPACE_0F);
+-  gas_assert (i.tm.opcode_space <= SPACE_EVEXMAP6);
++  gas_assert (i.tm.opcode_space <= SPACE_VEXMAP7);
+   i.vex.bytes[1] = ((~i.rex & 7) << 5)
+ 		   | (!dot_insn () ? i.tm.opcode_space
+ 				   : i.insn_opcode_space);
+@@ -7055,7 +7055,8 @@ check_VecOperands (const insn_template *
+     }
+ 
+   /* Check the special Imm4 cases; must be the first operand.  */
+-  if (is_cpu (t, CpuXOP) && t->operands == 5)
++  if ((is_cpu (t, CpuXOP) && t->operands == 5)
++      || (is_cpu (t, CpuAPX_F) && t->opcode_space == SPACE_0F3A))
+     {
+       if (i.op[0].imms->X_op != O_constant
+ 	  || !fits_in_imm4 (i.op[0].imms->X_add_number))
+@@ -7065,7 +7066,8 @@ check_VecOperands (const insn_template *
+ 	}
+ 
+       /* Turn off Imm<N> so that update_imm won't complain.  */
+-      operand_type_set (&i.types[0], 0);
++      if (t->operands == 5)
++	operand_type_set (&i.types[0], 0);
+     }
+ 
+   /* Check vector Disp8 operand.  */
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-apx-egpr-inval.l binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-egpr-inval.l
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-apx-egpr-inval.l	2024-01-19 11:05:54.158131795 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-egpr-inval.l	2024-01-19 11:20:30.743578338 +0000
+@@ -187,10 +187,10 @@
+ .*:195: Error: extended GPR cannot be used as base/index for `vrcpps'
+ .*:196: Error: extended GPR cannot be used as base/index for `vrcpps'
+ .*:197: Error: extended GPR cannot be used as base/index for `vrcpss'
+-.*:198: Error: extended GPR cannot be used as base/index for `vroundpd'
+-.*:199: Error: extended GPR cannot be used as base/index for `vroundps'
+-.*:200: Error: extended GPR cannot be used as base/index for `vroundsd'
+-.*:201: Error: extended GPR cannot be used as base/index for `vroundss'
++.*:198: Error: .* 4 bits for `vroundpd'
++.*:199: Error: .* 4 bits for `vroundps'
++.*:200: Error: .* 4 bits for `vroundsd'
++.*:201: Error: .* 4 bits for `vroundss'
+ .*:202: Error: extended GPR cannot be used as base/index for `vrsqrtps'
+ .*:203: Error: extended GPR cannot be used as base/index for `vrsqrtps'
+ .*:204: Error: extended GPR cannot be used as base/index for `vrsqrtss'
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-apx-egpr-inval.s binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-egpr-inval.s
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-apx-egpr-inval.s	2024-01-19 11:05:54.158131795 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-egpr-inval.s	2024-01-19 11:20:30.743578338 +0000
+@@ -195,10 +195,10 @@
+ 	vrcpps (%r27),%xmm6
+ 	vrcpps (%r27),%ymm6
+ 	vrcpss (%r27),%xmm6,%xmm6
+-	vroundpd $1,(%r24),%xmm6
+-	vroundps $2,(%r24),%xmm6
+-	vroundsd $3,(%r24),%xmm6,%xmm3
+-	vroundss $4,(%r24),%xmm6,%xmm3
++	vroundpd $0x11,(%r24),%xmm6
++	vroundps $0x22,(%r24),%xmm6
++	vroundsd $0x33,(%r24),%xmm6,%xmm3
++	vroundss $0x44,(%r24),%xmm6,%xmm3
+ 	vrsqrtps (%r27),%xmm6
+ 	vrsqrtps (%r27),%ymm6
+ 	vrsqrtss (%r27),%xmm6,%xmm6
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-apx-evex-promoted-intel.d binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-evex-promoted-intel.d
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-apx-evex-promoted-intel.d	2024-01-19 11:05:54.158131795 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-evex-promoted-intel.d	2024-01-19 11:20:30.743578338 +0000
+@@ -158,6 +158,10 @@ Disassembly of section \.text:
+ [	 ]*[a-f0-9]+:[	 ]*62 da 7f 08 4b b4 87 23 01 00 00[	 ]+tileloadd tmm6,\[r31\+rax\*4\+0x123\]
+ [	 ]*[a-f0-9]+:[	 ]*62 da 7d 08 4b b4 87 23 01 00 00[	 ]+tileloaddt1 tmm6,\[r31\+rax\*4\+0x123\]
+ [	 ]*[a-f0-9]+:[	 ]*62 da 7e 08 4b b4 87 23 01 00 00[	 ]+tilestored[	 ]+\[r31\+rax\*4\+0x123\],tmm6
++[	 ]*[a-f0-9]+:[	 ]*62 db fd 08 09 30 01[	 ]+vrndscalepd xmm6,XMMWORD PTR \[r24\],(0x)?1
++[	 ]*[a-f0-9]+:[	 ]*62 db 7d 08 08 30 02[	 ]+vrndscaleps xmm6,XMMWORD PTR \[r24\],(0x)?2
++[	 ]*[a-f0-9]+:[	 ]*62 db cd 08 0b 18 03[	 ]+vrndscalesd xmm3,xmm6,QWORD PTR \[r24\],(0x)?3
++[	 ]*[a-f0-9]+:[	 ]*62 db 4d 08 0a 18 04[	 ]+vrndscaless xmm3,xmm6,DWORD PTR \[r24\],(0x)?4
+ [	 ]*[a-f0-9]+:[	 ]*62 4c 7c 08 66 8c 87 23 01 00 00[	 ]+wrssd[	 ]+\[r31\+rax\*4\+0x123\],r25d
+ [	 ]*[a-f0-9]+:[	 ]*62 4c fc 08 66 bc 87 23 01 00 00[	 ]+wrssq[	 ]+\[r31\+rax\*4\+0x123\],r31
+ [	 ]*[a-f0-9]+:[	 ]*62 4c 7d 08 65 8c 87 23 01 00 00[	 ]+wrussd[	 ]+\[r31\+rax\*4\+0x123\],r25d
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-apx-evex-promoted.d binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-evex-promoted.d
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-apx-evex-promoted.d	2024-01-19 11:05:54.158131795 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-evex-promoted.d	2024-01-19 11:20:30.743578338 +0000
+@@ -158,6 +158,10 @@ Disassembly of section \.text:
+ [	 ]*[a-f0-9]+:[	 ]*62 da 7f 08 4b b4 87 23 01 00 00[	 ]+tileloadd[	 ]+0x123\(%r31,%rax,4\),%tmm6
+ [	 ]*[a-f0-9]+:[	 ]*62 da 7d 08 4b b4 87 23 01 00 00[	 ]+tileloaddt1[	 ]+0x123\(%r31,%rax,4\),%tmm6
+ [	 ]*[a-f0-9]+:[	 ]*62 da 7e 08 4b b4 87 23 01 00 00[	 ]+tilestored[	 ]+%tmm6,0x123\(%r31,%rax,4\)
++[	 ]*[a-f0-9]+:[	 ]*62 db fd 08 09 30 01[	 ]+vrndscalepd \$0x1,\(%r24\),%xmm6
++[	 ]*[a-f0-9]+:[	 ]*62 db 7d 08 08 30 02[	 ]+vrndscaleps \$0x2,\(%r24\),%xmm6
++[	 ]*[a-f0-9]+:[	 ]*62 db cd 08 0b 18 03[	 ]+vrndscalesd \$0x3,\(%r24\),%xmm6,%xmm3
++[	 ]*[a-f0-9]+:[	 ]*62 db 4d 08 0a 18 04[	 ]+vrndscaless \$0x4,\(%r24\),%xmm6,%xmm3
+ [	 ]*[a-f0-9]+:[	 ]*62 4c 7c 08 66 8c 87 23 01 00 00[	 ]+wrssd[	 ]+%r25d,0x123\(%r31,%rax,4\)
+ [	 ]*[a-f0-9]+:[	 ]*62 4c fc 08 66 bc 87 23 01 00 00[	 ]+wrssq[	 ]+%r31,0x123\(%r31,%rax,4\)
+ [	 ]*[a-f0-9]+:[	 ]*62 4c 7d 08 65 8c 87 23 01 00 00[	 ]+wrussd[	 ]+%r25d,0x123\(%r31,%rax,4\)
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-apx-evex-promoted.s binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-evex-promoted.s
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-apx-evex-promoted.s	2024-01-19 11:05:54.158131795 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-evex-promoted.s	2024-01-19 11:20:30.744578339 +0000
+@@ -152,6 +152,10 @@ _start:
+ 	tileloadd	0x123(%r31,%rax,4),%tmm6
+ 	tileloaddt1	0x123(%r31,%rax,4),%tmm6
+ 	tilestored	%tmm6,0x123(%r31,%rax,4)
++	vroundpd $1,(%r24),%xmm6
++	vroundps $2,(%r24),%xmm6
++	vroundsd $3,(%r24),%xmm6,%xmm3
++	vroundss $4,(%r24),%xmm6,%xmm3
+ 	wrssd	%r25d,0x123(%r31,%rax,4)
+ 	wrssq	%r31,0x123(%r31,%rax,4)
+ 	wrussd	%r25d,0x123(%r31,%rax,4)
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-apx-ndd.d binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-ndd.d
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-apx-ndd.d	2024-01-19 11:05:54.158131795 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-apx-ndd.d	2024-01-19 11:21:44.238641167 +0000
+@@ -14,7 +14,7 @@ Disassembly of section .text:
+ \s*[a-f0-9]+:\s*62 54 6c 10 11 38    	adc    %r15d,\(%r8\),%r18d
+ \s*[a-f0-9]+:\s*62 c4 3c 18 12 04 07 	adc    \(%r15,%rax,1\),%r16b,%r8b
+ \s*[a-f0-9]+:\s*62 c4 3d 18 13 04 07 	adc    \(%r15,%rax,1\),%r16w,%r8w
+-\s*[a-f0-9]+:\s*62 fc 5c 10 83 14 83 11 	adcl   \$0x11,\(%r19,%rax,4\),%r20d
++\s*[a-f0-9]+:\s*62 fc 5c 10 83 14 83 11 	adc    \$0x11,\(%r19,%rax,4\),%r20d
+ \s*[a-f0-9]+:\s*62 54 6d 10 66 c7    	adcx   %r15d,%r8d,%r18d
+ \s*[a-f0-9]+:\s*62 14 f9 08 66 04 3f 	adcx   \(%r15,%r31,1\),%r8
+ \s*[a-f0-9]+:\s*62 14 69 10 66 04 3f 	adcx   \(%r15,%r31,1\),%r8d,%r18d
+@@ -32,9 +32,9 @@ Disassembly of section .text:
+ \s*[a-f0-9]+:\s*62 5c f8 10 03 84 07 90 90 00 00 	add    0x9090\(%r31,%r16,1\),%r8,%r16
+ \s*[a-f0-9]+:\s*62 44 7c 10 00 f8    	add    %r31b,%r8b,%r16b
+ \s*[a-f0-9]+:\s*62 44 7c 10 01 f8    	add    %r31d,%r8d,%r16d
+-\s*[a-f0-9]+:\s*62 fc 5c 10 83 04 83 11 	addl   \$0x11,\(%r19,%rax,4\),%r20d
++\s*[a-f0-9]+:\s*62 fc 5c 10 83 04 83 11 	add    \$0x11,\(%r19,%rax,4\),%r20d
+ \s*[a-f0-9]+:\s*62 44 fc 10 01 f8    	add    %r31,%r8,%r16
+-\s*[a-f0-9]+:\s*62 d4 fc 10 81 04 8f 33 44 34 12 	addq   \$0x12344433,\(%r15,%rcx,4\),%r16
++\s*[a-f0-9]+:\s*62 d4 fc 10 81 04 8f 33 44 34 12 	add    \$0x12344433,\(%r15,%rcx,4\),%r16
+ \s*[a-f0-9]+:\s*62 44 7d 10 01 f8    	add    %r31w,%r8w,%r16w
+ \s*[a-f0-9]+:\s*62 54 6e 10 66 c7    	adox   %r15d,%r8d,%r18d
+ \s*[a-f0-9]+:\s*62 5c fc 10 03 c7    	add    %r31,%r8,%r16
+@@ -46,7 +46,7 @@ Disassembly of section .text:
+ \s*[a-f0-9]+:\s*62 54 6c 10 21 38    	and    %r15d,\(%r8\),%r18d
+ \s*[a-f0-9]+:\s*62 c4 3c 18 22 04 07 	and    \(%r15,%rax,1\),%r16b,%r8b
+ \s*[a-f0-9]+:\s*62 c4 3d 18 23 04 07 	and    \(%r15,%rax,1\),%r16w,%r8w
+-\s*[a-f0-9]+:\s*62 fc 5c 10 83 24 83 11 	andl   \$0x11,\(%r19,%rax,4\),%r20d
++\s*[a-f0-9]+:\s*62 fc 5c 10 83 24 83 11 	and    \$0x11,\(%r19,%rax,4\),%r20d
+ \s*[a-f0-9]+:\s*67 62 f4 3c 18 47 90 90 90 90 90 	cmova  -0x6f6f6f70\(%eax\),%edx,%r8d
+ \s*[a-f0-9]+:\s*67 62 f4 3c 18 43 90 90 90 90 90 	cmovae -0x6f6f6f70\(%eax\),%edx,%r8d
+ \s*[a-f0-9]+:\s*67 62 f4 3c 18 42 90 90 90 90 90 	cmovb  -0x6f6f6f70\(%eax\),%edx,%r8d
+@@ -64,98 +64,98 @@ Disassembly of section .text:
+ \s*[a-f0-9]+:\s*67 62 f4 3c 18 4a 90 90 90 90 90 	cmovp  -0x6f6f6f70\(%eax\),%edx,%r8d
+ \s*[a-f0-9]+:\s*67 62 f4 3c 18 48 90 90 90 90 90 	cmovs  -0x6f6f6f70\(%eax\),%edx,%r8d
+ \s*[a-f0-9]+:\s*62 f4 f4 10 ff c8    	dec    %rax,%r17
+-\s*[a-f0-9]+:\s*62 9c 3c 18 fe 0c 27 	decb   \(%r31,%r12,1\),%r8b
++\s*[a-f0-9]+:\s*62 9c 3c 18 fe 0c 27 	dec    \(%r31,%r12,1\),%r8b
+ \s*[a-f0-9]+:\s*62 b4 b0 10 af 94 f8 09 09 00 00 	imul   0x909\(%rax,%r31,8\),%rdx,%r25
+ \s*[a-f0-9]+:\s*67 62 f4 3c 18 af 90 09 09 09 00 	imul   0x90909\(%eax\),%edx,%r8d
+ \s*[a-f0-9]+:\s*62 dc fc 10 ff c7    	inc    %r31,%r16
+ \s*[a-f0-9]+:\s*62 dc bc 18 ff c7    	inc    %r31,%r8
+ \s*[a-f0-9]+:\s*62 f4 e4 18 ff c0    	inc    %rax,%rbx
+ \s*[a-f0-9]+:\s*62 f4 f4 10 f7 d8    	neg    %rax,%r17
+-\s*[a-f0-9]+:\s*62 9c 3c 18 f6 1c 27 	negb   \(%r31,%r12,1\),%r8b
++\s*[a-f0-9]+:\s*62 9c 3c 18 f6 1c 27 	neg    \(%r31,%r12,1\),%r8b
+ \s*[a-f0-9]+:\s*62 f4 f4 10 f7 d0    	not    %rax,%r17
+-\s*[a-f0-9]+:\s*62 9c 3c 18 f6 14 27 	notb   \(%r31,%r12,1\),%r8b
++\s*[a-f0-9]+:\s*62 9c 3c 18 f6 14 27 	not    \(%r31,%r12,1\),%r8b
+ \s*[a-f0-9]+:\s*62 f4 0d 10 81 c8 34 12 	or     \$0x1234,%ax,%r30w
+ \s*[a-f0-9]+:\s*62 7c 6c 10 08 f9    	or     %r15b,%r17b,%r18b
+ \s*[a-f0-9]+:\s*62 54 6c 10 09 38    	or     %r15d,\(%r8\),%r18d
+ \s*[a-f0-9]+:\s*62 c4 3c 18 0a 04 07 	or     \(%r15,%rax,1\),%r16b,%r8b
+ \s*[a-f0-9]+:\s*62 c4 3d 18 0b 04 07 	or     \(%r15,%rax,1\),%r16w,%r8w
+-\s*[a-f0-9]+:\s*62 fc 5c 10 83 0c 83 11 	orl    \$0x11,\(%r19,%rax,4\),%r20d
++\s*[a-f0-9]+:\s*62 fc 5c 10 83 0c 83 11 	or     \$0x11,\(%r19,%rax,4\),%r20d
+ \s*[a-f0-9]+:\s*62 d4 04 10 c0 d4 02 	rcl    \$0x2,%r12b,%r31b
+ \s*[a-f0-9]+:\s*62 fc 3c 18 d2 d0    	rcl    %cl,%r16b,%r8b
+-\s*[a-f0-9]+:\s*62 f4 04 10 d0 10    	rclb   \$1,\(%rax\),%r31b
+-\s*[a-f0-9]+:\s*62 f4 04 10 c1 10 02 	rcll   \$0x2,\(%rax\),%r31d
+-\s*[a-f0-9]+:\s*62 f4 05 10 d1 10    	rclw   \$1,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 fc 05 10 d3 14 83 	rclw   %cl,\(%r19,%rax,4\),%r31w
++\s*[a-f0-9]+:\s*62 f4 04 10 d0 10    	rcl    \$1,\(%rax\),%r31b
++\s*[a-f0-9]+:\s*62 f4 04 10 c1 10 02 	rcl    \$0x2,\(%rax\),%r31d
++\s*[a-f0-9]+:\s*62 f4 05 10 d1 10    	rcl    \$1,\(%rax\),%r31w
++\s*[a-f0-9]+:\s*62 fc 05 10 d3 14 83 	rcl    %cl,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 d4 04 10 c0 dc 02 	rcr    \$0x2,%r12b,%r31b
+ \s*[a-f0-9]+:\s*62 fc 3c 18 d2 d8    	rcr    %cl,%r16b,%r8b
+-\s*[a-f0-9]+:\s*62 f4 04 10 d0 18    	rcrb   \$1,\(%rax\),%r31b
+-\s*[a-f0-9]+:\s*62 f4 04 10 c1 18 02 	rcrl   \$0x2,\(%rax\),%r31d
+-\s*[a-f0-9]+:\s*62 f4 05 10 d1 18    	rcrw   \$1,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 fc 05 10 d3 1c 83 	rcrw   %cl,\(%r19,%rax,4\),%r31w
++\s*[a-f0-9]+:\s*62 f4 04 10 d0 18    	rcr    \$1,\(%rax\),%r31b
++\s*[a-f0-9]+:\s*62 f4 04 10 c1 18 02 	rcr    \$0x2,\(%rax\),%r31d
++\s*[a-f0-9]+:\s*62 f4 05 10 d1 18    	rcr    \$1,\(%rax\),%r31w
++\s*[a-f0-9]+:\s*62 fc 05 10 d3 1c 83 	rcr    %cl,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 d4 04 10 c0 c4 02 	rol    \$0x2,%r12b,%r31b
+ \s*[a-f0-9]+:\s*62 fc 3c 18 d2 c0    	rol    %cl,%r16b,%r8b
+-\s*[a-f0-9]+:\s*62 f4 04 10 d0 00    	rolb   \$1,\(%rax\),%r31b
+-\s*[a-f0-9]+:\s*62 f4 04 10 c1 00 02 	roll   \$0x2,\(%rax\),%r31d
+-\s*[a-f0-9]+:\s*62 f4 05 10 d1 00    	rolw   \$1,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 fc 05 10 d3 04 83 	rolw   %cl,\(%r19,%rax,4\),%r31w
++\s*[a-f0-9]+:\s*62 f4 04 10 d0 00    	rol    \$1,\(%rax\),%r31b
++\s*[a-f0-9]+:\s*62 f4 04 10 c1 00 02 	rol    \$0x2,\(%rax\),%r31d
++\s*[a-f0-9]+:\s*62 f4 05 10 d1 00    	rol    \$1,\(%rax\),%r31w
++\s*[a-f0-9]+:\s*62 fc 05 10 d3 04 83 	rol    %cl,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 d4 04 10 c0 cc 02 	ror    \$0x2,%r12b,%r31b
+ \s*[a-f0-9]+:\s*62 fc 3c 18 d2 c8    	ror    %cl,%r16b,%r8b
+-\s*[a-f0-9]+:\s*62 f4 04 10 d0 08    	rorb   \$1,\(%rax\),%r31b
+-\s*[a-f0-9]+:\s*62 f4 04 10 c1 08 02 	rorl   \$0x2,\(%rax\),%r31d
+-\s*[a-f0-9]+:\s*62 f4 05 10 d1 08    	rorw   \$1,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 fc 05 10 d3 0c 83 	rorw   %cl,\(%r19,%rax,4\),%r31w
++\s*[a-f0-9]+:\s*62 f4 04 10 d0 08    	ror    \$1,\(%rax\),%r31b
++\s*[a-f0-9]+:\s*62 f4 04 10 c1 08 02 	ror    \$0x2,\(%rax\),%r31d
++\s*[a-f0-9]+:\s*62 f4 05 10 d1 08    	ror    \$1,\(%rax\),%r31w
++\s*[a-f0-9]+:\s*62 fc 05 10 d3 0c 83 	ror    %cl,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 d4 04 10 c0 fc 02 	sar    \$0x2,%r12b,%r31b
+ \s*[a-f0-9]+:\s*62 fc 3c 18 d2 f8    	sar    %cl,%r16b,%r8b
+-\s*[a-f0-9]+:\s*62 f4 04 10 d0 38    	sarb   \$1,\(%rax\),%r31b
+-\s*[a-f0-9]+:\s*62 f4 04 10 c1 38 02 	sarl   \$0x2,\(%rax\),%r31d
+-\s*[a-f0-9]+:\s*62 f4 05 10 d1 38    	sarw   \$1,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 fc 05 10 d3 3c 83 	sarw   %cl,\(%r19,%rax,4\),%r31w
++\s*[a-f0-9]+:\s*62 f4 04 10 d0 38    	sar    \$1,\(%rax\),%r31b
++\s*[a-f0-9]+:\s*62 f4 04 10 c1 38 02 	sar    \$0x2,\(%rax\),%r31d
++\s*[a-f0-9]+:\s*62 f4 05 10 d1 38    	sar    \$1,\(%rax\),%r31w
++\s*[a-f0-9]+:\s*62 fc 05 10 d3 3c 83 	sar    %cl,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 f4 0d 10 81 d8 34 12 	sbb    \$0x1234,%ax,%r30w
+ \s*[a-f0-9]+:\s*62 7c 6c 10 18 f9    	sbb    %r15b,%r17b,%r18b
+ \s*[a-f0-9]+:\s*62 54 6c 10 19 38    	sbb    %r15d,\(%r8\),%r18d
+ \s*[a-f0-9]+:\s*62 c4 3c 18 1a 04 07 	sbb    \(%r15,%rax,1\),%r16b,%r8b
+ \s*[a-f0-9]+:\s*62 c4 3d 18 1b 04 07 	sbb    \(%r15,%rax,1\),%r16w,%r8w
+-\s*[a-f0-9]+:\s*62 fc 5c 10 83 1c 83 11 	sbbl   \$0x11,\(%r19,%rax,4\),%r20d
++\s*[a-f0-9]+:\s*62 fc 5c 10 83 1c 83 11 	sbb    \$0x11,\(%r19,%rax,4\),%r20d
+ \s*[a-f0-9]+:\s*62 d4 04 10 c0 e4 02 	shl    \$0x2,%r12b,%r31b
+ \s*[a-f0-9]+:\s*62 d4 04 10 c0 e4 02 	shl    \$0x2,%r12b,%r31b
+ \s*[a-f0-9]+:\s*62 fc 3c 18 d2 e0    	shl    %cl,%r16b,%r8b
+ \s*[a-f0-9]+:\s*62 fc 3c 18 d2 e0    	shl    %cl,%r16b,%r8b
+-\s*[a-f0-9]+:\s*62 f4 04 10 d0 20    	shlb   \$1,\(%rax\),%r31b
+-\s*[a-f0-9]+:\s*62 f4 04 10 d0 20    	shlb   \$1,\(%rax\),%r31b
++\s*[a-f0-9]+:\s*62 f4 04 10 d0 20    	shl    \$1,\(%rax\),%r31b
++\s*[a-f0-9]+:\s*62 f4 04 10 d0 20    	shl    \$1,\(%rax\),%r31b
+ \s*[a-f0-9]+:\s*62 74 84 10 24 20 01 	shld   \$0x1,%r12,\(%rax\),%r31
+ \s*[a-f0-9]+:\s*62 74 04 10 24 38 02 	shld   \$0x2,%r15d,\(%rax\),%r31d
+ \s*[a-f0-9]+:\s*62 54 05 10 24 c4 02 	shld   \$0x2,%r8w,%r12w,%r31w
+ \s*[a-f0-9]+:\s*62 7c bc 18 a5 e0    	shld   %cl,%r12,%r16,%r8
+ \s*[a-f0-9]+:\s*62 7c 05 10 a5 2c 83 	shld   %cl,%r13w,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 74 05 10 a5 08    	shld   %cl,%r9w,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 f4 04 10 c1 20 02 	shll   \$0x2,\(%rax\),%r31d
+-\s*[a-f0-9]+:\s*62 f4 04 10 c1 20 02 	shll   \$0x2,\(%rax\),%r31d
+-\s*[a-f0-9]+:\s*62 f4 05 10 d1 20    	shlw   \$1,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 f4 05 10 d1 20    	shlw   \$1,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 fc 05 10 d3 24 83 	shlw   %cl,\(%r19,%rax,4\),%r31w
+-\s*[a-f0-9]+:\s*62 fc 05 10 d3 24 83 	shlw   %cl,\(%r19,%rax,4\),%r31w
++\s*[a-f0-9]+:\s*62 f4 04 10 c1 20 02 	shl    \$0x2,\(%rax\),%r31d
++\s*[a-f0-9]+:\s*62 f4 04 10 c1 20 02 	shl    \$0x2,\(%rax\),%r31d
++\s*[a-f0-9]+:\s*62 f4 05 10 d1 20    	shl    \$1,\(%rax\),%r31w
++\s*[a-f0-9]+:\s*62 f4 05 10 d1 20    	shl    \$1,\(%rax\),%r31w
++\s*[a-f0-9]+:\s*62 fc 05 10 d3 24 83 	shl    %cl,\(%r19,%rax,4\),%r31w
++\s*[a-f0-9]+:\s*62 fc 05 10 d3 24 83 	shl    %cl,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 d4 04 10 c0 ec 02 	shr    \$0x2,%r12b,%r31b
+ \s*[a-f0-9]+:\s*62 fc 3c 18 d2 e8    	shr    %cl,%r16b,%r8b
+-\s*[a-f0-9]+:\s*62 f4 04 10 d0 28    	shrb   \$1,\(%rax\),%r31b
++\s*[a-f0-9]+:\s*62 f4 04 10 d0 28    	shr    \$1,\(%rax\),%r31b
+ \s*[a-f0-9]+:\s*62 74 84 10 2c 20 01 	shrd   \$0x1,%r12,\(%rax\),%r31
+ \s*[a-f0-9]+:\s*62 74 04 10 2c 38 02 	shrd   \$0x2,%r15d,\(%rax\),%r31d
+ \s*[a-f0-9]+:\s*62 54 05 10 2c c4 02 	shrd   \$0x2,%r8w,%r12w,%r31w
+ \s*[a-f0-9]+:\s*62 7c bc 18 ad e0    	shrd   %cl,%r12,%r16,%r8
+ \s*[a-f0-9]+:\s*62 7c 05 10 ad 2c 83 	shrd   %cl,%r13w,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 74 05 10 ad 08    	shrd   %cl,%r9w,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 f4 04 10 c1 28 02 	shrl   \$0x2,\(%rax\),%r31d
+-\s*[a-f0-9]+:\s*62 f4 05 10 d1 28    	shrw   \$1,\(%rax\),%r31w
+-\s*[a-f0-9]+:\s*62 fc 05 10 d3 2c 83 	shrw   %cl,\(%r19,%rax,4\),%r31w
++\s*[a-f0-9]+:\s*62 f4 04 10 c1 28 02 	shr    \$0x2,\(%rax\),%r31d
++\s*[a-f0-9]+:\s*62 f4 05 10 d1 28    	shr    \$1,\(%rax\),%r31w
++\s*[a-f0-9]+:\s*62 fc 05 10 d3 2c 83 	shr    %cl,\(%r19,%rax,4\),%r31w
+ \s*[a-f0-9]+:\s*62 f4 0d 10 81 e8 34 12 	sub    \$0x1234,%ax,%r30w
+ \s*[a-f0-9]+:\s*62 7c 6c 10 28 f9    	sub    %r15b,%r17b,%r18b
+ \s*[a-f0-9]+:\s*62 54 6c 10 29 38    	sub    %r15d,\(%r8\),%r18d
+ \s*[a-f0-9]+:\s*62 c4 3c 18 2a 04 07 	sub    \(%r15,%rax,1\),%r16b,%r8b
+ \s*[a-f0-9]+:\s*62 c4 3d 18 2b 04 07 	sub    \(%r15,%rax,1\),%r16w,%r8w
+-\s*[a-f0-9]+:\s*62 fc 5c 10 83 2c 83 11 	subl   \$0x11,\(%r19,%rax,4\),%r20d
++\s*[a-f0-9]+:\s*62 fc 5c 10 83 2c 83 11 	sub    \$0x11,\(%r19,%rax,4\),%r20d
+ \s*[a-f0-9]+:\s*62 f4 0d 10 81 f0 34 12 	xor    \$0x1234,%ax,%r30w
+ \s*[a-f0-9]+:\s*62 7c 6c 10 30 f9    	xor    %r15b,%r17b,%r18b
+ \s*[a-f0-9]+:\s*62 54 6c 10 31 38    	xor    %r15d,\(%r8\),%r18d
+ \s*[a-f0-9]+:\s*62 c4 3c 18 32 04 07 	xor    \(%r15,%rax,1\),%r16b,%r8b
+ \s*[a-f0-9]+:\s*62 c4 3d 18 33 04 07 	xor    \(%r15,%rax,1\),%r16w,%r8w
+-\s*[a-f0-9]+:\s*62 fc 5c 10 83 34 83 11 	xorl   \$0x11,\(%r19,%rax,4\),%r20d
++\s*[a-f0-9]+:\s*62 fc 5c 10 83 34 83 11 	xor    \$0x11,\(%r19,%rax,4\),%r20d
+ #pass
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-user_msr-intel.d binutils-2.41/gas/testsuite/gas/i386/x86-64-user_msr-intel.d
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-user_msr-intel.d	2024-01-19 11:05:54.163131810 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-user_msr-intel.d	2024-01-19 11:21:33.384632701 +0000
+@@ -10,22 +10,28 @@ Disassembly of section \.text:
+ 0+ <_start>:
+ \s*[a-f0-9]+:\s*f2 45 0f 38 f8 f4\s+urdmsr r12,r14
+ \s*[a-f0-9]+:\s*f2 44 0f 38 f8 f0\s+urdmsr rax,r14
++\s*[a-f0-9]+:\s*62 64 7f 08 f8 c0\s+urdmsr rax,r24
+ \s*[a-f0-9]+:\s*f2 41 0f 38 f8 d4\s+urdmsr r12,rdx
++\s*[a-f0-9]+:\s*62 fc 7f 08 f8 d6\s+urdmsr r22,rdx
+ \s*[a-f0-9]+:\s*f2 0f 38 f8 d0\s+urdmsr rax,rdx
+ \s*[a-f0-9]+:\s*c4 c7 7b f8 c4 0f 0f 12 03\s+urdmsr r12,0x3120f0f
+ \s*[a-f0-9]+:\s*c4 e7 7b f8 c0 0f 0f 12 03\s+urdmsr rax,0x3120f0f
+ \s*[a-f0-9]+:\s*c4 c7 7b f8 c4 7f 00 00 00\s+urdmsr r12,0x7f
+ \s*[a-f0-9]+:\s*c4 c7 7b f8 c4 ff 7f 00 00\s+urdmsr r12,0x7fff
+ \s*[a-f0-9]+:\s*c4 c7 7b f8 c4 00 00 00 80\s+urdmsr r12,0x80000000
++\s*[a-f0-9]+:\s*62 ff 7f 08 f8 c6 00 00 00 80\s+urdmsr r22,0x80000000
+ \s*[a-f0-9]+:\s*f3 45 0f 38 f8 f4\s+uwrmsr r14,r12
+ \s*[a-f0-9]+:\s*f3 44 0f 38 f8 f0\s+uwrmsr r14,rax
++\s*[a-f0-9]+:\s*62 64 7e 08 f8 c0\s+uwrmsr r24,rax
+ \s*[a-f0-9]+:\s*f3 41 0f 38 f8 d4\s+uwrmsr rdx,r12
++\s*[a-f0-9]+:\s*62 fc 7e 08 f8 d6\s+uwrmsr rdx,r22
+ \s*[a-f0-9]+:\s*f3 0f 38 f8 d0\s+uwrmsr rdx,rax
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 0f 0f 12 03\s+uwrmsr 0x3120f0f,r12
+ \s*[a-f0-9]+:\s*c4 e7 7a f8 c0 0f 0f 12 03\s+uwrmsr 0x3120f0f,rax
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 7f 00 00 00\s+uwrmsr 0x7f,r12
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 ff 7f 00 00\s+uwrmsr 0x7fff,r12
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 00 00 00 80\s+uwrmsr 0x80000000,r12
++\s*[a-f0-9]+:\s*62 ff 7e 08 f8 c6 00 00 00 80\s+uwrmsr 0x80000000,r22
+ \s*[a-f0-9]+:\s*f2 45 0f 38 f8 f4\s+urdmsr r12,r14
+ \s*[a-f0-9]+:\s*f2 44 0f 38 f8 f0\s+urdmsr rax,r14
+ \s*[a-f0-9]+:\s*f2 41 0f 38 f8 d4\s+urdmsr r12,rdx
+@@ -44,3 +50,4 @@ Disassembly of section \.text:
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 7f 00 00 00\s+uwrmsr 0x7f,r12
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 ff 7f 00 00\s+uwrmsr 0x7fff,r12
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 00 00 00 80\s+uwrmsr 0x80000000,r12
++#pass
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-user_msr.d binutils-2.41/gas/testsuite/gas/i386/x86-64-user_msr.d
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-user_msr.d	2024-01-19 11:05:54.163131810 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-user_msr.d	2024-01-19 11:21:33.384632701 +0000
+@@ -10,22 +10,28 @@ Disassembly of section \.text:
+ 0+ <_start>:
+ \s*[a-f0-9]+:\s*f2 45 0f 38 f8 f4\s+urdmsr %r14,%r12
+ \s*[a-f0-9]+:\s*f2 44 0f 38 f8 f0\s+urdmsr %r14,%rax
++\s*[a-f0-9]+:\s*62 64 7f 08 f8 c0\s+urdmsr %r24,%rax
+ \s*[a-f0-9]+:\s*f2 41 0f 38 f8 d4\s+urdmsr %rdx,%r12
++\s*[a-f0-9]+:\s*62 fc 7f 08 f8 d6\s+urdmsr %rdx,%r22
+ \s*[a-f0-9]+:\s*f2 0f 38 f8 d0\s+urdmsr %rdx,%rax
+ \s*[a-f0-9]+:\s*c4 c7 7b f8 c4 0f 0f 12 03\s+urdmsr \$0x3120f0f,%r12
+ \s*[a-f0-9]+:\s*c4 e7 7b f8 c0 0f 0f 12 03\s+urdmsr \$0x3120f0f,%rax
+ \s*[a-f0-9]+:\s*c4 c7 7b f8 c4 7f 00 00 00\s+urdmsr \$0x7f,%r12
+ \s*[a-f0-9]+:\s*c4 c7 7b f8 c4 ff 7f 00 00\s+urdmsr \$0x7fff,%r12
+ \s*[a-f0-9]+:\s*c4 c7 7b f8 c4 00 00 00 80\s+urdmsr \$0x80000000,%r12
++\s*[a-f0-9]+:\s*62 ff 7f 08 f8 c6 00 00 00 80\s+urdmsr \$0x80000000,%r22
+ \s*[a-f0-9]+:\s*f3 45 0f 38 f8 f4\s+uwrmsr %r12,%r14
+ \s*[a-f0-9]+:\s*f3 44 0f 38 f8 f0\s+uwrmsr %rax,%r14
++\s*[a-f0-9]+:\s*62 64 7e 08 f8 c0\s+uwrmsr %rax,%r24
+ \s*[a-f0-9]+:\s*f3 41 0f 38 f8 d4\s+uwrmsr %r12,%rdx
++\s*[a-f0-9]+:\s*62 fc 7e 08 f8 d6\s+uwrmsr %r22,%rdx
+ \s*[a-f0-9]+:\s*f3 0f 38 f8 d0\s+uwrmsr %rax,%rdx
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 0f 0f 12 03\s+uwrmsr %r12,\$0x3120f0f
+ \s*[a-f0-9]+:\s*c4 e7 7a f8 c0 0f 0f 12 03\s+uwrmsr %rax,\$0x3120f0f
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 7f 00 00 00\s+uwrmsr %r12,\$0x7f
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 ff 7f 00 00\s+uwrmsr %r12,\$0x7fff
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 00 00 00 80\s+uwrmsr %r12,\$0x80000000
++\s*[a-f0-9]+:\s*62 ff 7e 08 f8 c6 00 00 00 80\s+uwrmsr %r22,\$0x80000000
+ \s*[a-f0-9]+:\s*f2 45 0f 38 f8 f4\s+urdmsr %r14,%r12
+ \s*[a-f0-9]+:\s*f2 44 0f 38 f8 f0\s+urdmsr %r14,%rax
+ \s*[a-f0-9]+:\s*f2 41 0f 38 f8 d4\s+urdmsr %rdx,%r12
+@@ -44,3 +50,4 @@ Disassembly of section \.text:
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 7f 00 00 00\s+uwrmsr %r12,\$0x7f
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 ff 7f 00 00\s+uwrmsr %r12,\$0x7fff
+ \s*[a-f0-9]+:\s*c4 c7 7a f8 c4 00 00 00 80\s+uwrmsr %r12,\$0x80000000
++#pass
+diff -rupN binutils.orig/gas/testsuite/gas/i386/x86-64-user_msr.s binutils-2.41/gas/testsuite/gas/i386/x86-64-user_msr.s
+--- binutils.orig/gas/testsuite/gas/i386/x86-64-user_msr.s	2024-01-19 11:05:54.163131810 +0000
++++ binutils-2.41/gas/testsuite/gas/i386/x86-64-user_msr.s	2024-01-19 11:21:33.384632701 +0000
+@@ -4,22 +4,28 @@
+ _start:
+ 	urdmsr	%r14, %r12
+ 	urdmsr	%r14, %rax
++	urdmsr	%r24, %rax
+ 	urdmsr	%rdx, %r12
++	urdmsr	%rdx, %r22
+ 	urdmsr	%rdx, %rax
+ 	urdmsr	$51515151, %r12
+ 	urdmsr	$51515151, %rax
+ 	urdmsr	$0x7f, %r12
+ 	urdmsr	$0x7fff, %r12
+ 	urdmsr	$0x80000000, %r12
++	urdmsr	$0x80000000, %r22
+ 	uwrmsr	%r12, %r14
+ 	uwrmsr	%rax, %r14
++	uwrmsr	%rax, %r24
+ 	uwrmsr	%r12, %rdx
++	uwrmsr	%r22, %rdx
+ 	uwrmsr	%rax, %rdx
+ 	uwrmsr	%r12, $51515151
+ 	uwrmsr	%rax, $51515151
+ 	uwrmsr	%r12, $0x7f
+ 	uwrmsr	%r12, $0x7fff
+ 	uwrmsr	%r12, $0x80000000
++	uwrmsr	%r22, $0x80000000
+ 
+ 	.intel_syntax noprefix
+ 	urdmsr	r12, r14
+diff -rupN binutils.orig/opcodes/i386-dis-evex-mod.h binutils-2.41/opcodes/i386-dis-evex-mod.h
+--- binutils.orig/opcodes/i386-dis-evex-mod.h	2024-01-19 11:05:54.402132504 +0000
++++ binutils-2.41/opcodes/i386-dis-evex-mod.h	2024-01-19 11:21:33.384632701 +0000
+@@ -1 +1,10 @@
+-/* Nothing at present.  */
++  /* MOD_EVEX_MAP4_F8_P1 */
++  {
++    { "enqcmds",	{ Gva, M }, 0 },
++    { "uwrmsr",		{ Gq, Eq }, 0 },
++  },
++  /* MOD_EVEX_MAP4_F8_P3 */
++  {
++    { "enqcmd",		{ Gva, M }, 0 },
++    { "urdmsr",		{ Eq, Gq }, 0 },
++  },
+diff -rupN binutils.orig/opcodes/i386-dis-evex-prefix.h binutils-2.41/opcodes/i386-dis-evex-prefix.h
+--- binutils.orig/opcodes/i386-dis-evex-prefix.h	2024-01-19 11:05:54.402132504 +0000
++++ binutils-2.41/opcodes/i386-dis-evex-prefix.h	2024-01-19 11:21:33.384632701 +0000
+@@ -392,9 +392,9 @@
+   /* PREFIX_EVEX_MAP4_F8 */
+   {
+     { Bad_Opcode },
+-    { "enqcmds", { Gva, M },  0 },
++    { MOD_TABLE (MOD_EVEX_MAP4_F8_P_1) },
+     { "movdir64b", { Gva, M }, 0 },
+-    { "enqcmd", { Gva, M }, 0 },
++    { MOD_TABLE (MOD_EVEX_MAP4_F8_P_3) },
+   },
+   /* PREFIX_EVEX_MAP5_10 */
+   {
+diff -rupN binutils.orig/opcodes/i386-dis.c binutils-2.41/opcodes/i386-dis.c
+--- binutils.orig/opcodes/i386-dis.c	2024-01-19 11:05:54.402132504 +0000
++++ binutils-2.41/opcodes/i386-dis.c	2024-01-19 11:21:44.239641168 +0000
+@@ -950,6 +950,9 @@ enum
+   MOD_0F38F8,
+ 
+   MOD_VEX_0F3849_X86_64_L_0_W_0,
++
++  MOD_EVEX_MAP4_F8_P_1,
++  MOD_EVEX_MAP4_F8_P_3,
+ };
+ 
+ enum
+@@ -1356,6 +1359,7 @@ enum
+   EVEX_MAP4,
+   EVEX_MAP5,
+   EVEX_MAP6,
++  EVEX_MAP7,
+ };
+ 
+ enum
+@@ -1765,7 +1769,7 @@ struct dis386 {
+ };
+ 
+ /* Upper case letters in the instruction names here are macros.
+-   'A' => print 'b' if no register operands or suffix_always is true
++   'A' => print 'b' if no (suitable) register operand or suffix_always is true
+    'B' => print 'b' if suffix_always is true
+    'C' => print 's' or 'l' ('w' or 'd' in Intel mode) depending on operand
+ 	  size prefix
+@@ -1784,8 +1788,8 @@ struct dis386 {
+    'O' => print 'd' or 'o' (or 'q' in Intel mode)
+    'P' => behave as 'T' except with register operand outside of suffix_always
+ 	  mode
+-   'Q' => print 'w', 'l' or 'q' for memory operand or suffix_always
+-	  is true
++   'Q' => print 'w', 'l' or 'q' if no (suitable) register operand or
++	  suffix_always is true
+    'R' => print 'w', 'l' or 'q' ('d' for 'l' and 'e' in Intel mode)
+    'S' => print 'w', 'l' or 'q' if suffix_always is true
+    'T' => print 'w', 'l'/'d', or 'q' if instruction has an operand size
+@@ -9090,6 +9094,9 @@ get_valid_dis386 (const struct dis386 *d
+ 	case 0x6:
+ 	  vex_table_index = EVEX_MAP6;
+ 	  break;
++	case 0x7:
++	  vex_table_index = EVEX_MAP7;
++	  break;
+ 	}
+ 
+       /* The second byte after 0x62.  */
+@@ -9159,7 +9166,12 @@ get_valid_dis386 (const struct dis386 *d
+ 
+       ins->codep++;
+       vindex = *ins->codep++;
+-      dp = &evex_table[vex_table_index][vindex];
++      if (vex_table_index != EVEX_MAP7)
++	dp = &evex_table[vex_table_index][vindex];
++      else if (vindex == 0xf8)
++	dp = &map7_f8_opcode;
++      else
++	dp = &bad_opcode;
+       ins->end_codep = ins->codep;
+       if (!fetch_modrm (ins))
+ 	return &err_opcode;
+@@ -10404,7 +10416,7 @@ putop (instr_info *ins, const char *in_t
+ 	case 'A':
+ 	  if (ins->intel_syntax)
+ 	    break;
+-	  if ((ins->need_modrm && ins->modrm.mod != 3)
++	  if ((ins->need_modrm && ins->modrm.mod != 3 && !ins->vex.nd)
+ 	      || (sizeflag & SUFFIX_ALWAYS))
+ 	    *ins->obufp++ = 'b';
+ 	  break;
+@@ -10703,7 +10715,7 @@ putop (instr_info *ins, const char *in_t
+ 	      if (ins->intel_syntax && !alt)
+ 		break;
+ 	      USED_REX (REX_W);
+-	      if ((ins->need_modrm && ins->modrm.mod != 3)
++	      if ((ins->need_modrm && ins->modrm.mod != 3 && !ins->vex.nd)
+ 		  || (sizeflag & SUFFIX_ALWAYS))
+ 		{
+ 		  if (ins->rex & REX_W)
+diff -rupN binutils.orig/opcodes/i386-opc.tbl binutils-2.41/opcodes/i386-opc.tbl
+--- binutils.orig/opcodes/i386-opc.tbl	2024-01-19 11:05:54.402132504 +0000
++++ binutils-2.41/opcodes/i386-opc.tbl	2024-01-19 11:21:33.385632702 +0000
+@@ -1790,6 +1790,10 @@ vrcpps, 0x53, AVX, Modrm|Vex|Space0F|Vex
+ vrcpss, 0xf353, AVX, Modrm|Vex=3|Space0F|VexVVVV|VexWIG|NoSuf, { Dword|Unspecified|BaseIndex|RegXMM, RegXMM, RegXMM }
+ vroundp<sd>, 0x6608 | <sd:opc>, AVX, Modrm|Vex|Space0F3A|VexWIG|CheckOperandSize|NoSuf, { Imm8, Unspecified|BaseIndex|RegXMM|RegYMM, RegXMM|RegYMM }
+ vrounds<sd>, 0x660a | <sd:opc>, AVX, Modrm|VexLIG|Space0F3A|VexVVVV|VexWIG|NoSuf, { Imm8, <sd:elem>|Unspecified|BaseIndex|RegXMM, RegXMM, RegXMM }
++// These are really clones of VRNDSCALE{P,S}{S,D}, with broadcast, masking, SAE,
++// 512-bit operand size, and register sources dropped.
++vroundp<sd>, 0x6608 | <sd:opc>, APX_F, Modrm|Space0F3A|<sd:vexw>|Disp8ShiftVL|CheckOperandSize|NoSuf, { Imm8, Xmmword|Ymmword|Unspecified|BaseIndex, RegXMM|RegYMM }
++vrounds<sd>, 0x660a | <sd:opc>, APX_F, Modrm|EVexLIG|Space0F3A|VexVVVV|<sd:vexw>|Disp8MemShift|NoSuf, { Imm8, <sd:elem>|Unspecified|BaseIndex, RegXMM, RegXMM }
+ vrsqrtps, 0x52, AVX, Modrm|Vex|Space0F|VexWIG|CheckOperandSize|NoSuf, { Unspecified|BaseIndex|RegXMM|RegYMM, RegXMM|RegYMM }
+ vrsqrtss, 0xf352, AVX, Modrm|Vex=3|Space0F|VexVVVV|VexWIG|NoSuf, { Dword|Unspecified|BaseIndex|RegXMM, RegXMM, RegXMM }
+ vshufp<sd>, 0x<sd:ppfx>c6, AVX, Modrm|Vex|Space0F|VexVVVV|VexWIG|CheckOperandSize|NoSuf, { Imm8|Imm8S, Unspecified|BaseIndex|RegXMM|RegYMM, RegXMM|RegYMM, RegXMM|RegYMM }
+@@ -3482,11 +3486,13 @@ eretu, 0xf30f01ca, FRED, NoSuf, {}
+ // USER_MSR instructions.
+ 
+ urdmsr, 0xf20f38f8, USER_MSR, RegMem|NoSuf|NoRex64, { Reg64, Reg64 }
+-urdmsr, 0xf2f8/0, USER_MSR, Modrm|Vex128|VexMap7|VexW0|NoSuf, { Imm32, Reg64 }
++urdmsr, 0xf2f8, USER_MSR&APX_F, RegMem|EVexMap4|VexW0|NoSuf, { Reg64, Reg64 }
++urdmsr, 0xf2f8/0, APX_F(USER_MSR), Modrm|Vex128|VexMap7|EVex128|VexW0|NoSuf, { Imm32, Reg64 }
+ uwrmsr, 0xf30f38f8, USER_MSR, Modrm|NoSuf|NoRex64, { Reg64, Reg64 }
++uwrmsr, 0xf3f8, USER_MSR&APX_F, Modrm||EVexMap4|VexW0|NoSuf, { Reg64, Reg64 }
+ // Immediates want to be first; md_assemble() takes care of swapping operands
+ // accordingly.
+-uwrmsr, 0xf3f8/0, USER_MSR, Modrm|Vex128|VexMap7|VexW0|NoSuf, { Imm32, Reg64 }
++uwrmsr, 0xf3f8/0, APX_F(USER_MSR), Modrm|Vex128|VexMap7|EVex128|VexW0|NoSuf, { Imm32, Reg64 }
+ 
+ // USER_MSR instructions end.
+ 
+diff -rupN binutils.orig/opcodes/i386-tbl.h binutils-2.41/opcodes/i386-tbl.h
+--- binutils.orig/opcodes/i386-tbl.h	2024-01-19 11:05:54.402132504 +0000
++++ binutils-2.41/opcodes/i386-tbl.h	2024-01-19 11:26:45.329949982 +0000
+@@ -25292,6 +25292,18 @@ static const insn_template i386_optab[]
+ 	  1, 1, 0, 0, 1, 0 } },
+       { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 	  1, 1, 0, 0, 0, 0 } } } },
++  { MN_vroundps, 0x08 | 0, 3, SPACE_0F3A, None,
++    { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
++      0, 0, 0, 0, 0, 1, 1, 0, 0, 5, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0,
++      0 },
++    { { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 } },
++    { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
++    { { { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  0, 0, 0, 0, 0, 0 } },
++      { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
++	  1, 1, 0, 0, 1, 0 } },
++      { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  1, 1, 0, 0, 0, 0 } } } },
+   { MN_vroundpd, 0x08 | 1, 3, SPACE_0F3A, None,
+     { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+       0, 0, 0, 1, 0, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+@@ -25304,6 +25316,18 @@ static const insn_template i386_optab[]
+ 	  1, 1, 0, 0, 1, 0 } },
+       { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 	  1, 1, 0, 0, 0, 0 } } } },
++  { MN_vroundpd, 0x08 | 1, 3, SPACE_0F3A, None,
++    { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
++      0, 0, 0, 0, 0, 2, 1, 0, 0, 5, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0,
++      0 },
++    { { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 } },
++    { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
++    { { { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  0, 0, 0, 0, 0, 0 } },
++      { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0,
++	  1, 1, 0, 0, 1, 0 } },
++      { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  1, 1, 0, 0, 0, 0 } } } },
+   { MN_vroundss, 0x0a | 0, 4, SPACE_0F3A, None,
+     { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+       0, 0, 0, 3, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+@@ -25318,6 +25342,20 @@ static const insn_template i386_optab[]
+ 	  1, 0, 0, 0, 0, 0 } },
+       { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 	  1, 0, 0, 0, 0, 0 } } } },
++  { MN_vroundss, 0x0a | 0, 4, SPACE_0F3A, None,
++    { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
++      0, 0, 0, 0, 1, 1, 1, 0, 0, 4, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0,
++      0 },
++    { { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 } },
++    { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
++    { { { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  0, 0, 0, 0, 0, 0 } },
++      { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0,
++	  0, 0, 0, 0, 1, 0 } },
++      { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  1, 0, 0, 0, 0, 0 } },
++      { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  1, 0, 0, 0, 0, 0 } } } },
+   { MN_vroundsd, 0x0a | 1, 4, SPACE_0F3A, None,
+     { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+       0, 0, 0, 3, 1, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+@@ -25332,6 +25370,20 @@ static const insn_template i386_optab[]
+ 	  1, 0, 0, 0, 0, 0 } },
+       { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 	  1, 0, 0, 0, 0, 0 } } } },
++  { MN_vroundsd, 0x0a | 1, 4, SPACE_0F3A, None,
++    { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
++      0, 0, 0, 0, 1, 2, 1, 0, 0, 4, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0,
++      0 },
++    { { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 } },
++    { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
++    { { { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  0, 0, 0, 0, 0, 0 } },
++      { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0,
++	  0, 0, 0, 0, 1, 0 } },
++      { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  1, 0, 0, 0, 0, 0 } },
++      { { 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++	  1, 0, 0, 0, 0, 0 } } } },
+   { MN_vrsqrtps, 0x52, 2, SPACE_0F, None,
+     { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+       0, 0, 0, 1, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+@@ -41152,12 +41204,22 @@ static const insn_template i386_optab[]
+ 	  0, 0, 0, 0, 0, 0 } },
+       { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+ 	  0, 0, 0, 0, 0, 0 } } } },
++  { MN_urdmsr, 0xf8, 2, SPACE_EVEXMAP4, None,
++    { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0,
++      0, 0, 0, 0, 0, 1, 3, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++      0 },
++    { { 98, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 } },
++    { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
++    { { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
++	  0, 0, 0, 0, 0, 0 } },
++      { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
++	  0, 0, 0, 0, 0, 0 } } } },
+   { MN_urdmsr, 0xf8, 2, SPACE_VEXMAP7, 0,
+     { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+-      0, 0, 0, 1, 0, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
++      0, 0, 0, 1, 0, 1, 3, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0 },
+     { { 98, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 } },
+-    { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
++    { { 98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 } },
+     { { { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 	  0, 0, 0, 0, 0, 0 } },
+       { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+@@ -41172,12 +41234,22 @@ static const insn_template i386_optab[]
+ 	  0, 0, 0, 0, 0, 0 } },
+       { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+ 	  0, 0, 0, 0, 0, 0 } } } },
++  { MN_uwrmsr, 0xf8, 2, SPACE_EVEXMAP4, None,
++    { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
++      0, 0, 0, 0, 0, 1, 2, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
++      0 },
++    { { 98, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 } },
++    { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
++    { { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
++	  0, 0, 0, 0, 0, 0 } },
++      { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
++	  0, 0, 0, 0, 0, 0 } } } },
+   { MN_uwrmsr, 0xf8, 2, SPACE_VEXMAP7, 0,
+     { 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+-      0, 0, 0, 1, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
++      0, 0, 0, 1, 0, 1, 2, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0 },
+     { { 98, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 } },
+-    { { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
++    { { 98, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0 } },
+     { { { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+ 	  0, 0, 0, 0, 0, 0 } },
+       { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+@@ -41376,153 +41448,153 @@ static const i386_op_off_t i386_op_sets[
+   2373, 2377, 2379, 2383, 2387, 2391, 2395, 2399,
+   2401, 2405, 2407, 2409, 2411, 2413, 2415, 2417,
+   2419, 2421, 2422, 2424, 2426, 2428, 2430, 2432,
+-  2434, 2436, 2438, 2439, 2440, 2441, 2442, 2443,
+-  2444, 2445, 2446, 2447, 2449, 2451, 2453, 2455,
+-  2457, 2459, 2460, 2462, 2464, 2466, 2468, 2469,
+-  2470, 2472, 2474, 2476, 2478, 2480, 2482, 2484,
+-  2486, 2487, 2488, 2489, 2490, 2493, 2496, 2498,
+-  2501, 2502, 2503, 2505, 2506, 2508, 2509, 2510,
+-  2512, 2514, 2515, 2516, 2517, 2518, 2519, 2522,
+-  2527, 2532, 2537, 2542, 2545, 2550, 2555, 2557,
+-  2559, 2561, 2563, 2564, 2565, 2567, 2569, 2571,
+-  2573, 2575, 2577, 2579, 2580, 2581, 2582, 2583,
+-  2584, 2585, 2590, 2595, 2596, 2597, 2598, 2599,
+-  2600, 2601, 2602, 2603, 2604, 2605, 2606, 2607,
+-  2608, 2609, 2610, 2611, 2612, 2613, 2614, 2615,
+-  2616, 2617, 2618, 2619, 2620, 2621, 2622, 2623,
+-  2624, 2625, 2626, 2627, 2628, 2629, 2630, 2631,
+-  2632, 2633, 2634, 2635, 2636, 2637, 2638, 2639,
+-  2640, 2641, 2642, 2643, 2644, 2645, 2646, 2647,
+-  2648, 2649, 2650, 2651, 2652, 2653, 2654, 2655,
+-  2656, 2657, 2658, 2659, 2660, 2661, 2662, 2663,
+-  2664, 2665, 2666, 2667, 2668, 2669, 2670, 2671,
+-  2672, 2673, 2674, 2675, 2676, 2677, 2678, 2679,
+-  2680, 2681, 2682, 2683, 2684, 2685, 2686, 2687,
+-  2688, 2689, 2690, 2691, 2692, 2693, 2694, 2695,
+-  2696, 2697, 2698, 2699, 2700, 2701, 2702, 2703,
+-  2704, 2705, 2706, 2707, 2708, 2709, 2710, 2711,
+-  2712, 2713, 2714, 2715, 2716, 2717, 2718, 2719,
+-  2720, 2721, 2722, 2723, 2724, 2725, 2726, 2727,
+-  2728, 2729, 2730, 2731, 2732, 2733, 2734, 2735,
+-  2736, 2737, 2738, 2739, 2740, 2741, 2742, 2743,
+-  2744, 2745, 2746, 2747, 2748, 2749, 2750, 2751,
+-  2752, 2753, 2754, 2755, 2756, 2757, 2758, 2759,
+-  2760, 2761, 2762, 2763, 2764, 2765, 2766, 2767,
+-  2768, 2769, 2770, 2771, 2772, 2773, 2774, 2775,
+-  2776, 2777, 2778, 2779, 2780, 2781, 2782, 2783,
+-  2784, 2785, 2786, 2787, 2788, 2789, 2790, 2791,
+-  2792, 2793, 2794, 2795, 2796, 2798, 2800, 2801,
+-  2802, 2803, 2804, 2805, 2806, 2807, 2808, 2809,
+-  2810, 2811, 2812, 2813, 2814, 2815, 2816, 2817,
+-  2818, 2819, 2820, 2821, 2822, 2823, 2824, 2825,
+-  2826, 2827, 2828, 2830, 2832, 2834, 2836, 2837,
+-  2838, 2839, 2840, 2841, 2842, 2843, 2844, 2845,
+-  2846, 2847, 2848, 2849, 2851, 2852, 2853, 2854,
+-  2855, 2856, 2857, 2858, 2859, 2860, 2861, 2862,
+-  2863, 2864, 2865, 2866, 2867, 2868, 2869, 2870,
+-  2871, 2872, 2873, 2874, 2875, 2876, 2877, 2878,
+-  2879, 2880, 2881, 2882, 2883, 2884, 2885, 2886,
+-  2887, 2888, 2889, 2890, 2891, 2892, 2893, 2894,
+-  2895, 2896, 2898, 2900, 2901, 2902, 2904, 2905,
+-  2907, 2909, 2910, 2911, 2913, 2915, 2916, 2917,
+-  2918, 2919, 2920, 2921, 2922, 2923, 2924, 2925,
+-  2926, 2927, 2928, 2929, 2930, 2931, 2932, 2933,
+-  2936, 2939, 2940, 2941, 2942, 2943, 2944, 2945,
+-  2947, 2949, 2951, 2952, 2953, 2955, 2957, 2959,
+-  2961, 2965, 2967, 2969, 2970, 2971, 2972, 2973,
+-  2974, 2975, 2976, 2977, 2978, 2979, 2980, 2981,
+-  2982, 2983, 2984, 2985, 2986, 2987, 2990, 2993,
+-  2994, 2995, 2996, 2997, 2998, 2999, 3000, 3001,
+-  3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009,
+-  3010, 3011, 3012, 3013, 3014, 3015, 3016, 3017,
+-  3018, 3019, 3020, 3021, 3022, 3023, 3024, 3025,
+-  3026, 3027, 3028, 3029, 3030, 3031, 3032, 3033,
+-  3034, 3035, 3036, 3037, 3038, 3039, 3040, 3041,
+-  3042, 3043, 3044, 3045, 3046, 3047, 3050, 3052,
+-  3055, 3058, 3060, 3063, 3066, 3069, 3072, 3073,
+-  3076, 3077, 3078, 3079, 3080, 3081, 3085, 3087,
+-  3090, 3091, 3092, 3093, 3094, 3095, 3096, 3097,
+-  3098, 3099, 3100, 3101, 3102, 3103, 3104, 3105,
+-  3106, 3107, 3108, 3109, 3110, 3111, 3112, 3113,
+-  3114, 3115, 3116, 3117, 3118, 3119, 3120, 3121,
+-  3122, 3123, 3124, 3125, 3126, 3127, 3128, 3129,
+-  3130, 3131, 3132, 3133, 3134, 3135, 3136, 3137,
+-  3138, 3139, 3140, 3141, 3142, 3143, 3144, 3145,
+-  3147, 3148, 3149, 3150, 3151, 3152, 3153, 3154,
+-  3155, 3156, 3157, 3158, 3159, 3160, 3161, 3162,
+-  3163, 3164, 3165, 3166, 3167, 3168, 3169, 3170,
+-  3171, 3172, 3173, 3174, 3175, 3176, 3177, 3178,
+-  3179, 3180, 3181, 3182, 3183, 3184, 3185, 3186,
+-  3189, 3192, 3195, 3198, 3201, 3204, 3207, 3210,
+-  3213, 3216, 3219, 3222, 3225, 3228, 3231, 3232,
+-  3233, 3234, 3235, 3237, 3238, 3239, 3240, 3241,
+-  3242, 3243, 3244, 3245, 3246, 3247, 3248, 3249,
+-  3250, 3251, 3252, 3253, 3254, 3255, 3256, 3257,
+-  3258, 3259, 3260, 3261, 3262, 3263, 3264, 3265,
+-  3266, 3267, 3268, 3269, 3270, 3271, 3272, 3273,
+-  3274, 3275, 3276, 3277, 3278, 3279, 3280, 3281,
+-  3282, 3283, 3284, 3285, 3286, 3287, 3288, 3289,
+-  3290, 3291, 3292, 3293, 3294, 3295, 3296, 3297,
+-  3298, 3301, 3304, 3305, 3306, 3307, 3308, 3309,
+-  3310, 3311, 3312, 3313, 3314, 3315, 3316, 3317,
+-  3318, 3319, 3320, 3321, 3322, 3323, 3324, 3325,
+-  3326, 3327, 3328, 3329, 3330, 3331, 3332, 3333,
+-  3334, 3335, 3336, 3337, 3338, 3339, 3340, 3341,
+-  3342, 3343, 3344, 3345, 3346, 3347, 3348, 3349,
+-  3350, 3351, 3352, 3353, 3354, 3355, 3356, 3357,
+-  3358, 3359, 3360, 3361, 3362, 3363, 3364, 3365,
+-  3366, 3369, 3372, 3375, 3376, 3377, 3378, 3379,
+-  3380, 3381, 3382, 3383, 3384, 3385, 3386, 3387,
+-  3388, 3389, 3390, 3391, 3394, 3397, 3398, 3399,
+-  3402, 3403, 3404, 3405, 3406, 3409, 3412, 3415,
+-  3416, 3417, 3418, 3419, 3420, 3421, 3422, 3423,
+-  3424, 3425, 3427, 3429, 3430, 3431, 3432, 3433,
+-  3434, 3435, 3436, 3437, 3438, 3439, 3440, 3441,
+-  3442, 3443, 3444, 3445, 3446, 3447, 3448, 3449,
+-  3450, 3451, 3452, 3453, 3454, 3456, 3458, 3459,
+-  3460, 3461, 3462, 3463, 3464, 3465, 3466, 3467,
+-  3468, 3469, 3470, 3471, 3472, 3473, 3474, 3475,
+-  3476, 3477, 3478, 3479, 3480, 3481, 3482, 3483,
+-  3485, 3487, 3489, 3491, 3492, 3493, 3494, 3495,
+-  3496, 3497, 3498, 3499, 3500, 3501, 3502, 3503,
+-  3504, 3505, 3506, 3508, 3509, 3511, 3514, 3516,
+-  3517, 3518, 3520, 3522, 3523, 3524, 3525, 3526,
+-  3527, 3528, 3530, 3532, 3534, 3536, 3537, 3538,
+-  3539, 3540, 3541, 3542, 3543, 3544, 3545, 3547,
+-  3549, 3550, 3552, 3554, 3555, 3560, 3562, 3564,
+-  3565, 3566, 3567, 3568, 3569, 3570, 3571, 3573,
+-  3575, 3576, 3577, 3578, 3580, 3583, 3586, 3589,
+-  3591, 3592, 3593, 3594, 3595, 3596, 3597, 3598,
+-  3599, 3600, 3601, 3602, 3603, 3604, 3605, 3606,
+-  3607, 3608, 3609, 3610, 3611, 3613, 3615, 3617,
+-  3619, 3621, 3623, 3625, 3627, 3629, 3631, 3632,
+-  3633, 3634, 3635, 3636, 3637, 3638, 3639, 3640,
+-  3641, 3642, 3643, 3644, 3645, 3646, 3647, 3648,
+-  3649, 3650, 3651, 3652, 3653, 3654, 3655, 3656,
+-  3657, 3658, 3659, 3660, 3661, 3662, 3663, 3664,
+-  3665, 3666, 3667, 3668, 3669, 3670, 3671, 3672,
+-  3673, 3674, 3675, 3676, 3677, 3678, 3679, 3680,
+-  3681, 3682, 3683, 3684, 3685, 3686, 3687, 3688,
+-  3689, 3690, 3691, 3692, 3693, 3694, 3695, 3696,
+-  3697, 3698, 3699, 3700, 3701, 3702, 3703, 3704,
+-  3705, 3706, 3707, 3708, 3709, 3710, 3711, 3712,
+-  3713, 3714, 3715, 3716, 3717, 3718, 3719, 3720,
+-  3721, 3722, 3723, 3724, 3725, 3726, 3727, 3728,
+-  3729, 3730, 3731, 3732, 3733, 3734, 3735, 3736,
+-  3737, 3738, 3739, 3740, 3741, 3742, 3743, 3746,
+-  3747, 3748, 3751, 3752, 3753, 3755, 3756, 3757,
+-  3758, 3760, 3761, 3762, 3763, 3765, 3766, 3767,
+-  3768, 3771, 3772, 3773, 3774, 3775, 3778, 3781,
+-  3784, 3787, 3790, 3791, 3792, 3793, 3794, 3796,
+-  3798, 3799, 3800, 3801, 3804, 3807, 3810, 3813,
+-  3816, 3817, 3818, 3819, 3821, 3822, 3823, 3824,
+-  3826, 3827, 3828, 3829, 3830, 3831, 3832, 3833,
+-  3834, 3835, 3836, 3837, 3838, 3839, 3840, 3841,
+-  3842, 3843, 3844, 3845, 3846, 3847, 3848, 3849,
+-  3850, 3851, 3852, 3853, 3854, 3855, 3856, 3857,
+-  3858, 3859, 3860, 3861, 3862, 3863, 3864, 3865,
+-  3867, 3869, 3871, 3873, 3875, 3876, 3877, 3879,
+-  3881, 3882, 3883, 3884, 3885
++  2434, 2436, 2438, 2439, 2440, 2441, 2443, 2445,
++  2447, 2449, 2450, 2451, 2453, 2455, 2457, 2459,
++  2461, 2463, 2464, 2466, 2468, 2470, 2472, 2473,
++  2474, 2476, 2478, 2480, 2482, 2484, 2486, 2488,
++  2490, 2491, 2492, 2493, 2494, 2497, 2500, 2502,
++  2505, 2506, 2507, 2509, 2510, 2512, 2513, 2514,
++  2516, 2518, 2519, 2520, 2521, 2522, 2523, 2526,
++  2531, 2536, 2541, 2546, 2549, 2554, 2559, 2561,
++  2563, 2565, 2567, 2568, 2569, 2571, 2573, 2575,
++  2577, 2579, 2581, 2583, 2584, 2585, 2586, 2587,
++  2588, 2589, 2594, 2599, 2600, 2601, 2602, 2603,
++  2604, 2605, 2606, 2607, 2608, 2609, 2610, 2611,
++  2612, 2613, 2614, 2615, 2616, 2617, 2618, 2619,
++  2620, 2621, 2622, 2623, 2624, 2625, 2626, 2627,
++  2628, 2629, 2630, 2631, 2632, 2633, 2634, 2635,
++  2636, 2637, 2638, 2639, 2640, 2641, 2642, 2643,
++  2644, 2645, 2646, 2647, 2648, 2649, 2650, 2651,
++  2652, 2653, 2654, 2655, 2656, 2657, 2658, 2659,
++  2660, 2661, 2662, 2663, 2664, 2665, 2666, 2667,
++  2668, 2669, 2670, 2671, 2672, 2673, 2674, 2675,
++  2676, 2677, 2678, 2679, 2680, 2681, 2682, 2683,
++  2684, 2685, 2686, 2687, 2688, 2689, 2690, 2691,
++  2692, 2693, 2694, 2695, 2696, 2697, 2698, 2699,
++  2700, 2701, 2702, 2703, 2704, 2705, 2706, 2707,
++  2708, 2709, 2710, 2711, 2712, 2713, 2714, 2715,
++  2716, 2717, 2718, 2719, 2720, 2721, 2722, 2723,
++  2724, 2725, 2726, 2727, 2728, 2729, 2730, 2731,
++  2732, 2733, 2734, 2735, 2736, 2737, 2738, 2739,
++  2740, 2741, 2742, 2743, 2744, 2745, 2746, 2747,
++  2748, 2749, 2750, 2751, 2752, 2753, 2754, 2755,
++  2756, 2757, 2758, 2759, 2760, 2761, 2762, 2763,
++  2764, 2765, 2766, 2767, 2768, 2769, 2770, 2771,
++  2772, 2773, 2774, 2775, 2776, 2777, 2778, 2779,
++  2780, 2781, 2782, 2783, 2784, 2785, 2786, 2787,
++  2788, 2789, 2790, 2791, 2792, 2793, 2794, 2795,
++  2796, 2797, 2798, 2799, 2800, 2802, 2804, 2805,
++  2806, 2807, 2808, 2809, 2810, 2811, 2812, 2813,
++  2814, 2815, 2816, 2817, 2818, 2819, 2820, 2821,
++  2822, 2823, 2824, 2825, 2826, 2827, 2828, 2829,
++  2830, 2831, 2832, 2834, 2836, 2838, 2840, 2841,
++  2842, 2843, 2844, 2845, 2846, 2847, 2848, 2849,
++  2850, 2851, 2852, 2853, 2855, 2856, 2857, 2858,
++  2859, 2860, 2861, 2862, 2863, 2864, 2865, 2866,
++  2867, 2868, 2869, 2870, 2871, 2872, 2873, 2874,
++  2875, 2876, 2877, 2878, 2879, 2880, 2881, 2882,
++  2883, 2884, 2885, 2886, 2887, 2888, 2889, 2890,
++  2891, 2892, 2893, 2894, 2895, 2896, 2897, 2898,
++  2899, 2900, 2902, 2904, 2905, 2906, 2908, 2909,
++  2911, 2913, 2914, 2915, 2917, 2919, 2920, 2921,
++  2922, 2923, 2924, 2925, 2926, 2927, 2928, 2929,
++  2930, 2931, 2932, 2933, 2934, 2935, 2936, 2937,
++  2940, 2943, 2944, 2945, 2946, 2947, 2948, 2949,
++  2951, 2953, 2955, 2956, 2957, 2959, 2961, 2963,
++  2965, 2969, 2971, 2973, 2974, 2975, 2976, 2977,
++  2978, 2979, 2980, 2981, 2982, 2983, 2984, 2985,
++  2986, 2987, 2988, 2989, 2990, 2991, 2994, 2997,
++  2998, 2999, 3000, 3001, 3002, 3003, 3004, 3005,
++  3006, 3007, 3008, 3009, 3010, 3011, 3012, 3013,
++  3014, 3015, 3016, 3017, 3018, 3019, 3020, 3021,
++  3022, 3023, 3024, 3025, 3026, 3027, 3028, 3029,
++  3030, 3031, 3032, 3033, 3034, 3035, 3036, 3037,
++  3038, 3039, 3040, 3041, 3042, 3043, 3044, 3045,
++  3046, 3047, 3048, 3049, 3050, 3051, 3054, 3056,
++  3059, 3062, 3064, 3067, 3070, 3073, 3076, 3077,
++  3080, 3081, 3082, 3083, 3084, 3085, 3089, 3091,
++  3094, 3095, 3096, 3097, 3098, 3099, 3100, 3101,
++  3102, 3103, 3104, 3105, 3106, 3107, 3108, 3109,
++  3110, 3111, 3112, 3113, 3114, 3115, 3116, 3117,
++  3118, 3119, 3120, 3121, 3122, 3123, 3124, 3125,
++  3126, 3127, 3128, 3129, 3130, 3131, 3132, 3133,
++  3134, 3135, 3136, 3137, 3138, 3139, 3140, 3141,
++  3142, 3143, 3144, 3145, 3146, 3147, 3148, 3149,
++  3151, 3152, 3153, 3154, 3155, 3156, 3157, 3158,
++  3159, 3160, 3161, 3162, 3163, 3164, 3165, 3166,
++  3167, 3168, 3169, 3170, 3171, 3172, 3173, 3174,
++  3175, 3176, 3177, 3178, 3179, 3180, 3181, 3182,
++  3183, 3184, 3185, 3186, 3187, 3188, 3189, 3190,
++  3193, 3196, 3199, 3202, 3205, 3208, 3211, 3214,
++  3217, 3220, 3223, 3226, 3229, 3232, 3235, 3236,
++  3237, 3238, 3239, 3241, 3242, 3243, 3244, 3245,
++  3246, 3247, 3248, 3249, 3250, 3251, 3252, 3253,
++  3254, 3255, 3256, 3257, 3258, 3259, 3260, 3261,
++  3262, 3263, 3264, 3265, 3266, 3267, 3268, 3269,
++  3270, 3271, 3272, 3273, 3274, 3275, 3276, 3277,
++  3278, 3279, 3280, 3281, 3282, 3283, 3284, 3285,
++  3286, 3287, 3288, 3289, 3290, 3291, 3292, 3293,
++  3294, 3295, 3296, 3297, 3298, 3299, 3300, 3301,
++  3302, 3305, 3308, 3309, 3310, 3311, 3312, 3313,
++  3314, 3315, 3316, 3317, 3318, 3319, 3320, 3321,
++  3322, 3323, 3324, 3325, 3326, 3327, 3328, 3329,
++  3330, 3331, 3332, 3333, 3334, 3335, 3336, 3337,
++  3338, 3339, 3340, 3341, 3342, 3343, 3344, 3345,
++  3346, 3347, 3348, 3349, 3350, 3351, 3352, 3353,
++  3354, 3355, 3356, 3357, 3358, 3359, 3360, 3361,
++  3362, 3363, 3364, 3365, 3366, 3367, 3368, 3369,
++  3370, 3373, 3376, 3379, 3380, 3381, 3382, 3383,
++  3384, 3385, 3386, 3387, 3388, 3389, 3390, 3391,
++  3392, 3393, 3394, 3395, 3398, 3401, 3402, 3403,
++  3406, 3407, 3408, 3409, 3410, 3413, 3416, 3419,
++  3420, 3421, 3422, 3423, 3424, 3425, 3426, 3427,
++  3428, 3429, 3431, 3433, 3434, 3435, 3436, 3437,
++  3438, 3439, 3440, 3441, 3442, 3443, 3444, 3445,
++  3446, 3447, 3448, 3449, 3450, 3451, 3452, 3453,
++  3454, 3455, 3456, 3457, 3458, 3460, 3462, 3463,
++  3464, 3465, 3466, 3467, 3468, 3469, 3470, 3471,
++  3472, 3473, 3474, 3475, 3476, 3477, 3478, 3479,
++  3480, 3481, 3482, 3483, 3484, 3485, 3486, 3487,
++  3489, 3491, 3493, 3495, 3496, 3497, 3498, 3499,
++  3500, 3501, 3502, 3503, 3504, 3505, 3506, 3507,
++  3508, 3509, 3510, 3512, 3513, 3515, 3518, 3520,
++  3521, 3522, 3524, 3526, 3527, 3528, 3529, 3530,
++  3531, 3532, 3534, 3536, 3538, 3540, 3541, 3542,
++  3543, 3544, 3545, 3546, 3547, 3548, 3549, 3551,
++  3553, 3554, 3556, 3558, 3559, 3564, 3566, 3568,
++  3569, 3570, 3571, 3572, 3573, 3574, 3575, 3577,
++  3579, 3580, 3581, 3582, 3584, 3587, 3590, 3593,
++  3595, 3596, 3597, 3598, 3599, 3600, 3601, 3602,
++  3603, 3604, 3605, 3606, 3607, 3608, 3609, 3610,
++  3611, 3612, 3613, 3614, 3615, 3617, 3619, 3621,
++  3623, 3625, 3627, 3629, 3631, 3633, 3635, 3636,
++  3637, 3638, 3639, 3640, 3641, 3642, 3643, 3644,
++  3645, 3646, 3647, 3648, 3649, 3650, 3651, 3652,
++  3653, 3654, 3655, 3656, 3657, 3658, 3659, 3660,
++  3661, 3662, 3663, 3664, 3665, 3666, 3667, 3668,
++  3669, 3670, 3671, 3672, 3673, 3674, 3675, 3676,
++  3677, 3678, 3679, 3680, 3681, 3682, 3683, 3684,
++  3685, 3686, 3687, 3688, 3689, 3690, 3691, 3692,
++  3693, 3694, 3695, 3696, 3697, 3698, 3699, 3700,
++  3701, 3702, 3703, 3704, 3705, 3706, 3707, 3708,
++  3709, 3710, 3711, 3712, 3713, 3714, 3715, 3716,
++  3717, 3718, 3719, 3720, 3721, 3722, 3723, 3724,
++  3725, 3726, 3727, 3728, 3729, 3730, 3731, 3732,
++  3733, 3734, 3735, 3736, 3737, 3738, 3739, 3740,
++  3741, 3742, 3743, 3744, 3745, 3746, 3747, 3750,
++  3751, 3752, 3755, 3756, 3757, 3759, 3760, 3761,
++  3762, 3764, 3765, 3766, 3767, 3769, 3770, 3771,
++  3772, 3775, 3776, 3777, 3778, 3779, 3782, 3785,
++  3788, 3791, 3794, 3795, 3796, 3797, 3798, 3800,
++  3802, 3803, 3804, 3805, 3808, 3811, 3814, 3817,
++  3820, 3821, 3822, 3823, 3825, 3826, 3827, 3828,
++  3830, 3831, 3832, 3833, 3834, 3835, 3836, 3837,
++  3838, 3839, 3840, 3841, 3842, 3843, 3844, 3845,
++  3846, 3847, 3848, 3849, 3850, 3851, 3852, 3853,
++  3854, 3855, 3856, 3857, 3858, 3859, 3860, 3861,
++  3862, 3863, 3864, 3865, 3866, 3867, 3868, 3869,
++  3871, 3873, 3875, 3877, 3879, 3880, 3881, 3884,
++  3887, 3888, 3889, 3890, 3891
+ };
+ 
+ /* i386 mnemonics table.  */
