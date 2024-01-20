@@ -26232,6 +26232,17 @@ diff -rupN binutils.orig/gas/write.h binutils-2.41/gas/write.h
  
    bfd_reloc_code_real_type fx_r_type;
  
+diff -rupN binutils.orig/gas/write.c binutils-2.41/gas/write.c
+--- binutils.orig/gas/write.c
++++ binutils-2.41/gas/write.c
+@@ -169,6 +169,7 @@ fix_new_internal (fragS *frag,		/* Which frag?  */
+   fixP->fx_addnumber = 0;
+   fixP->fx_tcbit = 0;
+   fixP->fx_tcbit2 = 0;
++  fixP->fx_tcbit3 = 0;
+   fixP->fx_done = 0;
+   fixP->fx_no_overflow = 0;
+   fixP->fx_signed = 0;
 diff -rupN binutils.orig/include/elf/x86-64.h binutils-2.41/include/elf/x86-64.h
 --- binutils.orig/include/elf/x86-64.h	2024-01-18 12:12:24.187946342 +0000
 +++ binutils-2.41/include/elf/x86-64.h	2024-01-18 12:34:18.507470200 +0000
