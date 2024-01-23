@@ -2,7 +2,7 @@
 Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 Version: 2.41
-Release: 30%{?dist}
+Release: 31%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -1354,6 +1354,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Jan 23 2024 Fedora Release Engineering <releng@fedoraproject.org> - 2.41-31
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_40_Mass_Rebuild
+
 * Mon Jan 22 2024 Nick Clifton  <nickc@redhat.com> - 2.41-30
 - Import commits 4a54cb06585f568031dfd291d0fe45979ad75e98 and 00a17c6ad068c95019e1f37cfc2d1b8aaebd6ecb to add APX support to GOLD.
 
