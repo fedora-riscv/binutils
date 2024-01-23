@@ -1,0 +1,18 @@
+#
+# Build/PR gating tests for binutils
+#
+
+/common:
+  plan:
+    import:
+      url: https://src.fedoraproject.org/tests/binutils.git
+      ref: main
+      name: /plans/regression
+
+adjust+:
+  - because: "Plan to be ran when executed locally, or executed by CI system after updating an erratum/bodhi update."
+    # `build` is used by Bodhi
+    when: >-
+      trigger is defined
+      and trigger != build
+    enabled: false

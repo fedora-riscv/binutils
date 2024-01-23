@@ -18,6 +18,7 @@
 
 adjust+:
   - because: "Plan to be ran when executed locally, or executed by CI system to gate a build or PR."
+    # `commit` is used by Fedora CI, CentOS Stream CI, `build` by BaseOS CI
     when: >-
       trigger is defined
       and trigger != commit
