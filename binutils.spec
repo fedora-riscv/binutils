@@ -1363,7 +1363,7 @@ exit 0
 #----------------------------------------------------------------------------
 %changelog
 * Mon Feb 12 2024 Nick Clifton  <nickc@redhat.com> - 2.41-33
-- Add support for IBM's power-11 architecture extensions.
+- Backport commit 4199cf1e152d in order to add support for IBM's power-11 architecture extensions.
 
 * Wed Jan 24 2024 Nick Clifton  <nickc@redhat.com> - 2.41-32
 - Suppress the x86 linker's p_align-1 tests in order to cope with a CentOS-10 kernel bug.  (RHEL-22466)
