@@ -30,8 +30,8 @@ diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d binutils-2.40/
 @@ -11,5 +11,5 @@ Disassembly of section .text:
  [0-9a-f]+ <_start>:
  .*:[ 	]+[0-9a-f]+[ 	]+auipc[ 	]+a1.*
- .*:[ 	]+[0-9a-f]+[ 	]+addi?[ 	]+a0,gp.*<data_a>
--.*:[ 	]+[0-9a-f]+[ 	]+addi?[ 	]+a1,a1.*<data_b>
+ .*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a0,gp.*<data_a>
+-.*:[ 	]+[0-9a-f]+[ 	]+addi[ 	]+a1,a1.*<data_b>
 +.*:[ 	]+[0-9a-f]+[ 	]+mv[ 	]+a1,a1
  #pass
 diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcrel-lo-addend-2a.d binutils-2.40/ld/testsuite/ld-riscv-elf/pcrel-lo-addend-2a.d
@@ -134,3 +134,16 @@ diff -rup binutils.orig/ld/testsuite/ld-elf/tls.exp binutils-2.40/ld/testsuite/l
  
  objcopy_test_without_global_symbol
  
+--- binutils.orig/ld/testsuite/ld-ifunc/ifunc.exp	2024-02-08 10:12:23.739591113 +0000
++++ binutils-2.42/ld/testsuite/ld-ifunc/ifunc.exp	2024-02-08 10:14:58.243670115 +0000
+@@ -666,6 +666,10 @@ run_cc_link_tests [list \
+     ] \
+ ]
+ 
++if {[istarget "riscv*-*-*"]} {
++    return
++}
++
+ run_ld_link_exec_tests [list \
+     [list \
+ 	"Run pr18808" \

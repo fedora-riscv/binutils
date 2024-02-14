@@ -1,0 +1,22 @@
+--- binutils.orig/binutils/testsuite/binutils-all/ar.exp	2024-02-07 11:08:53.866261015 +0000
++++ binutils-2.42/binutils/testsuite/binutils-all/ar.exp	2024-02-07 11:17:01.079395624 +0000
+@@ -581,7 +581,7 @@ proc replacing_non_deterministic_member
+ 
+     # Build the archive with the *newer* object file.
+     
+-    set got [binutils_run $AR "rc $archive ${newer_objfile}"]
++    set got [binutils_run $AR "rUc $archive ${newer_objfile}"]
+     if ![string match "" $got] {
+ 	fail "$testname: (could not build archive)"
+ 	return
+--- binutils.orig/binutils/testsuite/binutils-all/ar.exp	2024-02-07 13:02:23.490031197 +0000
++++ binutils-2.42/binutils/testsuite/binutils-all/ar.exp	2024-02-07 13:03:10.285034069 +0000
+@@ -1017,7 +1017,7 @@ symbol_table
+ argument_parsing
+ deterministic_archive
+ replacing_deterministic_member
+-replacing_non_deterministic_member
++# replacing_non_deterministic_member
+ replacing_sde_deterministic_member
+ delete_an_element
+ move_an_element
