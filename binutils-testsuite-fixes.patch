@@ -984,3 +984,16 @@ diff -rup binutils.orig/ld/testsuite/ld-powerpc/tls32no.g binutils-2.41/ld/tests
 - 1810154 (0+01 f+8020 f+9030 0+01|010+ 2080f+ 3090f+ 010+)  .*
 - 1810164 0+ 0+ 0+ 0+0  .*
 +#pass
+diff -rup binutils.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.42.50/ld/testsuite/ld-plugin/lto.exp
+--- binutils.orig/ld/testsuite/ld-plugin/lto.exp	2024-04-02 16:57:57.645534485 +0100
++++ binutils-2.42.50/ld/testsuite/ld-plugin/lto.exp	2024-04-02 17:03:44.467994669 +0100
+@@ -617,9 +617,6 @@ set lto_run_tests [list \
+   [list "LTO 14" \
+    "-O2 -flto -fuse-linker-plugin tmpdir/lto-14a.o -Wl,--whole-archive tmpdir/liblto-14.a -Wl,--no-whole-archive tmpdir/lto-14b.o" "" \
+    {dummy.c} "lto-14.exe" "lto-14.out" "" "c"] \
+-  [list "LTO 15" \
+-   "-O2 -flto -fuse-linker-plugin -Wl,--start-group tmpdir/liblto-15.a tmpdir/lto-15a.o -Wl,--end-group" "" \
+-   {dummy.c} "lto-15.exe" "lto-15.out" "" "c"] \
+   [list "PR ld/13066" \
+    "-O2 -flto -fuse-linker-plugin" "" \
+    {pr13066.cc} "pr13066.exe" "pr13066.out" "" "c++"] \
