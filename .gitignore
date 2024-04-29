@@ -1,6 +1,8 @@
 *.diff
 *.orig
 *.rej
+*.sed
+*.xz
 
 *~
 .#*
@@ -61,19 +63,4 @@ stamp-*
 /mpc*
 /gmp*
 /isl*
-/binutils-2.34.0-5dfc0c955dbe912cd328fc2688e5fceb3239ac2a.tar.xz
 /binutils-2.19.50.0.1-output-format.sed
-/binutils-2.35.tar.xz
-/binutils-2.35.1.tar.xz
-/binutils-2.36.1.tar.xz
-/binutils-2.37.tar.xz
-/binutils-2.38.tar.xz
-/binutils-2.39.tar.xz
-/binutils-2.40.tar.xz
-/binutils-2.41.tar.xz
-/binutils-2.42.tar.xz
-/binutils-1b2c120daf9e2d935453f9051bbeafbac7f9f14d.tar.xz
-/binutils-1485a3fb63619cced99dd7a4a043cf01a0f423d9.tar.xz
-/binutils-6549a232d25585800752007f699fb7db9fe70883.tar.xz
-/binutils-121a3f4b4f4aac216abe239f6f3bd491b63e5e34.tar.xz
-/binutils-a73073dc7f23ab37ae33402fbb38c8314bcbea3e.tar.xz
