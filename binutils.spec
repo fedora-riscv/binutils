@@ -5,7 +5,7 @@ Name: binutils%{?_with_debug:-debug}
 # A version number of X.XX.50 is a snapshot of the upstream development sources.
 # If X.XX.50 is in use then use_commit_id_tarballs should be enabled (see below).
 Version: 2.42.50
-Release: 10%{?dist}
+Release: 11%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -182,7 +182,7 @@ URL: https://sourceware.org/binutils
 #
 # Note - we use the 0 suffixed form of "Source:" here so that it can be found
 # and editted by a script.
-Source0: binutils-679ad6e126868c462d8339eb837efb5a91a091af.tar.xz
+Source0: binutils-83b972fc272db31ab48aa5cde84f47c98868d7c8.tar.xz
 %else
 Source: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
 %endif
@@ -1350,6 +1350,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon May 13 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-11
+- Rebase to commit 83b972fc272db31ab48aa5cde84f47c98868d7c8
+
 * Mon Apr 29 2024 Nick Clifton  <nickc@redhat.com> - 2.42.50-10
 - Spec File: Stop %%verify(mtime) for ld.bfd.  (#2277349)
 
