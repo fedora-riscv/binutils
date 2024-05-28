@@ -3,9 +3,11 @@ Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 # Note - a version number of X.XX is an offical upstream GNU Binutils release.
 # A version number of X.XX.50 is a snapshot of the upstream development sources.
-# If X.XX.50 is in use then use_commit_id_tarballs should be enabled (see below).
+# created by the process outlined in: https://fedoraproject.org/wiki/BinutilsRawhideSync
+# If X.XX.50 is in use then use_commit_id_tarballs or use_snapshot_tarballs
+# should be enabled (see below).
 Version: 2.42.50
-Release: 11%{?dist}
+Release: 13%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -85,15 +87,26 @@ URL: https://sourceware.org/binutils
 # not just x86/x86_64.
 %define enable_separate_code 1
 
-# Enable the use of source tarballs created from specific upstream commits
-# to the mainline development branch rather than official GNU Binutils
-# releases.  This supports the syncing procedure documented here:
+# Enable the use of source tarballs manually created from specific upstream
+# commits to the mainline development branch rather than official GNU Binutils
+# releases.
 #
-#    https://fedoraproject.org/wiki/BinutilsRawhideSync
+# Note - if this feature is enabled then the %%{version} number (defined
+# above) should end in .50
+%define use_commit_id_tarballs 0
+
+# Enable the use of source tarballs created from snapshots of upstream
+# mainline development branch rather than official GNU Binutils releases.
+# These snapshots can be found here:
+#    https://snapshots.sourceware.org/binutils/trunk/
+# The value of this variable should be the commit-id used by the snapshot.
 #
-# Note - if this feature is enabled then the %%{version} number (defined above)
-# should end in .50
-%define use_commit_id_tarballs 1
+# Note - if this feature is enabled then the %%{version} number (defined
+# above) should end in .50
+#
+# Note %%(echo) is used because you cannot directly set a spec variable
+# to a hexadecimal string value.
+%define use_snapshot_tarballs %(echo "73061b1e53a")
 
 #----End of Configure Options------------------------------------------------
 
@@ -182,9 +195,16 @@ URL: https://sourceware.org/binutils
 #
 # Note - we use the 0 suffixed form of "Source:" here so that it can be found
 # and editted by a script.
-Source0: binutils-83b972fc272db31ab48aa5cde84f47c98868d7c8.tar.xz
+Source0: binutils-2.42.50-73061b1e53a.tar.xz
+%else
+%if %{?use_snapshot_tarballs:1}
+# We are using a tarball created by the sourceware snapshot system, found
+# here:
+#   https://snapshots.sourceware.org/binutils/trunk/
+Source0: binutils-2.42.50-%{use_snapshot_tarballs}.tar.xz
 %else
 Source: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
+%endif
 %endif
 
 Source1: binutils-2.19.50.0.1-output-format.sed
@@ -367,14 +387,14 @@ Requires(preun): %{_sbindir}/alternatives
 # We also need rm.
 Requires(post): coreutils
 
-%if %{with gold}
-# For now we make the binutils package require the gold sub-package.
-# That way other packages that have a requirement on "binutils" but
-# actually want gold will not have to be changed.  In the future, if
-# we decide to deprecate gold, we can remove this requirement, and
-# then update other packages as necessary.
-Requires: binutils-gold >= %{version}
-%endif
+# %%if %%{with gold}
+# # For now we make the binutils package require the gold sub-package.
+# # That way other packages that have a requirement on "binutils" but
+# # actually want gold will not have to be changed.  In the future, if
+# # we decide to deprecate gold, we can remove this requirement, and
+# # then update other packages as necessary.
+# Requires: binutils-gold >= %%{version}
+# %%endif
 
 # On ARM EABI systems, we do want -gnueabi to be part of the
 # target triple.
@@ -547,7 +567,11 @@ use by developers.  It is NOT INTENDED FOR PRODUCTION use.
 
 %prep
 
+%if %{?use_snapshot_tarballs:1}
+%autosetup -p1 -n binutils-%{version}-%{use_snapshot_tarballs}
+%else
 %autosetup -p1 -n binutils-%{version}
+%endif
 
 # On ppc64 and aarch64, we might use 64KiB pages
 sed -i -e '/#define.*ELF_COMMONPAGESIZE/s/0x1000$/0x10000/' bfd/elf*ppc.c
@@ -604,12 +628,12 @@ done
 compute_global_configuration()
 {
     CARGS="--quiet \
-	--build=%{_target_platform} \
-	--host=%{_target_platform} \
-	--enable-ld \
-	--enable-plugins \
-	--enable-64-bit-bfd \
-	--with-bugurl=%{dist_bug_report_url}"
+ --build=%{_target_platform} \
+ --host=%{_target_platform} \
+ --enable-ld \
+ --enable-plugins \
+ --enable-64-bit-bfd \
+ --with-bugurl=%{dist_bug_report_url}"
 
 %if %{without bootstrap}
     CARGS="$CARGS --enable-jansson=yes"
@@ -700,6 +724,10 @@ compute_global_configuration()
 # So we explicitly disable werror for builds from these tarballs.
     CARGS="$CARGS --enable-werror=no"
 %endif
+%if %{?use_snapshot_tarballs:1}
+# Likewise.
+    CARGS="$CARGS --enable-werror=no"
+%endif
 }
 
 # run_target_configuration()
@@ -754,29 +782,29 @@ run_target_configuration()
         #
         # Also enable the BPF target so that strip will work on BPF files.
         case $target in
-    	s390*)
-    	    # Note - The s390-linux target is there so that the GOLD linker will
-    	    # build.  By default, if configured for just s390x-linux, the GOLD
-    	    # configure system will only include support for 64-bit targets, but
-    	    # the s390x gold backend uses both 32-bit and 64-bit templates.
-    	    TARGS="--enable-targets=s390-linux,s390x-linux,x86_64-pep,bpf-unknown-none"
-    	    ;;
-    	ia64*)
-    	    TARGS="--enable-targets=ia64-linux,x86_64-pep,bpf-unknown-none"
-    	    ;;
-    	ppc64-*)
-    	    TARGS="--enable-targets=powerpc64le-linux,spu,x86_64-pep,bpf-unknown-none"
-    	    ;;
-    	ppc64le*)
-    	    TARGS="--enable-targets=powerpc-linux,spu,x86_64-pep,bpf-unknown-none"
-    	    ;;
-    	*)
-    	    TARGS="--enable-targets=x86_64-pep,bpf-unknown-none"
-    	    ;;
+        s390*)
+            # Note - The s390-linux target is there so that the GOLD linker will
+            # build.  By default, if configured for just s390x-linux, the GOLD
+            # configure system will only include support for 64-bit targets, but
+            # the s390x gold backend uses both 32-bit and 64-bit templates.
+            TARGS="--enable-targets=s390-linux,s390x-linux,x86_64-pep,bpf-unknown-none"
+            ;;
+        ia64*)
+            TARGS="--enable-targets=ia64-linux,x86_64-pep,bpf-unknown-none"
+            ;;
+        ppc64-*)
+            TARGS="--enable-targets=powerpc64le-linux,spu,x86_64-pep,bpf-unknown-none"
+            ;;
+        ppc64le*)
+            TARGS="--enable-targets=powerpc-linux,spu,x86_64-pep,bpf-unknown-none"
+            ;;
+        *)
+            TARGS="--enable-targets=x86_64-pep,bpf-unknown-none"
+            ;;
         esac
 
-	# Set up the sysroot and paths.
-	SARGS="--with-sysroot=/ \
+        # Set up the sysroot and paths.
+        SARGS="--with-sysroot=/ \
                --prefix=%{_prefix} \
                --libdir=%{_libdir} \
                --sysconfdir=%{_sysconfdir}"
@@ -788,25 +816,25 @@ run_target_configuration()
 
     else # Cross builds
 
-	# No extra targets are supported.
-	TARGS=""
+        # No extra targets are supported.
+        TARGS=""
 
         # Disable the GOLD linker for cross builds because although it does
         # support sysroots specified on the command line, it does not support
         # them in linker scripts via the =/$SYSROOT prefix.
-	SARGS="--with-sysroot=yes \
+        SARGS="--with-sysroot=yes \
                --program-prefix=$target- \
                --prefix=%{_prefix}/$target \
                --libdir=%{_libdir} \
                --exec-prefix=%{_usr} \
                --sysconfdir=%{_sysconfdir} \
-	       --disable-gold"
+               --disable-gold"
     fi
 
     if test x$shared == x1 ; then
-	RARGS="--enable-shared"
+        RARGS="--enable-shared"
     else
-	RARGS="--disable-shared"
+        RARGS="--disable-shared"
     fi
     
     ../configure --target=$target $CARGS $SARGS $RARGS $TARGS  || cat config.log
@@ -836,7 +864,7 @@ build_target()
 }
 
 # run_tests()
-#	Test a built (but not installed) binutils.
+#       Test a built (but not installed) binutils.
 #        $1 is the target architecture
 #        $2 is 1 if this is a native build
 #
@@ -867,37 +895,37 @@ run_tests()
     # Run the tests and accumulate the logs - but ignore failures...
     
     if test x$native == x1 ; then
-	make -k check-gas check-binutils check-ld < /dev/null || :
+        make -k check-gas check-binutils check-ld < /dev/null || :
 %if %{with gold}
-	# The GOLD testsuite always returns an error code, even if no tests fail.
-	make -k check-gold < /dev/null || :
+        # The GOLD testsuite always returns an error code, even if no tests fail.
+        make -k check-gold < /dev/null || :
 %endif
     else
-	# Do not try running linking tests for the cross-binutils.
-	make -k check-gas check-binutils < /dev/null || :
+        # Do not try running linking tests for the cross-binutils.
+        make -k check-gas check-binutils < /dev/null || :
     fi
     
     for f in {gas/testsuite/gas,ld/ld,binutils/binutils}.sum
     do
-	if [ -f $f ]; then
-	    cat $f
-	fi
+        if [ -f $f ]; then
+            cat $f
+        fi
     done
 
 %if %{with gold}
     if [ -f gold/test-suite.log ]; then
-	cat gold/test-suite.log
+        cat gold/test-suite.log
     fi
     if [ -f gold/testsuite/test-suite.log ]; then
-	cat gold/testsuite/*.log
+        cat gold/testsuite/*.log
     fi
 %endif
 
     for file in {gas/testsuite/gas,ld/ld,binutils/binutils}.{sum,log}
     do
-	if [ -f $file ]; then
-	    ln $file binutils-$target-$(basename $file) || :
-	fi
+        if [ -f $file ]; then
+            ln $file binutils-$target-$(basename $file) || :
+        fi
     done
 
     tar cjf binutils-$target.tar.xz  binutils-$target-*.log
@@ -906,9 +934,9 @@ run_tests()
 
 %if %{with gold}
     if [ -f gold/testsuite/test-suite.log ]; then
-	tar cjf  binutils-$target-gold.log.tar.xz gold/testsuite/*.log
-	uuencode binutils-$target-gold.log.tar.xz binutils-$target-gold.log.tar.xz
-	rm -f    binutils-$target-gold.log.tar.xz
+        tar cjf  binutils-$target-gold.log.tar.xz gold/testsuite/*.log
+        uuencode binutils-$target-gold.log.tar.xz binutils-$target-gold.log.tar.xz
+        rm -f    binutils-$target-gold.log.tar.xz
     fi
 %endif
 
@@ -917,11 +945,11 @@ run_tests()
     # Run the tests and this time fail if there are any errors.
 
     if test x$native == x1 ; then
-	make -k check-gas check-binutils check-ld < /dev/null
-	# Ignore the gold tests - they always fail
+        make -k check-gas check-binutils check-ld < /dev/null
+        # Ignore the gold tests - they always fail
     else
-	# Do not try running linking tests for the cross-binutils.
-	make -k check-gas check-binutils < /dev/null
+        # Do not try running linking tests for the cross-binutils.
+        make -k check-gas check-binutils < /dev/null
     fi
 
     popd
@@ -964,11 +992,11 @@ for f in %{cross_targets}; do
 
     # Skip the native build.
     if test x$f != x%{_target_platform}; then
-	# We could improve the cross build's size by enabling shared libraries but
-	# the produced binaries may be less convenient in the embedded environment.
+        # We could improve the cross build's size by enabling shared libraries but
+        # the produced binaries may be less convenient in the embedded environment.
         run_target_configuration  $f 0 0
-	build_target              $f 
-	run_tests                 $f 0
+        build_target              $f 
+        run_tests                 $f 0
     fi
 done
 
@@ -979,7 +1007,7 @@ done
 %install
 
 # install_binutils()
-#	Install the binutils.
+#       Install the binutils.
 #        $1 is the target architecture
 #        $2 is 1 if this is a native build
 #        $3 is 1 if shared libraries should be built
@@ -1010,89 +1038,89 @@ install_binutils()
     if test x$native == x1 ; then
 
 %if %{with docs}
-	%make_install DESTDIR=%{buildroot} 
-	make prefix=%{buildroot}%{_prefix} infodir=$local_infodir install-info
+        %make_install DESTDIR=%{buildroot} 
+        make prefix=%{buildroot}%{_prefix} infodir=$local_infodir install-info
 %else
-	%make_install DESTDIR=%{buildroot} MAKEINFO=true
+        %make_install DESTDIR=%{buildroot} MAKEINFO=true
 %endif
 
         # Rebuild the static libiaries with -fPIC.
-	# It would be nice to build the static libraries with -fno-lto so that
-	# they can be used by programs that are built with a different version
-	# of GCC from the one used to build the libraries, but this will trigger
-	# warnings from annocheck.
+        # It would be nice to build the static libraries with -fno-lto so that
+        # they can be used by programs that are built with a different version
+        # of GCC from the one used to build the libraries, but this will trigger
+        # warnings from annocheck.
 
         # Future: Remove libiberty together with its header file, projects should bundle it.
-	%make_build -s -C libiberty clean
-	%set_build_flags
-	%make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
+        %make_build -s -C libiberty clean
+        %set_build_flags
+        %make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libiberty
 
-	# Without the hidden visibility the 3rd party shared libraries would export
-	# the bfd non-stable ABI.
-	%make_build -s -C bfd clean
-	%set_build_flags
-	%make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
+        # Without the hidden visibility the 3rd party shared libraries would export
+        # the bfd non-stable ABI.
+        %make_build -s -C bfd clean
+        %set_build_flags
+        %make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS -fvisibility=hidden" -C bfd
 
-	%make_build -s -C opcodes clean
-	%set_build_flags
-	%make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
+        %make_build -s -C opcodes clean
+        %set_build_flags
+        %make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C opcodes
 
-	%make_build -s -C libsframe clean
-	%set_build_flags
-	%make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libsframe
+        %make_build -s -C libsframe clean
+        %set_build_flags
+        %make_build -s CFLAGS="-g -fPIC $RPM_OPT_FLAGS" -C libsframe
 
-	install -m 644 bfd/.libs/libbfd.a           $local_libdir
-	install -m 644 libiberty/libiberty.a        $local_libdir
-	install -m 644 ../include/libiberty.h       $local_incdir
-	install -m 644 opcodes/.libs/libopcodes.a   $local_libdir
-	install -m 644 libsframe/.libs/libsframe.a  $local_libdir
+        install -m 644 bfd/.libs/libbfd.a           $local_libdir
+        install -m 644 libiberty/libiberty.a        $local_libdir
+        install -m 644 ../include/libiberty.h       $local_incdir
+        install -m 644 opcodes/.libs/libopcodes.a   $local_libdir
+        install -m 644 libsframe/.libs/libsframe.a  $local_libdir
 
-	# Remove Windows/Novell only man pages
-	rm -f $local_mandir/{dlltool,nlmconv,windres,windmc}*
+        # Remove Windows/Novell only man pages
+        rm -f $local_mandir/{dlltool,nlmconv,windres,windmc}*
 %if %{without docs}
-	rm -f $local_mandir/{addr2line,ar,as,c++filt,elfedit,gprof,ld,nm,objcopy,objdump,ranlib,readelf,size,strings,strip}*
-	rm -f $local_infodir/{as,bfd,binutils,gprof,ld}*
+        rm -f $local_mandir/{addr2line,ar,as,c++filt,elfedit,gprof,ld,nm,objcopy,objdump,ranlib,readelf,size,strings,strip}*
+        rm -f $local_infodir/{as,bfd,binutils,gprof,ld}*
 %endif
 
 %if %{enable_shared}
-	chmod +x $local_libdir/lib*.so*
+        chmod +x $local_libdir/lib*.so*
 %endif
 
-	# Prevent programs from linking against libbfd and libopcodes
-	# dynamically, as they are changed far too often.
-	rm -f $local_libdir/lib{bfd,opcodes}.so
+        # Prevent programs from linking against libbfd and libopcodes
+        # dynamically, as they are changed far too often.
+        rm -f $local_libdir/lib{bfd,opcodes}.so
 
-	# Remove libtool files, which reference the .so libs
-	rm -f %local_libdir/lib{bfd,opcodes}.la
+        # Remove libtool files, which reference the .so libs
+        rm -f %local_libdir/lib{bfd,opcodes}.la
 
-	# Sanity check --enable-64-bit-bfd really works.
-	grep '^#define BFD_ARCH_SIZE 64$' $local_incdir/bfd.h
-	# Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
+        # Sanity check --enable-64-bit-bfd really works.
+        grep '^#define BFD_ARCH_SIZE 64$' $local_incdir/bfd.h
+        # Fix multilib conflicts of generated values by __WORDSIZE-based expressions.
 %ifarch %{ix86} x86_64 ppc %{power64} s390 s390x sh3 sh4 sparc sparc64 arm
-	sed -i -e '/^#include "ansidecl.h"/{p;s~^.*$~#include <bits/wordsize.h>~;}' \
-	    -e 's/^#define BFD_DEFAULT_TARGET_SIZE \(32\|64\) *$/#define BFD_DEFAULT_TARGET_SIZE __WORDSIZE/' \
-	    -e 's/^#define BFD_HOST_64BIT_LONG [01] *$/#define BFD_HOST_64BIT_LONG (__WORDSIZE == 64)/' \
-	    -e 's/^#define BFD_HOST_64_BIT \(long \)\?long *$/#if __WORDSIZE == 32\
+        sed -i -e '/^#include "ansidecl.h"/{p;s~^.*$~#include <bits/wordsize.h>~;}' \
+            -e 's/^#define BFD_DEFAULT_TARGET_SIZE \(32\|64\) *$/#define BFD_DEFAULT_TARGET_SIZE __WORDSIZE/' \
+            -e 's/^#define BFD_HOST_64BIT_LONG [01] *$/#define BFD_HOST_64BIT_LONG (__WORDSIZE == 64)/' \
+            -e 's/^#define BFD_HOST_64_BIT \(long \)\?long *$/#if __WORDSIZE == 32\
 #define BFD_HOST_64_BIT long long\
 #else\
 #define BFD_HOST_64_BIT long\
 #endif/' \
-	    -e 's/^#define BFD_HOST_U_64_BIT unsigned \(long \)\?long *$/#define BFD_HOST_U_64_BIT unsigned BFD_HOST_64_BIT/' \
-	    $local_incdir/bfd.h
+            -e 's/^#define BFD_HOST_U_64_BIT unsigned \(long \)\?long *$/#define BFD_HOST_U_64_BIT unsigned BFD_HOST_64_BIT/' \
+            $local_incdir/bfd.h
 %endif
 
-	touch -r ../bfd/bfd-in2.h $local_incdir/bfd.h
+        touch -r ../bfd/bfd-in2.h $local_incdir/bfd.h
 
-	# Generate .so linker scripts for dependencies; imported from glibc/Makerules:
+        # Generate .so linker scripts for dependencies; imported from glibc/Makerules:
 
-	# This fragment of linker script gives the OUTPUT_FORMAT statement
-	# for the configuration we are building.
-	OUTPUT_FORMAT="\
+        # This fragment of linker script gives the OUTPUT_FORMAT statement
+        # for the configuration we are building.
+        OUTPUT_FORMAT="\
 /* Ensure this .so library will not be used by a link for a different format
    on a multi-architecture system.  */
 $(gcc $CFLAGS $LDFLAGS -shared -x c /dev/null -o /dev/null -Wl,--verbose -v 2>&1 | sed -n -f "%{SOURCE1}")"
 
-	tee $local_libdir/libbfd.so <<EOH
+        tee $local_libdir/libbfd.so <<EOH
 /* GNU ld script */
 
 $OUTPUT_FORMAT
@@ -1102,7 +1130,7 @@ $OUTPUT_FORMAT
 INPUT ( %{_libdir}/libbfd.a %{_libdir}/libsframe.a -liberty -lz -ldl )
 EOH
 
-	tee $local_libdir/libopcodes.so <<EOH
+        tee $local_libdir/libopcodes.so <<EOH
 /* GNU ld script */
 
 $OUTPUT_FORMAT
@@ -1110,13 +1138,13 @@ $OUTPUT_FORMAT
 INPUT ( %{_libdir}/libopcodes.a -lbfd )
 EOH
 
-	rm -fr $local_root/$target
+        rm -fr $local_root/$target
 
     else # CROSS BUILDS
 
-	local target_root=$local_root/$target
-	
-	%make_install DESTDIR=%{buildroot} MAKEINFO=true
+        local target_root=$local_root/$target
+        
+        %make_install DESTDIR=%{buildroot} MAKEINFO=true
     fi
 
     # This one comes from gcc
@@ -1133,13 +1161,13 @@ EOH
     cat gprof.lang   >> binutils.lang
 
     if [ -x ld/ld-new ]; then
-	%find_lang ld
-	cat ld.lang >> binutils.lang
+        %find_lang ld
+        cat ld.lang >> binutils.lang
     fi
 
     if [ -x gold/ld-new ]; then
-	%find_lang gold
-	cat gold.lang >> binutils.lang
+        %find_lang gold
+        cat gold.lang >> binutils.lang
     fi
 
     popd
@@ -1153,7 +1181,7 @@ install_binutils %{_target_platform} 1 %{enable_shared}
 
 for f in %{cross_targets}; do
     if test x$f != x%{_target_platform}; then
-	install_binutils $f 0 0
+        install_binutils $f 0 0
     fi
 done
 
@@ -1350,6 +1378,12 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue May 28 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-13
+- Rebase to commit 73061b1e53a
+
+* Tue May 14 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-12
+- Remove "Requires: binutils-gold" from binutils sub-package.
+
 * Mon May 13 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-11
 - Rebase to commit 83b972fc272db31ab48aa5cde84f47c98868d7c8
 
