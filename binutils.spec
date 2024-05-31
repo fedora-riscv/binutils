@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # If X.XX.50 is in use then use_commit_id_tarballs or use_snapshot_tarballs
 # should be enabled (see below).
 Version: 2.42.50
-Release: 13%{?dist}
+Release: 14%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -106,7 +106,7 @@ URL: https://sourceware.org/binutils
 #
 # Note %%(echo) is used because you cannot directly set a spec variable
 # to a hexadecimal string value.
-%define use_snapshot_tarballs %(echo "73061b1e53a")
+%define use_snapshot_tarballs %(echo "cc80485f45c")
 
 #----End of Configure Options------------------------------------------------
 
@@ -1378,6 +1378,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri May 31 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-14
+- Rebase to commit cc80485f45c.  (Which brings in RELR support for the AArch64).
+
 * Tue May 28 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-13
 - Rebase to commit 73061b1e53a
 
