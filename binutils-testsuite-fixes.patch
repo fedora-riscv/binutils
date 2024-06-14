@@ -1012,3 +1012,27 @@ diff -rup binutils.orig/ld/testsuite/ld-plugin/lto.exp binutils-2.42.50/ld/tests
    [list "LTO 13" \
     "-O -flto -fuse-linker-plugin tmpdir/lto-13a.o tmpdir/liblto-13.a tmpdir/lto-13b.o" "" \
     {dummy.c} "lto-13.exe" "lto-13.out" "" "c"] \
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/tls32.d binutils-2.42.50-6b19a26ee12/ld/testsuite/ld-powerpc/tls32.d
+--- binutils.orig/ld/testsuite/ld-powerpc/tls32.d	2024-06-14 15:00:11.382013143 +0100
++++ binutils-2.42.50-6b19a26ee12/ld/testsuite/ld-powerpc/tls32.d	2024-06-14 15:09:06.405840085 +0100
+@@ -12,7 +12,7 @@ Disassembly of section \.text:
+ 0+18[0-9a-f]+ <_start>:
+ .*:	(42 9f 00 05|05 00 9f 42) 	bcl     20,4\*cr7\+so,.* <_start\+0x4>
+ .*:	(7f c8 02 a6|a6 02 c8 7f) 	mflr    r30
+-.*:	(3f de 00 02|02 00 de 3f) 	addis   r30,r30,2
++.*:	(3f de 00 0.|0. 00 de 3f) 	addis   r30,r30,.
+ .*:	(3b de 80 a0|.. 80 de 3b) 	addi    r30,r30,.*
+ .*:	(60 00 00 00|00 00 00 60) 	nop
+ .*:	(38 62 90 3c|3c 90 62 38) 	addi    r3,r2,-28612
+diff -rup binutils.orig/ld/testsuite/ld-powerpc/tls32no.d binutils-2.42.50-6b19a26ee12/ld/testsuite/ld-powerpc/tls32no.d
+--- binutils.orig/ld/testsuite/ld-powerpc/tls32no.d	2024-06-14 15:00:11.382013143 +0100
++++ binutils-2.42.50-6b19a26ee12/ld/testsuite/ld-powerpc/tls32no.d	2024-06-14 15:08:54.270817909 +0100
+@@ -12,7 +12,7 @@ Disassembly of section \.text:
+ 0+18..... <_start>:
+ .*:	(42 9f 00 05|05 00 9f 42) 	bcl     .*
+ .*:	(7f c8 02 a6|a6 02 c8 7f) 	mflr    r30
+-.*:	(3f de 00 02|02 00 de 3f) 	addis   r30,r30,2
++.*:	(3f de 00 0.|0. 00 de 3f) 	addis   r30,r30,.
+ .*:	(3b de 80 a0|.. 80 de 3b) 	addi    r30,r30,-[0-9]+
+ .*:	(38 7f ff e4|e4 ff 7f 38) 	addi    r3,r31,-28
+ .*:	(48 00 00 6d|6d 00 00 48) 	bl      .*

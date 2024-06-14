@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # If X.XX.50 is in use then use_commit_id_tarballs or use_snapshot_tarballs
 # should be enabled (see below).
 Version: 2.42.50
-Release: 15%{?dist}
+Release: 16%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -106,7 +106,7 @@ URL: https://sourceware.org/binutils
 #
 # Note %%(echo) is used because you cannot directly set a spec variable
 # to a hexadecimal string value.
-%define use_snapshot_tarballs %(echo "d1c2dd6f4de")
+%define use_snapshot_tarballs %(echo "6b19a26ee12")
 
 #----End of Configure Options------------------------------------------------
 
@@ -706,6 +706,7 @@ compute_global_configuration()
 
 %if %{enable_separate_code}
   CARGS="$CARGS --enable-separate-code=yes"
+  CARGS="$CARGS --enable-rosegment=yes"  
 %endif
 
 %if %{enable_threading}
@@ -1378,6 +1379,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Jun 14 2024 Nick Clifton <nickc@redhat.com>- 2.42.50-16
+- Rebase to commit 6b19a26ee12.  (Which brings in --rosegment support).
+
 * Mon Jun 10 2024 Nick Clifton <nickc@redhat.com>- 2.42.50-15
 - Rebase to commit d1c2dd6f4de
 
