@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # If X.XX.50 is in use then use_commit_id_tarballs or use_snapshot_tarballs
 # should be enabled (see below).
 Version: 2.42.50
-Release: 16%{?dist}
+Release: 17%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -1079,8 +1079,8 @@ install_binutils()
         # Remove Windows/Novell only man pages
         rm -f $local_mandir/{dlltool,nlmconv,windres,windmc}*
 %if %{without docs}
-        rm -f $local_mandir/{addr2line,ar,as,c++filt,elfedit,gprof,ld,nm,objcopy,objdump,ranlib,readelf,size,strings,strip}*
-        rm -f $local_infodir/{as,bfd,binutils,gprof,ld}*
+	rm -f $local_mandir/{addr2line,ar,as,c++filt,elfedit,gp,ld,nm,objcopy,objdump,ranlib,readelf,size,strings,strip}*
+	rm -f $local_infodir/{as,bfd,binutils,ctf,gprof,ld,sframe}*
 %endif
 
 %if %{enable_shared}
@@ -1290,8 +1290,6 @@ exit 0
 
 %if %{with docs}
 %{_mandir}/man1/
-%exclude %{_mandir}/man1/gp-*
-%exclude %{_mandir}/man1/gprofng*
 %{_infodir}/as.info.*
 %{_infodir}/binutils.info.*
 %{_infodir}/ld.info.*
@@ -1300,9 +1298,10 @@ exit 0
 %{_infodir}/ctf-spec.info.*
 %{_infodir}/gprof.info.*
 %{_infodir}/sframe-spec.info.*
-
 %if %{with gprofng}
-%exclude %{_infodir}/gprofng*
+%{_mandir}/man1/gp-*
+%{_mandir}/man1/gprofng*
+%{_infodir}/gprofng*
 %endif
 %endif
 
@@ -1341,9 +1340,6 @@ exit 0
 %files gprofng
 %{_bindir}/gp-*
 %{_bindir}/gprofng
-%{_mandir}/man1/gp-*
-%{_mandir}/man1/gprofng*
-%{_infodir}/gprofng.info.*
 %dir %{_libdir}/gprofng
 %{_libdir}/gprofng/*
 %{_sysconfdir}/gprofng.rc
@@ -1379,6 +1375,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jun 24 2024 Nick Clifton  <nickc@redhat.com> - 2.42.50-17
+- Fix building with documentation disabled.
+
 * Fri Jun 14 2024 Nick Clifton <nickc@redhat.com>- 2.42.50-16
 - Rebase to commit 6b19a26ee12.  (Which brings in --rosegment support).
 
