@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # If X.XX.50 is in use then use_commit_id_tarballs or use_snapshot_tarballs
 # should be enabled (see below).
 Version: 2.42.50
-Release: 18%{?dist}
+Release: 19%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -106,7 +106,7 @@ URL: https://sourceware.org/binutils
 #
 # Note %%(echo) is used because you cannot directly set a spec variable
 # to a hexadecimal string value.
-%define use_snapshot_tarballs %(echo "18b13d11d37")
+%define use_snapshot_tarballs %(echo "49cc32b732a")
 
 #----End of Configure Options------------------------------------------------
 
@@ -261,7 +261,7 @@ Patch07: binutils-do-not-link-with-static-libstdc++.patch
 
 # Purpose:  Allow OS specific sections in section groups.
 # Lifetime: Fixed in 2.43 (maybe)
-Patch08: binutils-special-sections-in-groups.patch
+# Patch08: binutils-special-sections-in-groups.patch
 
 # Purpose:  Stop gold from aborting when input sections with the same name
 #            have different flags.
@@ -1375,6 +1375,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jul 08 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-19
+- Rebase to commit 49cc32b732a
+- Retire: binutils-special-sections-in-groups.patch 
+
 * Mon Jun 24 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-18
 - Rebase to commit 18b13d11d37
 
