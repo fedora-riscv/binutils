@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # If X.XX.50 is in use then use_commit_id_tarballs or use_snapshot_tarballs
 # should be enabled (see below).
 Version: 2.42.50
-Release: 19%{?dist}
+Release: 20%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -1375,6 +1375,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Wed Jul 17 2024 Fedora Release Engineering <releng@fedoraproject.org> - 2.42.50-20
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
+
 * Mon Jul 08 2024 Nick Clifton <nickc@redhat.com> - 2.42.50-19
 - Rebase to commit 49cc32b732a
 - Retire: binutils-special-sections-in-groups.patch 
