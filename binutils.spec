@@ -3,11 +3,11 @@ Summary: A GNU collection of binary utilities
 Name: binutils%{?_with_debug:-debug}
 # Note - a version number of X.XX is an offical upstream GNU Binutils release.
 # A version number of X.XX.50 is a snapshot of the upstream development sources.
-# created by the process outlined in: https://fedoraproject.org/wiki/BinutilsRawhideSync
-# If X.XX.50 is in use then use_commit_id_tarballs or use_snapshot_tarballs
-# should be enabled (see below).
-Version: 2.42.50
-Release: 20%{?dist}
+# A version number of X.XX.90 is a pre-release snapshot.
+# The variable %%{source} (see below) should be set to indicate which of these
+# origins is being used.
+Version: 2.42.90
+Release: 1%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -87,26 +87,30 @@ URL: https://sourceware.org/binutils
 # not just x86/x86_64.
 %define enable_separate_code 1
 
-# Enable the use of source tarballs manually created from specific upstream
-# commits to the mainline development branch rather than official GNU Binutils
-# releases.
-#
-# Note - if this feature is enabled then the %%{version} number (defined
-# above) should end in .50
-%define use_commit_id_tarballs 0
 
-# Enable the use of source tarballs created from snapshots of upstream
-# mainline development branch rather than official GNU Binutils releases.
-# These snapshots can be found here:
-#    https://snapshots.sourceware.org/binutils/trunk/
-# The value of this variable should be the commit-id used by the snapshot.
+# Indicate where the sources come from and what XXX
 #
-# Note - if this feature is enabled then the %%{version} number (defined
-# above) should end in .50
+# Official releases come from:  https://ftp.gnu.org/gnu/binutils
+# Pre releases come from:       https://sourceware.org/pub/binutils/snapshots/
+# Snapshots come from:          https://snapshots.sourceware.org/binutils/trunk/
+# Tarballs are made by hand following a process outlined in this document:
+#                               https://fedoraproject.org/wiki/BinutilsRawhideSync
 #
-# Note %%(echo) is used because you cannot directly set a spec variable
-# to a hexadecimal string value.
-%define use_snapshot_tarballs %(echo "49cc32b732a")
+# Note - the Linux Kernel binutils releases are too unstable and contain
+# too many controversial patches so we stick with the official GNU version
+# instead.
+
+# %%define source official-release
+%define source pre-release
+# %%define source snapshot
+# %%define source tarball
+
+# For snapshots and tarballs an extension is used to indicate the commit it.
+# We need to know that so that the source extraction process will work
+# correctly.  Note %%(echo) is used because you cannot directly set a
+# spec variable to a hexadecimal string value.
+
+%define commit_id %(echo "49cc32b732a")
 
 #----End of Configure Options------------------------------------------------
 
@@ -180,31 +184,17 @@ URL: https://sourceware.org/binutils
 
 #----------------------------------------------------------------------------
 
-# Note - the Linux Kernel binutils releases are too unstable and contain
-# too many controversial patches so we stick with the official GNU version
-# instead.
-#
-
-%if %{use_commit_id_tarballs}
-# We are using a tarball created after a specific commit to the upstream
-# GNU Binutils repository.  This tarball can be recreated by the following
-# commands (FIXME: there is probably a better way of doing this):
-#    git clone git://sourceware.org/git/binutils-gdb.git .
-#    git checkout <commit-id>
-#    ./src-release.sh -x -r `git log -1 --format=%cd --date=format:%F <commit-id>` binutils
-#
-# Note - we use the 0 suffixed form of "Source:" here so that it can be found
-# and editted by a script.
-Source0: binutils-2.42.50-73061b1e53a.tar.xz
-%else
-%if %{?use_snapshot_tarballs:1}
-# We are using a tarball created by the sourceware snapshot system, found
-# here:
-#   https://snapshots.sourceware.org/binutils/trunk/
-Source0: binutils-2.42.50-%{use_snapshot_tarballs}.tar.xz
-%else
-Source: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
+%if "%{source}" == "tarball"
+Source0: binutils-%{version}-%{commit_id}.tar.xz
 %endif
+%if "%{source}" == "snapshot"
+Source0: binutils-%{version}-%{commit_id}.tar.xz
+%endif
+%if "%{source}" == "pre-release"
+Source0: binutils-%{version}.tar.xz
+%endif
+%if "%{source}" == "official-release"
+Source0: https://ftp.gnu.org/gnu/binutils/binutils-%{version}.tar.xz
 %endif
 
 Source1: binutils-2.19.50.0.1-output-format.sed
@@ -287,12 +277,6 @@ Patch12: binutils-autoconf-version.patch
 # Purpose:  Stop libtool from inserting useless runpaths into binaries.
 # Lifetime: Who knows.
 Patch13: binutils-libtool-no-rpath.patch
-
-%if %{enable_new_dtags}
-# Purpose:  Change ld man page so that it says that --enable-new-dtags is the default.
-# Lifetime: Permanent
-Patch14: binutils-update-linker-manual.patch
-%endif
 
 # Purpose:  Stop an abort when using dwp to process a file with no dwo links.
 # Lifetime: Fixed in 2.43 (maybe)
@@ -567,8 +551,8 @@ use by developers.  It is NOT INTENDED FOR PRODUCTION use.
 
 %prep
 
-%if %{?use_snapshot_tarballs:1}
-%autosetup -p1 -n binutils-%{version}-%{use_snapshot_tarballs}
+%if "%{source}" == "snapshot"
+%autosetup -p1 -n binutils-%{version}-%{commit_id}
 %else
 %autosetup -p1 -n binutils-%{version}
 %endif
@@ -715,18 +699,14 @@ compute_global_configuration()
     CARGS="$CARGS --enable-threads=no"
 %endif
 
-%if %{use_commit_id_tarballs}
-# Since commit-id tarballs are created directly from development sources
-# they will have "development=true" set in the bfd/development.sh file.
+%if "%{source}" != "official-release"
+# Since non official release tarballs are created directly from development
+# sources they will have "development=true" set in the bfd/development.sh file.
 # This enables -Werror by default, which is a problem because there is a
 # known issue with the libiberty library:
 #   libiberty/cp-demangle.c: In function 'd_demangle_callback.constprop':
 #   libiberty/cp-demangle.c:6794:1: error: stack usage might be unbounded [-Werror=stack-usage=]
 # So we explicitly disable werror for builds from these tarballs.
-    CARGS="$CARGS --enable-werror=no"
-%endif
-%if %{?use_snapshot_tarballs:1}
-# Likewise.
     CARGS="$CARGS --enable-werror=no"
 %endif
 }
@@ -855,8 +835,10 @@ build_target()
 
 %if %{with docs}
     # Because of parallel building, info has to be made after all.
-    %make_build %{_smp_mflags} tooldir=%{_prefix} all 
-    %make_build %{_smp_mflags} tooldir=%{_prefix} info
+    # %%make_build %%{_smp_mflags} tooldir=%%{_prefix} all 
+    # %%make_build %%{_smp_mflags} tooldir=%%{_prefix} info
+    %make_build -j1 tooldir=%{_prefix} all 
+    %make_build -j1 tooldir=%{_prefix} info
 %else
     %make_build %{_smp_mflags} tooldir=%{_prefix} MAKEINFO=true all
 %endif
@@ -1375,6 +1357,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Jul 22 2024 Nick Clifton <nickc@redhat.com> - 2.42.90-1
+- Rebase to pre-release sources.
+- Retire: binutils-update-linker-manual.patch
+
 * Wed Jul 17 2024 Fedora Release Engineering <releng@fedoraproject.org> - 2.42.50-20
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_41_Mass_Rebuild
 
