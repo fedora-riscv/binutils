@@ -105,7 +105,7 @@ URL: https://sourceware.org/binutils
 # %%define source snapshot
 # %%define source tarball
 
-# For snapshots and tarballs an extension is used to indicate the commit it.
+# For snapshots and tarballs an extension is used to indicate the commit ID.
 # We need to know that so that the source extraction process will work
 # correctly.  Note %%(echo) is used because you cannot directly set a
 # spec variable to a hexadecimal string value.
