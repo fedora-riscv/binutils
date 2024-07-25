@@ -88,7 +88,7 @@ URL: https://sourceware.org/binutils
 %define enable_separate_code 1
 
 
-# Indicate where the sources come from and what XXX
+# Indicate where the sources come from.
 #
 # Official releases come from:  https://ftp.gnu.org/gnu/binutils
 # Pre releases come from:       https://sourceware.org/pub/binutils/snapshots/
