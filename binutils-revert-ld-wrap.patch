@@ -1,0 +1,45 @@
+--- binutils.orig/ld/plugin.c	2024-07-31 14:52:34.971064991 +0100
++++ binutils-2.42.90/ld/plugin.c	2024-07-31 14:53:22.960245078 +0100
+@@ -777,9 +777,14 @@ get_symbols (const void *handle, int nsy
+       if (syms[n].def != LDPK_UNDEF && syms[n].def != LDPK_WEAKUNDEF)
+ 	{
+ 	  blhe = h;
+-	  /* Check if a symbol is a wrapper symbol.  */
+-	  if (blhe && blhe->wrapper_symbol)
+-	    wrap_status = wrapper;
++	  if (blhe && link_info.wrap_hash != NULL)
++	    {
++	      /* Check if a symbol is a wrapper symbol.  */
++	      struct bfd_link_hash_entry *unwrap
++		= unwrap_hash_lookup (&link_info, (bfd *) abfd, blhe);
++	      if (unwrap && unwrap != h)
++		wrap_status = wrapper;
++            }
+ 	}
+       else
+ 	{
+--- binutils.orig/ld/testsuite/ld-plugin/lto.exp	2024-07-31 14:52:35.216065910 +0100
++++ binutils-2.42.90/ld/testsuite/ld-plugin/lto.exp	2024-07-31 16:20:07.895726796 +0100
+@@ -531,22 +531,6 @@ set lto_link_elf_tests [list \
+    "pr29086" \
+   ] \
+   [list \
+-   "PR ld/31956 (a)" \
+-   "-Wl,--wrap=parse_line" \
+-   "-O2 -flto" \
+-   {pr31956a.c pr31956b.c} \
+-   {} \
+-   "pr31956a" \
+-  ] \
+-  [list \
+-   "PR ld/31956 (b)" \
+-   "-Wl,--wrap=parse_line" \
+-   "-O2 -flto" \
+-   {pr31956b.c pr31956a.c} \
+-   {} \
+-   "pr31956b" \
+-  ] \
+-  [list \
+    "Build pr30281.so" \
+    "-shared -Wl,--version-script,pr30281.t \
+     -O2 -fPIC -flto-partition=max -flto=2" \
