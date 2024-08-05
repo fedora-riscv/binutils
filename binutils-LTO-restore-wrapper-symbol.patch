@@ -1,0 +1,154 @@
+From 3221c470f0765886a49a1a3d2ec602e4104a377b Mon Sep 17 00:00:00 2001
+From: "H.J. Lu" <hjl.tools@gmail.com>
+Date: Fri, 2 Aug 2024 19:52:00 -0700
+Subject: [PATCH] LTO: Restore the wrapper symbol check for standard function
+
+Call unwrap_hash_lookup to restore the wrapper symbol check for standard
+function since reference to standard function may not show up in LTO
+symbol table:
+
+[hjl@gnu-tgl-3 pr31956-3]$ nm foo.o
+00000000 T main
+         U __real_malloc
+00000000 T __wrap_malloc
+[hjl@gnu-tgl-3 pr31956-3]$  lto-dump -list foo.o
+Type   Visibility  Size  Name
+function  default     0  malloc
+function  default     0  __real_malloc
+function  default     3  main
+function  default     5  __wrap_malloc
+[hjl@gnu-tgl-3 pr31956-3]$ make
+gcc -O2 -flto -Wall   -c -o foo.o foo.c
+gcc -Wl,--wrap=malloc -O2 -flto -Wall -o x foo.o
+/usr/local/bin/ld: /tmp/ccsPW0a9.ltrans0.ltrans.o: in function `main':
+<artificial>:(.text.startup+0xa): undefined reference to `__wrap_malloc'
+collect2: error: ld returned 1 exit status
+make: *** [Makefile:22: x] Error 1
+[hjl@gnu-tgl-3 pr31956-3]$
+
+Also add a test to verify that the unused wrapper is removed.
+
+	PR ld/31956
+	* plugin.c (get_symbols): Restore the wrapper symbol check for
+	standard function.
+	* testsuite/ld-plugin/lto.exp: Run the malloc test and the
+	unused test.
+	* testsuite/ld-plugin/pr31956c.c: New file.
+	* testsuite/ld-plugin/pr31956d.c: New file.
+	* testsuite/ld-plugin/pr31956d.d: New file.
+
+Signed-off-by: H.J. Lu <hjl.tools@gmail.com>
+---
+ ld/plugin.c                       | 14 ++++++++++++--
+ ld/testsuite/ld-plugin/lto.exp    | 16 ++++++++++++++++
+ ld/testsuite/ld-plugin/pr31956c.c | 19 +++++++++++++++++++
+ ld/testsuite/ld-plugin/pr31956d.c |  7 +++++++
+ ld/testsuite/ld-plugin/pr31956d.d |  4 ++++
+ 5 files changed, 58 insertions(+), 2 deletions(-)
+ create mode 100644 ld/testsuite/ld-plugin/pr31956c.c
+ create mode 100644 ld/testsuite/ld-plugin/pr31956d.c
+ create mode 100644 ld/testsuite/ld-plugin/pr31956d.d
+
+diff --git a/ld/plugin.c b/ld/plugin.c
+index 03ee9880d10..51c4765cc5b 100644
+--- a/ld/plugin.c
++++ b/ld/plugin.c
+@@ -778,8 +778,18 @@ get_symbols (const void *handle, int nsyms, struct ld_plugin_symbol *syms,
+ 	{
+ 	  blhe = h;
+ 	  /* Check if a symbol is a wrapper symbol.  */
+-	  if (blhe && blhe->wrapper_symbol)
+-	    wrap_status = wrapper;
++	  if (blhe)
++	    {
++	      if (blhe->wrapper_symbol)
++		wrap_status = wrapper;
++	      else if (link_info.wrap_hash != NULL)
++		{
++		  struct bfd_link_hash_entry *unwrap
++		    = unwrap_hash_lookup (&link_info, (bfd *) abfd, blhe);
++		  if (unwrap != NULL && unwrap != h)
++		    wrap_status = wrapper;
++		}
++	    }
+ 	}
+       else
+ 	{
+diff --git a/ld/testsuite/ld-plugin/lto.exp b/ld/testsuite/ld-plugin/lto.exp
+index ad59e2abd61..1a8c3736307 100644
+--- a/ld/testsuite/ld-plugin/lto.exp
++++ b/ld/testsuite/ld-plugin/lto.exp
+@@ -546,6 +546,22 @@ set lto_link_elf_tests [list \
+    {} \
+    "pr31956b" \
+   ] \
++  [list \
++   "PR ld/31956 (malloc)" \
++   "-Wl,--wrap=malloc" \
++   "-O2 -flto" \
++   {pr31956c.c} \
++   {} \
++   "pr31956c" \
++  ] \
++  [list \
++   "PR ld/31956 (unused)" \
++   "-Wl,--wrap=parse_line" \
++   "-O2 -flto" \
++   {pr31956d.c} \
++   {{"nm" {} "pr31956d.d"}} \
++   "pr31956d" \
++  ] \
+   [list \
+    "Build pr30281.so" \
+    "-shared -Wl,--version-script,pr30281.t \
+diff --git a/ld/testsuite/ld-plugin/pr31956c.c b/ld/testsuite/ld-plugin/pr31956c.c
+new file mode 100644
+index 00000000000..4a46b2b49a8
+--- /dev/null
++++ b/ld/testsuite/ld-plugin/pr31956c.c
+@@ -0,0 +1,19 @@
++#include <stdlib.h>
++
++extern void *__real_malloc (size_t);
++
++void *
++__wrap_malloc (size_t n)
++{
++  if (n == 0)
++    return NULL;
++  else
++    return __real_malloc (n);
++};
++
++int
++main (void)
++{
++  void *ptr = malloc (30);
++  return ptr == NULL ? 1 : 0;
++}
+diff --git a/ld/testsuite/ld-plugin/pr31956d.c b/ld/testsuite/ld-plugin/pr31956d.c
+new file mode 100644
+index 00000000000..cb7f2d50643
+--- /dev/null
++++ b/ld/testsuite/ld-plugin/pr31956d.c
+@@ -0,0 +1,7 @@
++void __wrap_parse_line(void) {};
++
++int
++main (void)
++{
++  return 0;
++}
+diff --git a/ld/testsuite/ld-plugin/pr31956d.d b/ld/testsuite/ld-plugin/pr31956d.d
+new file mode 100644
+index 00000000000..b579cdc7353
+--- /dev/null
++++ b/ld/testsuite/ld-plugin/pr31956d.d
+@@ -0,0 +1,4 @@
++#failif
++#...
++[0-9a-f]+ T .*parse_line
++#...
+-- 
+2.45.2
+
