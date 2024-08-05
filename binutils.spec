@@ -6,8 +6,8 @@ Name: binutils%{?_with_debug:-debug}
 # A version number of X.XX.90 is a pre-release snapshot.
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
-Version: 2.42.90
-Release: 2%{?dist}
+Version: 2.43
+Release: 1%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -100,8 +100,8 @@ URL: https://sourceware.org/binutils
 # too many controversial patches so we stick with the official GNU version
 # instead.
 
-# %%define source official-release
-%define source pre-release
+%define source official-release
+# %%define source pre-release
 # %%define source snapshot
 # %%define source tarball
 
@@ -271,7 +271,7 @@ Patch11: binutils-gold-i386-gnu-property-notes.patch
 
 # Purpose:  Allow the binutils to be configured with any (recent) version of
 #            autoconf.
-# Lifetime: Fixed in 2.43 (maybe ?)
+# Lifetime: Fixed in 2.44 (maybe ?)
 Patch12: binutils-autoconf-version.patch
 
 # Purpose:  Stop libtool from inserting useless runpaths into binaries.
@@ -279,7 +279,7 @@ Patch12: binutils-autoconf-version.patch
 Patch13: binutils-libtool-no-rpath.patch
 
 # Purpose:  Stop an abort when using dwp to process a file with no dwo links.
-# Lifetime: Fixed in 2.43 (maybe)
+# Lifetime: Fixed in 2.44 (maybe)
 Patch15: binutils-gold-empty-dwp.patch
 
 # Purpose:  Fix binutils testsuite failures.
@@ -291,21 +291,21 @@ Patch16: binutils-testsuite-fixes.patch
 Patch17: binutils-riscv-testsuite-fixes.patch
 
 # Purpose:  Make the GOLD linker ignore the "-z pack-relative-relocs" command line option.
-# Lifetime: Fixed in 2.43 (maybe)
+# Lifetime: Fixed in 2.44 (maybe)
 Patch18: binutils-gold-pack-relative-relocs.patch
 
 # Purpose:  Let the gold lihnker ignore --error-execstack and --error-rwx-segments.
-# Lifetime: Fixed in 2.43 (maybe)
+# Lifetime: Fixed in 2.44 (maybe)
 Patch19: binutils-gold-ignore-execstack-error.patch
 
 # Purpose:  Fix the ar test of non-deterministic archives.
-# Lifetime: Fixed in 2.43
+# Lifetime: Fixed in 2.44
 Patch20: binutils-fix-ar-test.patch
 
 # Purpose:  Revert eb7892c4019bd5d00175c0eb80eb0c5a47a42ca1 which was supposed
 #           to fix PR 31956 but also introduced new build failures,
 #           eg BZ 2301454.
-# Lifetime: Fixed in 2.43 ?
+# Lifetime: Fixed in 2.44 ?
 Patch21: binutils-revert-ld-wrap.patch
 
 # Purpose:  Suppress the x86 linker's p_align-1 tests due to kernel bug on CentOS-10
@@ -1363,6 +1363,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Aug 05 2024 Nick Clifton <nickc@redhat.com> - 2.43-1
+- Rebase to 2.43 release.
+
 * Wed Jul 31 2024 Nick Clifton <nickc@redhat.com> - 2.42.90-2
 - Revert commit eb7892c4019bd5d00175c0eb80eb0c5a47a42ca1 which was supposed to fix PR 31956 but also introduced new build failures.  (2301454).
 
