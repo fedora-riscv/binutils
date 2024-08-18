@@ -6,8 +6,8 @@ Name: binutils%{?_with_debug:-debug}
 # A version number of X.XX.90 is a pre-release snapshot.
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
-Version: 2.43
-Release: 2%{?dist}
+Version: 2.43.1
+Release: 1%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -301,10 +301,6 @@ Patch19: binutils-gold-ignore-execstack-error.patch
 # Purpose:  Fix the ar test of non-deterministic archives.
 # Lifetime: Fixed in 2.44
 Patch20: binutils-fix-ar-test.patch
-
-# Purpose:  Fix PR 31956 and BZ 2301454.
-# Lifetime: Fixed in 2.43.1 ?
-Patch21: binutils-LTO-restore-wrapper-symbol.patch
 
 # Purpose:  Suppress the x86 linker's p_align-1 tests due to kernel bug on CentOS-10
 # Lifetime: TEMPORARY
@@ -1361,6 +1357,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Sat Aug 17 2024 Nick Clifton <nickc@redhat.com> - 2.43.1-1
+- Rebase to 2.43.1 release.
+- Retire: binutils-LTO-restore-wrapper-symbol.patch
+
 * Mon Aug 05 2024 Nick Clifton <nickc@redhat.com> - 2.43-2
 - Use correct fix for BZ 2301454.
 
