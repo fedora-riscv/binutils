@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
 Version: 2.43.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -83,10 +83,16 @@ URL: https://sourceware.org/binutils
 # configurable in case there is ever a need to disable thread support.
 %define enable_threading 1
 
-# Enable the use of separate code and data segments for all architectures,
-# not just x86/x86_64.
+# Enable the use of separate code and data segments.  Whilst potentially
+# useful from a security point of view, it is problematic from a file
+# size point of view.  So for now, only enable it for the i686 and x86_64
+# architectures as these are the ones that have the most potential
+# vulnerability.
+%ifarch %{ix86} x86_64 
 %define enable_separate_code 1
-
+%else
+%define enable_separate_code 0
+%endif
 
 # Indicate where the sources come from.
 #
@@ -294,7 +300,7 @@ Patch17: binutils-riscv-testsuite-fixes.patch
 # Lifetime: Fixed in 2.44 (maybe)
 Patch18: binutils-gold-pack-relative-relocs.patch
 
-# Purpose:  Let the gold lihnker ignore --error-execstack and --error-rwx-segments.
+# Purpose:  Let the gold linker ignore --error-execstack and --error-rwx-segments.
 # Lifetime: Fixed in 2.44 (maybe)
 Patch19: binutils-gold-ignore-execstack-error.patch
 
@@ -690,7 +696,10 @@ compute_global_configuration()
 
 %if %{enable_separate_code}
   CARGS="$CARGS --enable-separate-code=yes"
-  CARGS="$CARGS --enable-rosegment=yes"  
+  CARGS="$CARGS --enable-rosegment=yes"
+%else
+  CARGS="$CARGS --enable-separate-code=no"
+  CARGS="$CARGS --enable-rosegment=no"
 %endif
 
 %if %{enable_threading}
@@ -758,7 +767,7 @@ run_target_configuration()
         # Extra targets to build along with the native one.
         #
         # BZ 1920373: Enable PEP support for all targets as the PERF package's
-        # testsuite expects to be able to read PE format files ragrdless of
+        # testsuite expects to be able to read PE format files regardless of
         # the host's architecture.
         #
         # Also enable the BPF target so that strip will work on BPF files.
@@ -1027,7 +1036,7 @@ install_binutils()
         %make_install DESTDIR=%{buildroot} MAKEINFO=true
 %endif
 
-        # Rebuild the static libiaries with -fPIC.
+        # Rebuild the static libraries with -fPIC.
         # It would be nice to build the static libraries with -fno-lto so that
         # they can be used by programs that are built with a different version
         # of GCC from the one used to build the libraries, but this will trigger
@@ -1357,8 +1366,11 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Sep 09 2024 Nick Clifton <nickc@redhat.com> - 2.43.1-2
+- Disable the default enablement of the linker's "-z separate-code" feature for non-x86 architectures.
+
 * Sat Aug 17 2024 Nick Clifton <nickc@redhat.com> - 2.43.1-1
-- Rebase to 2.43.1 release.
+- Rebase to 2.43.1 release.  (#2305399)
 - Retire: binutils-LTO-restore-wrapper-symbol.patch
 
 * Mon Aug 05 2024 Nick Clifton <nickc@redhat.com> - 2.43-2
