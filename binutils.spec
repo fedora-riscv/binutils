@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
 Version: 2.43.50
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -24,8 +24,9 @@ URL: https://sourceware.org/binutils
 # --without docs         Skip building documentation.  Default is with docs, except when building a cross binutils.
 # --without gold         Disable building of the GOLD linker.
 # --without gprofng      Do not build the GprofNG profiler.
-# --without systemzlib   Use the binutils version of zlib.
+# --without systemzlib   Use the binutils version of zlib.  Default is to use the system version.
 # --without testsuite    Do not run the testsuite.  Default is to run it.
+# --without xxhash       Do not link against the xxhash library.
 
 # Other configuration options can be set by modifying the following defines.
 
@@ -116,7 +117,7 @@ URL: https://sourceware.org/binutils
 # correctly.  Note %%(echo) is used because you cannot directly set a
 # spec variable to a hexadecimal string value.
 
-%define commit_id %(echo "c839a44c391")
+%define commit_id %(echo "1f4aee70ed1")
 
 #----End of Configure Options------------------------------------------------
 
@@ -134,6 +135,8 @@ URL: https://sourceware.org/binutils
 %bcond_without systemzlib
 # Default: Always run the testsuite.
 %bcond_without testsuite
+# Default: Use the xxhash-devel library.
+%bcond_without xxhash
 
 # Note - in the future the gold linker may become deprecated.
 %ifnarch riscv64
@@ -370,6 +373,10 @@ BuildRequires: zlib-devel
 
 %if %{with debuginfod}
 BuildRequires: elfutils-debuginfod-client-devel
+%endif
+
+%if %{with xxhash}
+BuildRequires: xxhash-devel
 %endif
 
 Requires(post): %{_sbindir}/alternatives
@@ -623,6 +630,7 @@ compute_global_configuration()
  --enable-ld \
  --enable-plugins \
  --enable-64-bit-bfd \
+ --enable-default-hash-style=gnu \
  --with-bugurl=%{dist_bug_report_url}"
 
 %if %{without bootstrap}
@@ -640,7 +648,11 @@ compute_global_configuration()
 %endif
 
 %if %{with systemzlib}
-    CARGS="$CARGS --with-system-zlib"
+    CARGS="$CARGS --with-system-zlib=yes"
+%endif
+
+%if %{with xxhash}
+    CARGS="$CARGS --with-xxhash=yes"
 %endif
 
 %if %{default_compress_debug}
@@ -1366,6 +1378,10 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Sep 30 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-2
+- Rebase to commit 1f4aee70ed1.
+- Configure the linker to support xxhash by default.
+
 * Tue Sep 10 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-1
 - Rebase to commit c839a44c391.
 
