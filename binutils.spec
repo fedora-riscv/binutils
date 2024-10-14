@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
 Version: 2.43.50
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -117,7 +117,7 @@ URL: https://sourceware.org/binutils
 # correctly.  Note %%(echo) is used because you cannot directly set a
 # spec variable to a hexadecimal string value.
 
-%define commit_id %(echo "1f4aee70ed1")
+%define commit_id %(echo "22c62092858")
 
 #----End of Configure Options------------------------------------------------
 
@@ -1346,6 +1346,8 @@ exit 0
 %dir %{_libdir}/gprofng
 %{_libdir}/gprofng/*
 %{_sysconfdir}/gprofng.rc
+%dir %{_docdir}/gprofng
+%{_docdir}/gprofng/examples.tar.gz
 %endif
 
 %if %{with crossbuilds}
@@ -1378,6 +1380,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Oct 14 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-4
+- Rebase to commit 22c62092858.
+
 * Thu Oct 03 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-3
 - Add more fixes for linker testsuite failures for the RISC-V.
 
