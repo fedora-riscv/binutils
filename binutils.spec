@@ -1346,8 +1346,10 @@ exit 0
 %dir %{_libdir}/gprofng
 %{_libdir}/gprofng/*
 %{_sysconfdir}/gprofng.rc
+%if %{with docs}
 %dir %{_docdir}/gprofng
 %{_docdir}/gprofng/examples.tar.gz
+%endif
 %endif
 
 %if %{with crossbuilds}
