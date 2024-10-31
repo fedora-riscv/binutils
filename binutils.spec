@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
 Version: 2.43.50
-Release: 5%{?dist}
+Release: 6%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -1084,6 +1084,9 @@ install_binutils()
 %if %{without docs}
 	rm -f $local_mandir/{addr2line,ar,as,c++filt,elfedit,gp,ld,nm,objcopy,objdump,ranlib,readelf,size,strings,strip}*
 	rm -f $local_infodir/{as,bfd,binutils,ctf,gprof,ld,sframe}*
+%if %{with gprofng}
+	rm -fr $local_infodir/../doc/gprofng
+%endif
 %endif
 
 %if %{enable_shared}
@@ -1382,6 +1385,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Thu Oct 31 2024 Miro Hrončok <mhroncok@redhat.com> - 2.43.50-6
+- Spec File: Do not install gprofng documentation when using --without docs
+
 * Tue Oct 22 2024 Richard W.M. Jones <rjones@redhat.com> - 2.43.50-5
 - Rebuild for Jansson 2.14
   (https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/thread/3PYINSQGKQ4BB25NQUI2A2UCGGLAG5ND/)
