@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
 Version: 2.43.50
-Release: 6%{?dist}
+Release: 7%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -310,6 +310,10 @@ Patch19: binutils-gold-ignore-execstack-error.patch
 # Purpose:  Fix the ar test of non-deterministic archives.
 # Lifetime: Fixed in 2.44
 Patch20: binutils-fix-ar-test.patch
+
+# Purpose:  Reverts commit 4f576180 which moves the .note.build-id section to the start of the file.
+# Lifetime: TTEMPORARY
+Patch98: binutils-revert-note-id-move.patch
 
 # Purpose:  Suppress the x86 linker's p_align-1 tests due to kernel bug on CentOS-10
 # Lifetime: TEMPORARY
@@ -1385,6 +1389,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Nov 01 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-7
+- Revert commit 4f576180 which moves the .note.build-id section back to the start of the file.  (PR 2321588)
+
 * Thu Oct 31 2024 Miro Hrončok <mhroncok@redhat.com> - 2.43.50-6
 - Spec File: Do not install gprofng documentation when using --without docs
 

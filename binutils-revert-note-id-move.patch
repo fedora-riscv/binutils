@@ -1,0 +1,124 @@
+--- binutils.orig/ld/scripttempl/elf.sc	2024-11-01 10:17:24.308959289 +0000
++++ binutils-2.43.50-22c62092858/ld/scripttempl/elf.sc	2024-11-01 10:17:39.730019895 +0000
+@@ -397,19 +397,6 @@ fi
+ # ===========================================================================
+ # Functions for generating parts of the linker script
+ 
+-# Helper function for putting comments into scripts.
+-# Useful when trying to track down script composition problems.
+-# Use by adding:
+-#   emit_comment "a message"
+-# wherever necessary.
+-
+-emit_comment()
+-{
+-cat <<EOF
+-  /* $1 */
+-EOF
+-}
+-
+ emit_header()
+ {
+ cat <<EOF
+@@ -438,6 +425,7 @@ emit_early_ro()
+ {
+   cat <<EOF
+   ${INITIAL_READONLY_SECTIONS}
++  .note.gnu.build-id ${RELOCATING-0}: { *(.note.gnu.build-id) }
+ EOF
+ }
+ 
+@@ -448,11 +436,6 @@ cat <<EOF
+   ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+PROVIDE (__executable_start = ${TEXT_START_ADDR}); . = ${TEXT_BASE_ADDRESS};}}}
+   ${CREATE_SHLIB+${RELOCATING+. = ${SHLIB_TEXT_START_ADDR}${SIZEOF_HEADERS_CODE};}}
+   ${CREATE_PIE+${RELOCATING+PROVIDE (__executable_start = ${SHLIB_TEXT_START_ADDR}); . = ${SHLIB_TEXT_START_ADDR}${SIZEOF_HEADERS_CODE};}}
+-
+-  /* Place build-id as close to the ELF headers as possible.  This
+-     maximises the chance the build-id will be present in core files,
+-     which GDB can then use to locate the associated debuginfo file.  */
+-  .note.gnu.build-id ${RELOCATING-0}: { *(.note.gnu.build-id) }
+ EOF
+ }
+ 
+@@ -574,7 +557,6 @@ EOF
+ align_text()
+ {
+ cat <<EOF
+-  ${RELOCATING+/* Align the text segment.  */}
+   ${RELOCATING+${TEXT_SEGMENT_ALIGN}}
+ EOF
+ }
+@@ -816,28 +798,11 @@ EOF
+   emit_executable_start
+ 
+   if test -z "${ALL_TEXT_BEFORE_RO}"; then
+-    # We are allowed to put R/O sections before code sections.
+-
+     test -n "${SEPARATE_CODE}" || emit_early_ro
+     test -n "${NON_ALLOC_DYN}${SEPARATE_CODE}" || emit_dyn
+-
+-    # We only need the alignment if we have emitted some sections.
+-    if test -z "${SEPARATE_CODE}"; then
+-      align_text
+-    elif test -z "${NON_ALLOC_DYN}${SEPARATE_CODE}"; then
+-      align_text
+-    fi
+   fi
+   
+-  # We do not align the code segment here as doing so will increase the file size.
+-  # Normally having the text segment at the start of the file will automatically
+-  # mean that it is aligned(*), and if we have emitted any r/o sections due to the
+-  # tests of SEPARATE_CODE above, then extra alignment will have already been
+-  # generated.
+-  #
+-  # *: Including the ELF headers and .note.gnu.build-id section in the code segment
+-  # is a very small theoretical risk.
+-
++  align_text  
+   emit_text
+ 
+   align_rodata
+diff -rup binutils.orig/ld/testsuite/ld-elf/pr23658-1e.d binutils-2.43.50-22c62092858/ld/testsuite/ld-elf/pr23658-1e.d
+--- binutils.orig/ld/testsuite/ld-elf/pr23658-1e.d	2024-11-01 13:56:39.565115093 +0000
++++ binutils-2.43.50-22c62092858/ld/testsuite/ld-elf/pr23658-1e.d	2024-11-01 13:58:07.450365677 +0000
+@@ -15,6 +15,7 @@
+ #xfail: cr16-* crx-* visium-*
+ # The following targets place .note.gnu.build-id in unusual places.
+ #xfail: *-*-hpux* arc*-* avr-* microblaze-*-* nds32*-* spu-*-*
++#xfail: *-*-*
+ 
+ #...
+  +[0-9]+ +\.note.gnu.build-id +
+diff -rup binutils.orig/ld/testsuite/ld-i386/pr32191.d binutils-2.43.50-22c62092858/ld/testsuite/ld-i386/pr32191.d
+--- binutils.orig/ld/testsuite/ld-i386/pr32191.d	2024-11-01 13:56:39.584115148 +0000
++++ binutils-2.43.50-22c62092858/ld/testsuite/ld-i386/pr32191.d	2024-11-01 13:58:30.962432716 +0000
+@@ -2,6 +2,7 @@
+ #as: --32 -mx86-used-note=yes
+ #ld: -shared -m elf_i386 -z separate-code --build-id --rosegment
+ #readelf: -lW
++#xfail: *-*-*
+ 
+ #...
+  +[0-9]+ +\.note\.gnu\.build-id \.text 
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr32191-x32.d binutils-2.43.50-22c62092858/ld/testsuite/ld-x86-64/pr32191-x32.d
+--- binutils.orig/ld/testsuite/ld-x86-64/pr32191-x32.d	2024-11-01 13:56:39.652115341 +0000
++++ binutils-2.43.50-22c62092858/ld/testsuite/ld-x86-64/pr32191-x32.d	2024-11-01 13:59:27.626595088 +0000
+@@ -2,6 +2,7 @@
+ #as: --x32 -mx86-used-note=yes
+ #ld: -shared -m elf32_x86_64 -z separate-code --build-id --rosegment
+ #readelf: -lW
++#xfail: *-*-*
+ 
+ #...
+  +[0-9]+ +\.note\.gnu\.build-id \.text 
+diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr32191.d binutils-2.43.50-22c62092858/ld/testsuite/ld-x86-64/pr32191.d
+--- binutils.orig/ld/testsuite/ld-x86-64/pr32191.d	2024-11-01 13:56:39.652115341 +0000
++++ binutils-2.43.50-22c62092858/ld/testsuite/ld-x86-64/pr32191.d	2024-11-01 13:59:12.906552493 +0000
+@@ -2,6 +2,7 @@
+ #as: --64 -mx86-used-note=yes
+ #ld: -shared -m elf_x86_64 -z separate-code --build-id --rosegment
+ #readelf: -lW
++#xfail: *-*-*
+ 
+ #...
+  +[0-9]+ +\.note\.gnu\.build-id \.text 
