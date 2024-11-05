@@ -1043,3 +1043,37 @@ diff -rup binutils.orig/ld/testsuite/ld-powerpc/tls32no.d binutils-2.42.50-6b19a
 <   [list "Run pr20267b" \
 <    "-O2 -flto -fcommon tmpdir/pr20267a.o tmpdir/libpr20267b.a" "" \
 <    {dummy.c} "pr20267b" "pass.out" "-flto -O2 -fcommon" "c"] \
+diff -rup bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-1.d binutils-2.43.50-55e32b3c682/ld/testsuite/ld-x86-64/sframe-pltgot-1.d
+--- bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-1.d	2024-11-04 13:34:33.522976068 +0000
++++ binutils-2.43.50-55e32b3c682/ld/testsuite/ld-x86-64/sframe-pltgot-1.d	2024-11-04 13:37:17.985526186 +0000
+@@ -23,6 +23,6 @@ Contents of the SFrame section .sframe:
+ 
+     func idx \[1\]: pc = 0x1010, size = 64 bytes
+     STARTPC\[m\] +CFA +FP +RA +
+-    0+0000 +sp\+16 +u +f +
++    0+0000 +sp\+[0-9]+ +u +f +
+ 
+ #...
+diff -rup bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-2.d binutils-2.43.50-55e32b3c682/ld/testsuite/ld-x86-64/sframe-pltgot-2.d
+--- bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-2.d	2024-11-04 13:34:33.522976068 +0000
++++ binutils-2.43.50-55e32b3c682/ld/testsuite/ld-x86-64/sframe-pltgot-2.d	2024-11-04 13:37:43.874611190 +0000
+@@ -23,6 +23,6 @@ Contents of the SFrame section .sframe:
+ 
+     func idx \[1\]: pc = 0x1010, size = 32 bytes
+     STARTPC\[m\] +CFA +FP +RA +
+-    0+0000 +sp\+16 +u +f +
++    0+0000 +sp\+[0-9]+ +u +f +
+ 
+ #...
+diff -rup bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-2.d binutils-2.43.50-55e32b3c682/ld/testsuite/ld-x86-64/sframe-pltgot-2.d
+--- bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-2.d	2024-11-04 14:26:07.983307843 +0000
++++ binutils-2.43.50-55e32b3c682/ld/testsuite/ld-x86-64/sframe-pltgot-2.d	2024-11-04 14:26:18.781353913 +0000
+@@ -21,7 +21,7 @@ Contents of the SFrame section .sframe:
+     0+1000 +sp\+16 +u +f +
+     0+1006 +sp\+24 +u +f +
+ 
+-    func idx \[1\]: pc = 0x1010, size = 32 bytes
++    func idx \[1\]: pc = 0x1010, size = [0-9]+ bytes
+     STARTPC\[m\] +CFA +FP +RA +
+     0+0000 +sp\+[0-9]+ +u +f +
+ 

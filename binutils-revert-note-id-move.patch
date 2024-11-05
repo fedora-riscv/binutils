@@ -78,17 +78,6 @@
    emit_text
  
    align_rodata
-diff -rup binutils.orig/ld/testsuite/ld-elf/pr23658-1e.d binutils-2.43.50-22c62092858/ld/testsuite/ld-elf/pr23658-1e.d
---- binutils.orig/ld/testsuite/ld-elf/pr23658-1e.d	2024-11-01 13:56:39.565115093 +0000
-+++ binutils-2.43.50-22c62092858/ld/testsuite/ld-elf/pr23658-1e.d	2024-11-01 13:58:07.450365677 +0000
-@@ -15,6 +15,7 @@
- #xfail: cr16-* crx-* visium-*
- # The following targets place .note.gnu.build-id in unusual places.
- #xfail: *-*-hpux* arc*-* avr-* microblaze-*-* nds32*-* spu-*-*
-+#xfail: *-*-*
- 
- #...
-  +[0-9]+ +\.note.gnu.build-id +
 diff -rup binutils.orig/ld/testsuite/ld-i386/pr32191.d binutils-2.43.50-22c62092858/ld/testsuite/ld-i386/pr32191.d
 --- binutils.orig/ld/testsuite/ld-i386/pr32191.d	2024-11-01 13:56:39.584115148 +0000
 +++ binutils-2.43.50-22c62092858/ld/testsuite/ld-i386/pr32191.d	2024-11-01 13:58:30.962432716 +0000
@@ -122,3 +111,14 @@ diff -rup binutils.orig/ld/testsuite/ld-x86-64/pr32191.d binutils-2.43.50-22c620
  
  #...
   +[0-9]+ +\.note\.gnu\.build-id \.text 
+diff -rup bin.orig/ld/testsuite/ld-elf/pr23658-1e.d binutils-2.43.50-55e32b3c682/ld/testsuite/ld-elf/pr23658-1e.d
+--- bin.orig/ld/testsuite/ld-elf/pr23658-1e.d	2024-11-04 12:18:57.021055380 +0000
++++ binutils-2.43.50-55e32b3c682/ld/testsuite/ld-elf/pr23658-1e.d	2024-11-04 12:19:06.522083958 +0000
+@@ -16,6 +16,7 @@
+ #xfail: *-*-hpux*
+ #xfail: arc*-* avr-* m68hc1*-* microblaze*-* nds32*-* spu-*-* xstormy16-*-*
+ #noxfail: microblaze*-linux*
++#xfail: *-*-*
+ 
+ #...
+  +[0-9]+ +\.note.gnu.build-id +

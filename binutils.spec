@@ -117,7 +117,7 @@ URL: https://sourceware.org/binutils
 # correctly.  Note %%(echo) is used because you cannot directly set a
 # spec variable to a hexadecimal string value.
 
-%define commit_id %(echo "22c62092858")
+%define commit_id %(echo "55e32b3c682")
 
 #----End of Configure Options------------------------------------------------
 
@@ -1389,7 +1389,8 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
-* Fri Nov 01 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-7
+* Mon Nov 04 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-7
+- Rebase to commit 55e32b3c682
 - Revert commit 4f576180 which moves the .note.build-id section back to the start of the file.  (PR 2321588)
 
 * Thu Oct 31 2024 Miro Hrončok <mhroncok@redhat.com> - 2.43.50-6
