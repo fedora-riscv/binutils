@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
 Version: 2.43.50
-Release: 7%{?dist}
+Release: 8%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -1294,6 +1294,7 @@ exit 0
 %if %{with gprofng}
 %exclude %{_bindir}/gp-*
 %exclude %{_bindir}/gprofng
+%exclude %{_bindir}/gprofng-*
 %endif
 
 %exclude %dir %{_exec_prefix}/lib/debug
@@ -1308,23 +1309,42 @@ exit 0
 %{_infodir}/ctf-spec.info.*
 %{_infodir}/gprof.info.*
 %{_infodir}/sframe-spec.info.*
+
 %if %{with gprofng}
-# %%{_mandir}/man1/gp-*
-# %%{_mandir}/man1/gprofng*
-%{_infodir}/gprofng*
+%exclude %{_docdir}/gprofng/examples.tar.gz
+%exclude %{_infodir}/gprofng*
+%exclude %{_mandir}/man1/gprofng*
 %endif
+
 %endif
 
 %if %{enable_shared}
 %{_libdir}/lib*.so
 %{_libdir}/lib*.so.*
+%dir %{_libdir}/bfd-plugins
+%{_libdir}/bfd-plugins/libdep.so
+
 %exclude %{_libdir}/libbfd.so
 %exclude %{_libdir}/libopcodes.so
 %exclude %{_libdir}/libctf.a
 %exclude %{_libdir}/libctf-nobfd.a
 
-%dir %{_libdir}/bfd-plugins
-%{_libdir}/bfd-plugins/libdep.so
+%if %{with gprofng}
+%exclude %{_libdir}/libgprofng.*
+%endif
+
+%endif
+
+#------------------------------------
+
+%files devel
+%{_prefix}/include/*
+%{_libdir}/lib*.a
+%{_libdir}/libbfd.so
+%{_libdir}/libopcodes.so
+
+%if %{enable_shared}
+%exclude %{_libdir}/lib*.la
 %endif
 
 %if %{with debug}
@@ -1332,32 +1352,38 @@ exit 0
 %{_libdir}/bfd-plugins/libdep.a
 %endif
 
-%files devel
-%{_prefix}/include/*
-%{_libdir}/lib*.a
-%{_libdir}/libbfd.so
-%{_libdir}/libopcodes.so
-%if %{enable_shared}
-%exclude %{_libdir}/lib*.la
-%endif
+#------------------------------------
 
 %if %{with gold}
 %files gold
 %{_bindir}/%{?cross}ld.gold
 %endif
 
+#------------------------------------
+
 %if %{with gprofng}
 %files gprofng
 %{_bindir}/gp-*
 %{_bindir}/gprofng
+%{_bindir}/gprofng-*
 %dir %{_libdir}/gprofng
 %{_libdir}/gprofng/*
 %{_sysconfdir}/gprofng.rc
+
+%if %{enable_shared}
+%{_libdir}/libgprofng.*
+%endif
+
 %if %{with docs}
 %dir %{_docdir}/gprofng
 %{_docdir}/gprofng/examples.tar.gz
+%{_infodir}/gprofng*
+%{_mandir}/man1/gprofng*
 %endif
+
 %endif
+
+#------------------------------------
 
 %if %{with crossbuilds}
 
@@ -1389,6 +1415,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Fri Nov 15 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-8
+- Spec File: Move all gprofng files into the binutils-gprofng sub-package.  (2326286)
+
 * Mon Nov 04 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-7
 - Rebase to commit 55e32b3c682
 - Revert commit 4f576180 which moves the .note.build-id section back to the start of the file.  (PR 2321588)
