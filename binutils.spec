@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
 Version: 2.43.50
-Release: 8%{?dist}
+Release: 9%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -117,7 +117,7 @@ URL: https://sourceware.org/binutils
 # correctly.  Note %%(echo) is used because you cannot directly set a
 # spec variable to a hexadecimal string value.
 
-%define commit_id %(echo "55e32b3c682")
+%define commit_id %(echo "1686dc7079f")
 
 #----End of Configure Options------------------------------------------------
 
@@ -1415,6 +1415,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Tue Nov 26 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-9
+- Rebase to commit 1686dc7079f
+
 * Fri Nov 15 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-8
 - Spec File: Move all gprofng files into the binutils-gprofng sub-package.  (2326286)
 
