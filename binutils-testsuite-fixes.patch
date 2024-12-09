@@ -189,31 +189,6 @@
     {pr29086.c} \
     {} \
     "pr29086" \
-diff -rup binutils.orig/ld/testsuite/ld-aarch64/bti-plt-5.d binutils-2.41/ld/testsuite/ld-aarch64/bti-plt-5.d
---- binutils.orig/ld/testsuite/ld-aarch64/bti-plt-5.d	2023-08-15 09:03:21.676463687 +0100
-+++ binutils-2.41/ld/testsuite/ld-aarch64/bti-plt-5.d	2023-08-15 09:17:56.751533569 +0100
-@@ -12,8 +12,8 @@ Disassembly of section \.plt:
- [0-9a-f]+ <.*>:
- .*:	d503245f 	bti	c
- .*:	a9bf7bf0 	stp	x16, x30, \[sp, #-16\]!
--.*:	90000090 	adrp	x16, 410000 <.*>
--.*:	f9...... 	ldr	x17, \[x16, #....\]
-+.*:	90000090 	adrp	x16, 4.0000 <.*>
-+.*:	f9...... 	ldr	x17, \[x16, #.*\]
- .*:	91...... 	add	x16, x16, #0x...
- .*:	d61f0220 	br	x17
- .*:	d503201f 	nop
-@@ -21,8 +21,8 @@ Disassembly of section \.plt:
- 
- [0-9a-f]+ <.*>:
- .*:	d503245f 	bti	c
--.*:	90000090 	adrp	x16, 410000 <.*>
--.*:	f9...... 	ldr	x17, \[x16, #....\]
-+.*:	90000090 	adrp	x16, 4.0000 <.*>
-+.*:	f9...... 	ldr	x17, \[x16, #.*\]
- .*:	91...... 	add	x16, x16, #0x...
- .*:	d61f0220 	br	x17
- .*:	d503201f 	nop
 diff -rup binutils.orig/ld/testsuite/ld-aarch64/erratum843419-far-full.d binutils-2.41/ld/testsuite/ld-aarch64/erratum843419-far-full.d
 --- binutils.orig/ld/testsuite/ld-aarch64/erratum843419-far-full.d	2023-08-15 09:03:21.683463694 +0100
 +++ binutils-2.41/ld/testsuite/ld-aarch64/erratum843419-far-full.d	2023-08-15 09:05:41.549608111 +0100

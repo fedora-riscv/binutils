@@ -7,7 +7,7 @@ Name: binutils%{?_with_debug:-debug}
 # The variable %%{source} (see below) should be set to indicate which of these
 # origins is being used.
 Version: 2.43.50
-Release: 9%{?dist}
+Release: 10%{?dist}
 License: GPL-3.0-or-later AND (GPL-3.0-or-later WITH Bison-exception-2.2) AND (LGPL-2.0-or-later WITH GCC-exception-2.0) AND BSD-3-Clause AND GFDL-1.3-or-later AND GPL-2.0-or-later AND LGPL-2.1-or-later AND LGPL-2.0-or-later
 URL: https://sourceware.org/binutils
 
@@ -117,7 +117,7 @@ URL: https://sourceware.org/binutils
 # correctly.  Note %%(echo) is used because you cannot directly set a
 # spec variable to a hexadecimal string value.
 
-%define commit_id %(echo "1686dc7079f")
+%define commit_id %(echo "3d75969bd0e")
 
 #----End of Configure Options------------------------------------------------
 
@@ -311,9 +311,9 @@ Patch19: binutils-gold-ignore-execstack-error.patch
 # Lifetime: Fixed in 2.44
 Patch20: binutils-fix-ar-test.patch
 
-# Purpose:  Reverts commit 4f576180 which moves the .note.build-id section to the start of the file.
-# Lifetime: TTEMPORARY
-Patch98: binutils-revert-note-id-move.patch
+# # Purpose:  Reverts commit 4f576180 which moves the .note.build-id section to the start of the file.
+# # Lifetime: TTEMPORARY
+# Patch98: binutils-revert-note-id-move.patch
 
 # Purpose:  Suppress the x86 linker's p_align-1 tests due to kernel bug on CentOS-10
 # Lifetime: TEMPORARY
@@ -1415,6 +1415,9 @@ exit 0
 
 #----------------------------------------------------------------------------
 %changelog
+* Mon Dec 09 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-10
+- Rebase to commit 3d75969bd0e
+
 * Tue Nov 26 2024 Nick Clifton <nickc@redhat.com> - 2.43.50-9
 - Rebase to commit 1686dc7079f
 
