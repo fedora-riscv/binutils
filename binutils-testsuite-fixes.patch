@@ -1052,3 +1052,18 @@ diff -rup bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-2.d binutils-2.43.50-55e
      STARTPC\[m\] +CFA +FP +RA +
      0+0000 +sp\+[0-9]+ +u +f +
  
+--- binutils.orig/ld/testsuite/ld-bootstrap/bootstrap.exp	2025-02-03 11:13:50.829608207 +0000
++++ binutils-with-gold-2.44/ld/testsuite/ld-bootstrap/bootstrap.exp	2025-02-03 11:17:34.589136290 +0000
+@@ -29,6 +29,12 @@ if ![isnative] {
+     return
+ }
+ 
++# FIXME: The AArch64 rawhide libz and libjanson libraries are built
++# without GCS support and so cannot be linked.
++if {[istarget "aarch64*-*-*"] } {
++    return
++}
++
+ # Skip if OFILES aren't provided, it can happen when lauching
+ # the testsuites outside the build directory.
+ if {![info exists OFILES]} {
