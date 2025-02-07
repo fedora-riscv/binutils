@@ -311,10 +311,6 @@ Patch19: binutils-gold-ignore-execstack-error.patch
 # Lifetime: Fixed in 2.44
 Patch20: binutils-fix-ar-test.patch
 
-# # Purpose:  Reverts commit 4f576180 which moves the .note.build-id section to the start of the file.
-# # Lifetime: TTEMPORARY
-# Patch98: binutils-revert-note-id-move.patch
-
 # Purpose:  Suppress the x86 linker's p_align-1 tests due to kernel bug on CentOS-10
 # Lifetime: TEMPORARY
 Patch99: binutils-suppress-ld-align-tests.patch
