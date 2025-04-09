@@ -86,9 +86,9 @@ URL: https://sourceware.org/binutils
 
 # Enable the use of separate code and data segments.  Whilst potentially
 # useful from a security point of view, it is problematic from a file
-# size point of view.  So for now, only enable it for the i686 and x86_64
-# architectures as these are the ones that have the most potential
-# vulnerability.
+# size point of view.  So for now, only enable it for the i686, x86_64
+# and riscv64 architectures as these are the ones that have the most
+# potential vulnerability.
 %ifarch %{ix86} x86_64 riscv64
 %define enable_separate_code 1
 %else
