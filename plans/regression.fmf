@@ -5,7 +5,7 @@
 /common:
   plan:
     import:
-      url: https://src.fedoraproject.org/tests/binutils.git
+      url: https://gitlab.com/redhat/centos-stream/tests/binutils.git
       ref: main
       name: /plans/regression
 
