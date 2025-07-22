@@ -1,0 +1,43 @@
+diff -rup binutils-2.44.90.orig/binutils/objcopy.c binutils-2.44.90/binutils/objcopy.c
+--- binutils-2.44.90.orig/binutils/objcopy.c	2025-07-22 11:06:37.180646185 +0100
++++ binutils-2.44.90/binutils/objcopy.c	2025-07-22 11:08:54.000707224 +0100
+@@ -3875,7 +3875,6 @@ copy_file (const char *input_filename, c
+   char **obj_matching;
+   char **core_matching;
+   off_t size = get_file_size (input_filename);
+-  const char *target = input_target;
+ 
+   if (size < 1)
+     {
+@@ -3890,12 +3889,18 @@ copy_file (const char *input_filename, c
+   /* Enable LTO plugin in strip unless all LTO sections should be
+      removed.  */
+   if (is_strip && !target && !lto_sections_removed)
+-    target = "plugin";
++    {
++      ibfd = bfd_openr (input_filename, "plugin");
++      if (ibfd != NULL)
++	goto loaded;
++    }
+ #endif
+ 
+   /* To allow us to do "strip *" without dying on the first
+      non-object file, failures are nonfatal.  */
+-  ibfd = bfd_openr (input_filename, target);
++  ibfd = bfd_openr (input_filename, input_target);
++
++ loaded:
+   if (ibfd == NULL || bfd_stat (ibfd, in_stat) != 0)
+     {
+       bfd_nonfatal_message (input_filename, NULL, NULL, NULL);
+--- binutils-2.44.90.orig/binutils/objcopy.c	2025-07-22 12:43:08.127658811 +0100
++++ binutils-2.44.90/binutils/objcopy.c	2025-07-22 12:44:43.167173203 +0100
+@@ -3888,7 +3888,7 @@ copy_file (const char *input_filename, c
+ #if BFD_SUPPORTS_PLUGINS
+   /* Enable LTO plugin in strip unless all LTO sections should be
+      removed.  */
+-  if (is_strip && !target && !lto_sections_removed)
++  if (is_strip && input_target == NULL && !lto_sections_removed)
+     {
+       ibfd = bfd_openr (input_filename, "plugin");
+       if (ibfd != NULL)
