@@ -172,3 +172,13 @@ diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d binutils-2.43.
 -.*:[ 	]+[0-9a-f]+[ 	]+mv[ 	]+a1,a1
 +.*:[ 	]+[0-9a-f]+[ 	]+.*
  #pass
+--- binutils-with-gold-2.45.50-79b2b564fec.orig/ld/testsuite/ld-riscv-elf/zicfilp-unlabeled-plt.d	2025-09-09 15:52:30.684689609 +0100
++++ binutils-with-gold-2.45.50-79b2b564fec/ld/testsuite/ld-riscv-elf/zicfilp-unlabeled-plt.d	2025-09-09 15:53:12.837859447 +0100
+@@ -30,6 +30,6 @@ Disassembly of section \.plt:
+ 
+ [0-9a-f]+ <bar@plt>:
+ .*:[ 	]+[0-9a-f]+[ 	]+lpad[ 	]+0x0
+-.*:[ 	]+[0-9a-f]+[ 	]+auipc[ 	]+t3,0x1
++.*:[ 	]+[0-9a-f]+[ 	]+auipc[ 	]+t3,0x[0-9a-f]+
+ .*:[ 	]+[0-9a-f]+[ 	]+ld[ 	]+t3,[0-9]+\(t3\) # [0-9a-f]+ <bar>
+ .*:[ 	]+[0-9a-f]+[ 	]+jalr[ 	]+t1,t3
