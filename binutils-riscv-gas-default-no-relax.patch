@@ -1,0 +1,11 @@
+--- fred/gas/config/tc-riscv.c	2025-12-18 13:16:00.755277538 +0000
++++ binutils-with-gold-2.45.50-8e992ccb1e4/gas/config/tc-riscv.c	2025-12-18 13:39:41.930620300 +0000
+@@ -277,7 +277,7 @@ static struct riscv_set_options riscv_op
+ {
+   0, /* pic */
+   0, /* rvc */
+-  1, /* relax */
++  0, /* relax */
+   DEFAULT_RISCV_ATTR, /* arch_attr */
+   0, /* csr_check */
+ };
