@@ -248,19 +248,6 @@ diff -rup binutils-with-gold-2.45.50-beab972c07d,orig/binutils/testsuite/binutil
  
  objcopy_test_without_global_symbol
  
-diff -rup binutils-with-gold-2.45.50-beab972c07d,orig/binutils/testsuite/lib/binutils-common.exp binutils-with-gold-2.45.50-beab972c07d/binutils/testsuite/lib/binutils-common.exp
---- binutils-with-gold-2.45.50-beab972c07d,orig/binutils/testsuite/lib/binutils-common.exp	2025-12-02 12:47:19.063399392 +0000
-+++ binutils-with-gold-2.45.50-beab972c07d/binutils/testsuite/lib/binutils-common.exp	2025-12-03 09:37:36.652251943 +0000
-@@ -756,6 +756,9 @@ proc prune_warnings_extra { text } {
-     # Ignore LTO warnings triggered by configuring with --enable-pgo-build=lto.
-     regsub -all "(^|\n)(\[^\n\]*lto-wrapper: warning: using serial compilation of \[0-9\]+ LTRANS jobs\[^\n\]*\n?)+" $text "\\1" text
- 
-+    # Skip warnings about the LTO plugin being needed.
-+    regsub -all "(^|\n)(\[^\n\]*:\[^\n\]*plugin needed to handle lto object\[^\n\]*\n?)+" $text "\\1" text
-+    
-     return $text
- }
- 
 diff -rup binutils-with-gold-2.45.50-beab972c07d,orig/ld/testsuite/lib/ld-lib.exp binutils-with-gold-2.45.50-beab972c07d/ld/testsuite/lib/ld-lib.exp
 --- binutils-with-gold-2.45.50-beab972c07d,orig/ld/testsuite/lib/ld-lib.exp	2025-12-02 12:47:19.201090894 +0000
 +++ binutils-with-gold-2.45.50-beab972c07d/ld/testsuite/lib/ld-lib.exp	2025-12-03 09:30:07.184360005 +0000
@@ -276,4 +263,16 @@ diff -rup binutils-with-gold-2.45.50-beab972c07d,orig/ld/testsuite/lib/ld-lib.ex
 +    
      if {![info exists ctf_available_saved]} {
  	set ctf_available_saved 0
+ 
+--- binutils.orig/binutils/testsuite/lib/binutils-common.exp	2026-01-05 08:49:32.868601146 +0000
++++ binutils-with-gold-2.45.50-be970c68891/binutils/testsuite/lib/binutils-common.exp	2026-01-05 08:50:01.876703040 +0000
+@@ -757,6 +757,9 @@ proc prune_warnings_extra { text } {
+     regsub -all "(^|\n)(\[^\n\]*lto-wrapper: warning: using serial compilation of \[0-9\]+ LTRANS jobs\[^\n\]*\n?)+" $text "\\1" text
+     regsub -all "(^|\n)(\[^\n\]*lto-wrapper: note: \[^\n\]*\n?)+" $text "\\1" text
+ 
++    # Skip warnings about the LTO plugin being needed.
++    regsub -all "(^|\n)(\[^\n\]*:\[^\n\]*plugin needed to handle lto object\[^\n\]*\n?)+" $text "\\1" text
++    
+     return $text
+ }
  
