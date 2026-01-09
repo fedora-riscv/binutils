@@ -9,3 +9,332 @@
    DEFAULT_RISCV_ATTR, /* arch_attr */
    0, /* csr_check */
  };
+diff -rup binutils.orig/gas/testsuite/gas/riscv/fp-d-insns-32.d binutils-2.45.1/gas/testsuite/gas/riscv/fp-d-insns-32.d
+--- binutils.orig/gas/testsuite/gas/riscv/fp-d-insns-32.d	2026-01-09 11:41:41.346992761 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/fp-d-insns-32.d	2026-01-09 11:45:09.697822817 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv32icd
++#as: -march=rv32icd -mrelax
+ #name: D extension (32-bit)
+ #objdump: -dwrMnumeric
+ 
+diff -rup binutils.orig/gas/testsuite/gas/riscv/fp-d-insns-64.d binutils-2.45.1/gas/testsuite/gas/riscv/fp-d-insns-64.d
+--- binutils.orig/gas/testsuite/gas/riscv/fp-d-insns-64.d	2026-01-09 11:41:41.346992761 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/fp-d-insns-64.d	2026-01-09 11:45:33.529917763 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv64id
++#as: -march=rv64id -mrelax
+ #name: D extension (64-bit)
+ #objdump: -dwrMnumeric
+ 
+diff -rup binutils.orig/gas/testsuite/gas/riscv/fp-f-insns-32.d binutils-2.45.1/gas/testsuite/gas/riscv/fp-f-insns-32.d
+--- binutils.orig/gas/testsuite/gas/riscv/fp-f-insns-32.d	2026-01-09 11:41:41.346992761 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/fp-f-insns-32.d	2026-01-09 11:45:54.121999802 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv32icf
++#as: -march=rv32icf -mrelax
+ #name: F extension (32-bit)
+ #objdump: -dwrMnumeric
+ 
+diff -rup binutils.orig/gas/testsuite/gas/riscv/fp-f-insns-64.d binutils-2.45.1/gas/testsuite/gas/riscv/fp-f-insns-64.d
+--- binutils.orig/gas/testsuite/gas/riscv/fp-f-insns-64.d	2026-01-09 11:41:41.347992766 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/fp-f-insns-64.d	2026-01-09 11:46:03.450037195 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv64if
++#as: -march=rv64if -mrelax
+ #name: F extension (64-bit)
+ #objdump: -dwrMnumeric
+ 
+diff -rup binutils.orig/gas/testsuite/gas/riscv/fp-q-insns-32.d binutils-2.45.1/gas/testsuite/gas/riscv/fp-q-insns-32.d
+--- binutils.orig/gas/testsuite/gas/riscv/fp-q-insns-32.d	2026-01-09 11:41:41.347992766 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/fp-q-insns-32.d	2026-01-09 11:46:18.114098310 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv32iq2p2
++#as: -march=rv32iq2p2 -mrelax
+ #name: Q extension (32-bit)
+ #objdump: -dwrMnumeric
+ 
+diff -rup binutils.orig/gas/testsuite/gas/riscv/fp-q-insns-64.d binutils-2.45.1/gas/testsuite/gas/riscv/fp-q-insns-64.d
+--- binutils.orig/gas/testsuite/gas/riscv/fp-q-insns-64.d	2026-01-09 11:41:41.347992766 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/fp-q-insns-64.d	2026-01-09 11:46:25.746130118 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv64iq
++#as: -march=rv64iq -mrelax
+ #name: Q extension (64-bit)
+ #objdump: -dwrMnumeric
+ 
+diff -rup binutils.orig/gas/testsuite/gas/riscv/fp-zfh-insns.d binutils-2.45.1/gas/testsuite/gas/riscv/fp-zfh-insns.d
+--- binutils.orig/gas/testsuite/gas/riscv/fp-zfh-insns.d	2026-01-09 11:41:41.347992766 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/fp-zfh-insns.d	2026-01-09 11:46:50.026231308 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv64ifdq_zfh
++#as: -march=rv64ifdq_zfh -mrelax
+ #source: fp-zfh-insns.s
+ #objdump: -dr
+ 
+diff -rup binutils.orig/gas/testsuite/gas/riscv/l-s-macro-zilsd.d binutils-2.45.1/gas/testsuite/gas/riscv/l-s-macro-zilsd.d
+--- binutils.orig/gas/testsuite/gas/riscv/l-s-macro-zilsd.d	2026-01-09 11:41:41.347992766 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/l-s-macro-zilsd.d	2026-01-09 11:47:22.010364608 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv32i_zilsd
++#as: -march=rv32i_zilsd -mrelax
+ #name: Lx/Sx macro insns for Zilsd
+ #source: l-s-macro.s
+ #objdump: -dwr
+diff -rup binutils.orig/gas/testsuite/gas/riscv/l-s-macro.d binutils-2.45.1/gas/testsuite/gas/riscv/l-s-macro.d
+--- binutils.orig/gas/testsuite/gas/riscv/l-s-macro.d	2026-01-09 11:41:41.347992766 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/l-s-macro.d	2026-01-09 11:47:38.082431591 +0000
+@@ -1,4 +1,4 @@
+-#as: -march=rv64i -defsym __64_bit__=1
++#as: -march=rv64i -defsym __64_bit__=1 -mrelax
+ #name: Lx/Sx macro insns
+ #objdump: -dwr
+ 
+diff -rup binutils.orig/gas/testsuite/gas/riscv/la-variants.d binutils-2.45.1/gas/testsuite/gas/riscv/la-variants.d
+--- binutils.orig/gas/testsuite/gas/riscv/la-variants.d	2026-01-09 11:41:41.347992766 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/la-variants.d	2026-01-09 11:47:53.082494106 +0000
+@@ -1,4 +1,4 @@
+-#as:
++#as: -mrelax
+ #objdump: -dr
+ 
+ .*:[ 	]+file format .*
+diff -rup binutils.orig/gas/testsuite/gas/riscv/relax-reloc.d binutils-2.45.1/gas/testsuite/gas/riscv/relax-reloc.d
+--- binutils.orig/gas/testsuite/gas/riscv/relax-reloc.d	2026-01-09 11:41:41.349992773 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/relax-reloc.d	2026-01-09 11:48:06.523550124 +0000
+@@ -1,4 +1,4 @@
+-#as:
++#as: -mrelax
+ #objdump: -r
+ 
+ .*:[ 	]+file format .*
+diff -rup binutils.orig/gas/testsuite/gas/riscv/tlsdesc.d binutils-2.45.1/gas/testsuite/gas/riscv/tlsdesc.d
+--- binutils.orig/gas/testsuite/gas/riscv/tlsdesc.d	2026-01-09 11:41:41.350992778 +0000
++++ binutils-2.45.1/gas/testsuite/gas/riscv/tlsdesc.d	2026-01-09 11:48:26.186632073 +0000
+@@ -1,3 +1,4 @@
++#as: -mrelax
+ #source: tlsdesc.s
+ #objdump: -dr
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/align-small-region.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/align-small-region.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/align-small-region.d	2026-01-09 11:41:41.544097974 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/align-small-region.d	2026-01-09 11:49:23.290870062 +0000
+@@ -1,5 +1,5 @@
+ #source: align-small-region.s
+-#as: -march=rv32i -mlittle-endian
++#as: -march=rv32i -mlittle-endian -mrelax
+ #ld: -melf32lriscv --relax -Talign-small-region.ld --defsym=_start=0x100
+ #objdump: -d
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/c-lui-2.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/c-lui-2.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/c-lui-2.d	2026-01-09 11:41:41.544097974 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/c-lui-2.d	2026-01-09 11:51:48.060473393 +0000
+@@ -1,6 +1,6 @@
+ #name: c.lui to c.li relaxation
+ #source: c-lui-2.s
+-#as: -march=rv32ic
++#as: -march=rv32ic -mrelax
+ #ld: -m[riscv_choose_ilp32_emul] -Tc-lui-2.ld
+ #objdump: -d -M no-aliases,numeric
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/c-lui.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/c-lui.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/c-lui.d	2026-01-09 11:41:41.544097974 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/c-lui.d	2026-01-09 11:51:12.852326661 +0000
+@@ -1,6 +1,6 @@
+ #name: lui to c.lui relaxation
+ #source: c-lui.s
+-#as: -march=rv32ic
++#as: -march=rv32ic -mrelax
+ #ld: -m[riscv_choose_ilp32_emul]
+ #objdump: -d -M no-aliases,numeric
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/code-model-medlow-weakref-02.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-medlow-weakref-02.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/code-model-medlow-weakref-02.d	2026-01-09 11:41:41.544097974 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-medlow-weakref-02.d	2026-01-09 11:53:30.443900088 +0000
+@@ -1,5 +1,5 @@
+ #source: code-model.s
+-#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1 --defsym __undefweak__=1
++#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1 --defsym __undefweak__=1 -mrelax
+ #ld: -Tcode-model-02.ld -melf64lriscv --no-relax
+ #objdump: -d -Mno-aliases
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medany-02.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medany-02.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medany-02.d	2026-01-09 11:41:41.544097974 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medany-02.d	2026-01-09 11:53:52.267991040 +0000
+@@ -1,5 +1,5 @@
+ #source: code-model.s
+-#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medany__=1
++#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medany__=1 -mrelax
+ #ld: -Tcode-model-02.ld -melf64lriscv --relax
+ #objdump: -d -Mno-aliases
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-01.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-01.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-01.d	2026-01-09 11:41:41.544097974 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-01.d	2026-01-09 11:52:30.748651307 +0000
+@@ -1,5 +1,5 @@
+ #source: code-model.s
+-#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1
++#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1 -mrelax
+ #ld: -Tcode-model-01.ld -melf64lriscv --relax
+ #objdump: -d -Mno-aliases
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-02.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-02.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-02.d	2026-01-09 11:41:41.544097974 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-02.d	2026-01-09 11:52:51.003735724 +0000
+@@ -1,5 +1,5 @@
+ #source: code-model.s
+-#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1
++#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1 -mrelax
+ #ld: -Tcode-model-02.ld -melf64lriscv --relax
+ #objdump: -d -Mno-aliases
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-weakref-01.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-weakref-01.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-weakref-01.d	2026-01-09 11:41:41.544097974 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-weakref-01.d	2026-01-09 11:53:12.083823573 +0000
+@@ -1,5 +1,5 @@
+ #source: code-model.s
+-#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1 --defsym __undefweak__=1
++#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1 --defsym __undefweak__=1 -mrelax
+ #ld: -Tcode-model-01.ld -melf64lriscv --relax
+ #objdump: -d -Mno-aliases
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/ld-riscv-elf.exp binutils-2.45.1/ld/testsuite/ld-riscv-elf/ld-riscv-elf.exp
+--- binutils.orig/ld/testsuite/ld-riscv-elf/ld-riscv-elf.exp	2026-01-09 11:41:41.544993550 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/ld-riscv-elf.exp	2026-01-09 11:55:38.261432780 +0000
+@@ -173,10 +173,10 @@ if [istarget "riscv*-*-*"] {
+     run_dump_test "pr31179-r"
+     run_ld_link_tests [list \
+ 	[list "Weak reference 32" "-T weakref.ld -m[riscv_choose_ilp32_emul]" "" \
+-	    "-march=rv32i -mabi=ilp32" {weakref32.s} \
++	    "-march=rv32i -mabi=ilp32 -mrelax" {weakref32.s} \
+ 	    {{objdump -d weakref32.d}} "weakref32"] \
+ 	[list "Weak reference 64" "-T weakref.ld -m[riscv_choose_lp64_emul]" "" \
+-	    "-march=rv64i -mabi=lp64" {weakref64.s} \
++	    "-march=rv64i -mabi=lp64 -mrelax" {weakref64.s} \
+ 	    {{objdump -d weakref64.d}} "weakref64"]]
+ 
+     # The following tests require shared library support.
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d	2026-01-09 11:41:41.546993558 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d	2026-01-09 11:50:10.115065205 +0000
+@@ -1,4 +1,4 @@
+ #source: pcgp-relax-01.s
+-#as: -march=rv64i
++#as: -march=rv64i -mrelax
+ #ld: --no-relax-gp --relax -m[riscv_choose_lp64_emul]
+ #objdump: -d -Mno-aliases
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-01.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/pcgp-relax-01.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-01.d	2026-01-09 11:41:41.546993558 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/pcgp-relax-01.d	2026-01-09 11:49:45.322961882 +0000
+@@ -1,4 +1,4 @@
+ #source: pcgp-relax-01.s
+-#as: -march=rv64i
++#as: -march=rv64i -mrelax
+ #ld: --relax -m[riscv_choose_lp64_emul]
+ #objdump: -d -Mno-aliases
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d	2026-01-09 11:41:41.546993558 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/pcgp-relax-02.d	2026-01-09 11:50:25.099127650 +0000
+@@ -1,5 +1,5 @@
+ #source: pcgp-relax-02.s
+-#as:
++#as: -mrelax
+ #ld: --relax --relax-gp
+ #objdump: -d
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/pr31179-r.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/pr31179-r.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/pr31179-r.d	2026-01-09 11:41:41.545993554 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/pr31179-r.d	2026-01-09 11:54:40.325191322 +0000
+@@ -1,5 +1,5 @@
+ #source: pr31179.s
+-#as:
++#as: -mrelax
+ #readelf: -Wr
+ 
+ Relocation section '.rela.text' at .*
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/relax-max-align-gp.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/relax-max-align-gp.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/relax-max-align-gp.d	2026-01-09 11:41:41.545993554 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/relax-max-align-gp.d	2026-01-09 11:54:13.692080326 +0000
+@@ -1,5 +1,5 @@
+ #source: relax-max-align-gp.s
+-#as: -march=rv64i
++#as: -march=rv64i -mrelax
+ #ld: -m[riscv_choose_lp64_emul]
+ #objdump: -d
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/shared-lib-nopic-04.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/shared-lib-nopic-04.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/shared-lib-nopic-04.d	2026-01-09 11:41:41.545993554 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/shared-lib-nopic-04.d	2026-01-09 11:56:31.597655067 +0000
+@@ -1,5 +1,5 @@
+ #source: shared-lib-nopic-04.s
+-#as:
++#as: -mrelax
+ #ld: -shared
+ #objdump: -d
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/uleb128.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/uleb128.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/uleb128.d	2026-01-09 11:41:41.545993554 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/uleb128.d	2026-01-09 11:54:26.228132570 +0000
+@@ -1,5 +1,5 @@
+ #source: uleb128.s
+-#as: -march=rv32ic -mlittle-endian
++#as: -march=rv32ic -mlittle-endian -mrelax
+ #ld: -melf32lriscv
+ #objdump: -d
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-now.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/variant_cc-now.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-now.d	2026-01-09 11:41:41.546993558 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/variant_cc-now.d	2026-01-09 11:56:06.757551540 +0000
+@@ -1,6 +1,6 @@
+ #source: variant_cc-1.s
+ #source: variant_cc-2.s
+-#as: -march=rv64i -mabi=lp64
++#as: -march=rv64i -mabi=lp64 -mrelax
+ #ld: -shared --hash-style=sysv -Ttext 0x8000 -z now -m[riscv_choose_lp64_emul]
+ #readelf: -rsW
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-shared.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/variant_cc-shared.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/variant_cc-shared.d	2026-01-09 11:41:41.546993558 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/variant_cc-shared.d	2026-01-09 11:56:19.317603887 +0000
+@@ -1,6 +1,6 @@
+ #source: variant_cc-1.s
+ #source: variant_cc-2.s
+-#as: -march=rv64i -mabi=lp64
++#as: -march=rv64i -mabi=lp64 -mrelax
+ #ld: -shared --hash-style=sysv -Ttext 0x8000 -m[riscv_choose_lp64_emul]
+ #readelf: -rsW
+ 
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-weakref-02.d binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-weakref-02.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-weakref-02.d	2026-01-09 14:21:59.264983156 +0000
++++ binutils-2.45.1/ld/testsuite/ld-riscv-elf/code-model-relax-medlow-weakref-02.d	2026-01-09 14:23:55.333885801 +0000
+@@ -1,5 +1,5 @@
+ #source: code-model.s
+-#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1 --defsym __undefweak__=1
++#as: -march=rv64i -mabi=lp64 -mlittle-endian --defsym __medlow__=1 --defsym __undefweak__=1 -mrelax
+ #ld: -Tcode-model-02.ld -melf64lriscv --relax
+ #objdump: -d -Mno-aliases
+ 
+diff -rup binutils.orig/ld/testsuite/ld-scripts/empty-address-2a.d binutils-2.45.1/ld/testsuite/ld-scripts/empty-address-2a.d
+--- binutils.orig/ld/testsuite/ld-scripts/empty-address-2a.d	2026-01-09 14:21:59.272983139 +0000
++++ binutils-2.45.1/ld/testsuite/ld-scripts/empty-address-2a.d	2026-01-09 14:22:50.104674080 +0000
+@@ -1,7 +1,7 @@
+ #source: empty-address-2.s
+ #ld: -Ttext 0x0000000 -Tdata 0x200 -T empty-address-2a.t
+ #nm: -n
+-#xfail: bfin-*-linux* frv-*-*linux* riscv64*-*-* tic54x-*-* [is_xcoff_format]
++#xfail: bfin-*-linux* frv-*-*linux* tic54x-*-* [is_xcoff_format]
+ #...
+ 0+0 T _start
+ #...
+diff -rup binutils.orig/ld/testsuite/ld-scripts/empty-address-2b.d binutils-2.45.1/ld/testsuite/ld-scripts/empty-address-2b.d
+--- binutils.orig/ld/testsuite/ld-scripts/empty-address-2b.d	2026-01-09 14:21:59.272983139 +0000
++++ binutils-2.45.1/ld/testsuite/ld-scripts/empty-address-2b.d	2026-01-09 14:23:15.358058934 +0000
+@@ -1,7 +1,7 @@
+ #source: empty-address-2.s
+ #ld: -Ttext 0x0000000 -Tdata 0x200 -T empty-address-2b.t
+ #nm: -n
+-#xfail: bfin-*-linux* frv-*-*linux* riscv64*-*-* tic54x-*-* [is_xcoff_format]
++#xfail: bfin-*-linux* frv-*-*linux* tic54x-*-* [is_xcoff_format]
+ #...
+ 0+0 T _start
+ #...
