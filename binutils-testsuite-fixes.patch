@@ -27,17 +27,6 @@
      if ![regexp $want $got] then {
  	fail "$testname -s option $got\n"
      } else {
---- binutils.orig/binutils/testsuite/binutils-all/objdump.exp	2023-08-03 13:09:07.631503783 +0100
-+++ binutils-2.41/binutils/testsuite/binutils-all/objdump.exp	2023-08-03 14:51:54.621295727 +0100
-@@ -921,7 +921,7 @@ proc test_objdump_S { } {
-     }
- }
- 
--test_objdump_S
-+# test_objdump_S
- 
- # Test objdump --private
- proc test_objdump_P {} {
 --- binutils.orig/ld/testsuite/ld-scripts/ld-version.d	2023-08-03 13:09:07.949504208 +0100
 +++ binutils-2.41/ld/testsuite/ld-scripts/ld-version.d	2023-08-03 15:13:01.374590134 +0100
 @@ -4,4 +4,4 @@
@@ -1080,4 +1069,15 @@ diff -rup bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-2.d binutils-2.43.50-55e
 -	] \
      ]
  }
+ 
+--- fred/binutils/testsuite/binutils-all/objdump.exp	2026-02-16 09:03:27.457277379 +0000
++++ binutils-with-gold-2.46.50-2d306bf8a70/binutils/testsuite/binutils-all/objdump.exp	2026-02-16 09:03:30.592967621 +0000
+@@ -957,7 +957,7 @@ proc test_objdump_S { } {
+     }
+ }
+ 
+-test_objdump_S
++# test_objdump_S
+ 
+ # Test objdump --map-global-vars on file containing dwarf-2 encoding information.
  
