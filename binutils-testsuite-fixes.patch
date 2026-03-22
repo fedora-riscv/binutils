@@ -1081,3 +1081,69 @@ diff -rup bin.orig/ld/testsuite/ld-x86-64/sframe-pltgot-2.d binutils-2.43.50-55e
  
  # Test objdump --map-global-vars on file containing dwarf-2 encoding information.
  
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv32-pic.d binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv32-pic.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv32-pic.d	2026-03-20 13:02:05.468700958 +0000
++++ binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv32-pic.d	2026-03-20 13:05:31.155200130 +0000
+@@ -1,6 +1,6 @@
+ #source: data-reloc.s
+ #as: -march=rv32i -mabi=ilp32 -defsym __abs__=1 -defsym __addr__=1 -defsym __undef__=1
+-#ld: -m[riscv_choose_ilp32_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -shared
++#ld: -m[riscv_choose_ilp32_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -shared -z notext
+ #objdump: -dR
+ 
+ .*:[ 	]+file format .*
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv32-pie.d binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv32-pie.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv32-pie.d	2026-03-20 13:02:05.468700958 +0000
++++ binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv32-pie.d	2026-03-20 13:05:52.846252771 +0000
+@@ -1,6 +1,6 @@
+ #source: data-reloc.s
+ #as: -march=rv32i -mabi=ilp32 -defsym __abs__=1 -defsym __addr__=1
+-#ld: -m[riscv_choose_ilp32_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -pie
++#ld: -m[riscv_choose_ilp32_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -pie -z notext
+ #objdump: -dR
+ 
+ .*:[ 	]+file format .*
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv32-symbolic.d binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv32-symbolic.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv32-symbolic.d	2026-03-20 13:02:05.468700958 +0000
++++ binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv32-symbolic.d	2026-03-20 13:06:01.427273593 +0000
+@@ -1,6 +1,6 @@
+ #source: data-reloc.s
+ #as: -march=rv32i -mabi=ilp32 -defsym __abs__=1 -defsym __addr__=1 -defsym __undef__=1
+-#ld: -m[riscv_choose_ilp32_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -shared -Bsymbolic
++#ld: -m[riscv_choose_ilp32_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -shared -Bsymbolic -z notext
+ #objdump: -dR
+ 
+ .*:[ 	]+file format .*
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv64-pic.d binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv64-pic.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv64-pic.d	2026-03-20 13:02:05.468700958 +0000
++++ binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv64-pic.d	2026-03-20 13:04:07.601997355 +0000
+@@ -1,6 +1,6 @@
+ #source: data-reloc.s
+ #as: -march=rv64i -mabi=lp64 -defsym __64_bit__=1 -defsym __abs__=1 -defsym __addr__=1 -defsym __undef__=1
+-#ld: -m[riscv_choose_lp64_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -shared
++#ld: -m[riscv_choose_lp64_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -shared -z notext
+ #objdump: -dR
+ 
+ .*:[ 	]+file format .*
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv64-pie.d binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv64-pie.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv64-pie.d	2026-03-20 13:02:05.468700958 +0000
++++ binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv64-pie.d	2026-03-20 13:04:57.106117494 +0000
+@@ -1,6 +1,6 @@
+ #source: data-reloc.s
+ #as: -march=rv64i -mabi=lp64 -defsym __64_bit__=1 -defsym __abs__=1 -defsym __addr__=1
+-#ld: -m[riscv_choose_lp64_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -pie
++#ld: -m[riscv_choose_lp64_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -pie -z notext
+ #objdump: -dR
+ 
+ .*:[ 	]+file format .*
+diff -rup binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv64-symbolic.d binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv64-symbolic.d
+--- binutils.orig/ld/testsuite/ld-riscv-elf/data-reloc-rv64-symbolic.d	2026-03-20 13:02:05.468700958 +0000
++++ binutils-with-gold-2.46/ld/testsuite/ld-riscv-elf/data-reloc-rv64-symbolic.d	2026-03-20 13:05:14.650160073 +0000
+@@ -1,6 +1,6 @@
+ #source: data-reloc.s
+ #as: -march=rv64i -mabi=lp64 -defsym __64_bit__=1 -defsym __abs__=1 -defsym __addr__=1 -defsym __undef__=1
+-#ld: -m[riscv_choose_lp64_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -shared -Bsymbolic
++#ld: -m[riscv_choose_lp64_emul] -Ttext 0x8000 --defsym _start=0x0 --defsym abs=0x100 --defsym abs_local=0x200 -shared -Bsymbolic -z notext
+ #objdump: -dR
+ 
+ .*:[ 	]+file format .*
