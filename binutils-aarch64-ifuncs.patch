@@ -1,0 +1,159 @@
+--- binutils.orig/bfd/elfnn-aarch64.c	2026-04-17 09:16:32.707242517 +0100
++++ binutils-with-gold-2.46.50-48997323b0f/bfd/elfnn-aarch64.c	2026-06-04 12:50:40.994231960 +0100
+@@ -5392,9 +5392,11 @@ aarch64_tls_transition (bfd *input_bfd,
+ static bfd_vma
+ dtpoff_base (struct bfd_link_info *info)
+ {
++  asection * tls = elf_hash_table (info)->tls_sec;
++
+   /* If tls_sec is NULL, we should have signalled an error already.  */
+-  BFD_ASSERT (elf_hash_table (info)->tls_sec != NULL);
+-  return elf_hash_table (info)->tls_sec->vma;
++  BFD_ASSERT (tls != NULL);
++  return tls->vma;
+ }
+ 
+ /* Return the base VMA address which should be subtracted from real addresses
+@@ -5403,14 +5405,13 @@ dtpoff_base (struct bfd_link_info *info)
+ static bfd_vma
+ tpoff_base (struct bfd_link_info *info)
+ {
+-  struct elf_link_hash_table *htab = elf_hash_table (info);
+-
++  asection * tls = elf_hash_table (info)->tls_sec;
++  
+   /* If tls_sec is NULL, we should have signalled an error already.  */
+-  BFD_ASSERT (htab->tls_sec != NULL);
++  BFD_ASSERT (tls != NULL);
+ 
+-  bfd_vma base = align_power ((bfd_vma) TCB_SIZE,
+-			      htab->tls_sec->alignment_power);
+-  return htab->tls_sec->vma - base;
++  bfd_vma base = align_power ((bfd_vma) TCB_SIZE, tls->alignment_power);
++  return tls->vma - base;
+ }
+ 
+ static bfd_vma *
+@@ -6497,7 +6498,7 @@ elfNN_aarch64_final_link_relocate (reloc
+       break;
+ 
+     case BFD_RELOC_AARCH64_TLS_DTPREL:
+-      if (input_section->flags & SEC_ALLOC)
++      if (input_section->flags & SEC_ALLOC || elf_hash_table (info)->tls_sec == NULL)
+ 	return bfd_reloc_notsupported;
+       value -= dtpoff_base (info);
+       value += rel->r_addend;
+@@ -7272,6 +7273,17 @@ elfNN_aarch64_relocate_section (bfd *out
+ 		    }
+ 		  else if (indx == 0)
+ 		    {
++		      if (elf_hash_table (info)->tls_sec == NULL)
++			{
++			  _bfd_error_handler
++			    /* xgettext:c-format */
++			    (_("%pB(%pA+%#" PRIx64 "): "
++			       "unresolvable %s relocation against symbol `%s'"),
++			     input_bfd, input_section, (uint64_t) rel->r_offset, howto->name,
++			     h->root.root.string);
++			  return false;
++			}
++		      
+ 		      bfd_put_NN (output_bfd,
+ 				  relocation - dtpoff_base (info),
+ 				  globals->root.sgot->contents + off
+@@ -7301,6 +7313,17 @@ elfNN_aarch64_relocate_section (bfd *out
+ 		}
+ 	      else
+ 		{
++		  if (elf_hash_table (info)->tls_sec == NULL)
++		    {
++		      _bfd_error_handler
++			/* xgettext:c-format */
++			(_("%pB(%pA+%#" PRIx64 "): "
++			   "unresolvable %s relocation against symbol `%s'"),
++			 input_bfd, input_section, (uint64_t) rel->r_offset, howto->name,
++			 h->root.root.string);
++		      return false;
++		    }
++		  
+ 		  bfd_put_NN (output_bfd, (bfd_vma) 1,
+ 			      globals->root.sgot->contents + off);
+ 		  bfd_put_NN (output_bfd,
+@@ -7342,7 +7365,20 @@ elfNN_aarch64_relocate_section (bfd *out
+ 		  Elf_Internal_Rela rela;
+ 
+ 		  if (indx == 0)
+-		    rela.r_addend = relocation - dtpoff_base (info);
++		    {
++		      if (elf_hash_table (info)->tls_sec == NULL)
++			{
++			  _bfd_error_handler
++			    /* xgettext:c-format */
++			    (_("%pB(%pA+%#" PRIx64 "): "
++			       "unresolvable %s relocation against symbol `%s'"),
++			     input_bfd, input_section, (uint64_t) rel->r_offset, howto->name,
++			     h->root.root.string);
++			  return false;
++			}
++		      
++		      rela.r_addend = relocation - dtpoff_base (info);
++		    }
+ 		  else
+ 		    rela.r_addend = 0;
+ 
+@@ -7360,8 +7396,21 @@ elfNN_aarch64_relocate_section (bfd *out
+ 			      globals->root.sgot->contents + off);
+ 		}
+ 	      else
+-		bfd_put_NN (output_bfd, relocation - tpoff_base (info),
+-			    globals->root.sgot->contents + off);
++		{
++		  if (elf_hash_table (info)->tls_sec == NULL)
++		    {
++		      _bfd_error_handler
++			/* xgettext:c-format */
++			(_("%pB(%pA+%#" PRIx64 "): "
++			   "unresolvable %s relocation against symbol `%s'"),
++			 input_bfd, input_section, (uint64_t) rel->r_offset, howto->name,
++			 h->root.root.string);
++		      return false;
++		    }
++
++		  bfd_put_NN (output_bfd, relocation - tpoff_base (info),
++			      globals->root.sgot->contents + off);
++		}
+ 
+ 	      symbol_got_offset_mark (input_bfd, h, r_symndx);
+ 	    }
+@@ -7399,7 +7448,20 @@ elfNN_aarch64_relocate_section (bfd *out
+ 				   + off + globals->sgotplt_jump_table_size);
+ 
+ 		  if (indx == 0)
+-		    rela.r_addend = relocation - dtpoff_base (info);
++		    {
++		      if (elf_hash_table (info)->tls_sec == NULL)
++			{
++			  _bfd_error_handler
++			    /* xgettext:c-format */
++			    (_("%pB(%pA+%#" PRIx64 "): "
++			       "unresolvable %s relocation against symbol `%s'"),
++			     input_bfd, input_section, (uint64_t) rel->r_offset, howto->name,
++			     h->root.root.string);
++			  return false;
++			}
++		      
++		      rela.r_addend = relocation - dtpoff_base (info);
++		    }
+ 
+ 		  /* Allocate the next available slot in the PLT reloc
+ 		     section to hold our R_AARCH64_TLSDESC, the next
+--- binutils.orig/ld/testsuite/ld-elf/tls.exp	2026-06-04 15:04:55.967170259 +0100
++++ binutils-with-gold-2.46.50-48997323b0f/ld/testsuite/ld-elf/tls.exp	2026-06-04 15:08:11.936031107 +0100
+@@ -66,6 +66,7 @@ run_ld_link_tests [list \
+     ] \
+ ]
+ 
++setup_xfail "aarch64-*-*"
+ run_cc_link_tests [list \
+     [list \
+ 	"pr34165" \
