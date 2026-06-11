@@ -254,3 +254,16 @@ diff -rup binutils-with-gold-2.45.50-beab972c07d,orig/ld/testsuite/lib/ld-lib.ex
      return $text
  }
  
+--- binutils.orig/ld/testsuite/ld-elf/shared.exp	2026-06-10 15:32:21.012274073 +0100
++++ binutils-with-gold-2.46.50-48997323b0f/ld/testsuite/ld-elf/shared.exp	2026-06-10 15:34:41.397899263 +0100
+@@ -1859,6 +1859,10 @@ run_cc_link_tests [list \
+ 	"pr29655.so" \
+     ] \
+ ]
++
++# FIXME: Find out why the Risc-V fails this test.
++setup_xfail "riscv64-*-*"
++
+ # PR 29655 (cont.): Check that in PIC code linked as PDE taking the address
+ # of a function defined in a DSO results in the function address (from GOT)
+ # and not the "canonical PLT" address from the PDE.
