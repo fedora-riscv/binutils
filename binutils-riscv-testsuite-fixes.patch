@@ -270,7 +270,8 @@ diff -rup binutils-with-gold-2.45.50-beab972c07d,orig/ld/testsuite/lib/ld-lib.ex
 
 --- binutils.orig/gas/testsuite/gas/riscv/march-help.l  2026-06-25 00:00:00.000000000 +0000
 +++ binutils-with-gold-2.46.50-f85ff0c4bce/gas/testsuite/gas/riscv/march-help.l 2026-07-09 00:00:00.000000000 +0000
-@@ -127,7 +127,7 @@
+@@ -126,7 +126,7 @@
+        smcntrpmf                               1.0
         smctr                                   1.0
         smepmp                                  1.0
 -       smpmpmt                                 0.6
